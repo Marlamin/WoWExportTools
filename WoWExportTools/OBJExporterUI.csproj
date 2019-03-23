@@ -50,6 +50,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CascLibCore">
       <HintPath>..\..\WoWFormatTest\CASCExplorer\CascLibCore\bin\Debug\netstandard2.0\CascLibCore.dll</HintPath>
@@ -166,6 +169,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="icon.ico" />
     <Content Include="Utils\Blender plugins\2.7\io_scene_adt\import_adtobj.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
