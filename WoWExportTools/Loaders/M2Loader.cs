@@ -172,7 +172,6 @@ namespace OBJExporterUI.Loaders
 
             var modelindices = modelindicelist.ToArray();
 
-            //Console.WriteLine(modelindicelist.Count() + " indices!");
             ddBatch.indices = modelindices;
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, ddBatch.indiceBuffer);
