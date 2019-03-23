@@ -1,0 +1,41 @@
+# Visual Studio stuff
+*.[Cc]ache
+*.bak
+*.baml
+*.dll
+*.DS_Store
+*.exe
+*.g.cs
+*.g.i.cs
+*.log
+*.lref
+*.pdb
+*.resharper
+*.resources
+*.suo
+*.user
+.vs/*
+*FileListAbsolute*
+*TemporaryGenerated*
+[Bb]in/
+[Dd]ebug/
+[Oo]bj/
+[Rr]elease/
+Properties/
+[Tt]humbs.db
+_ReSharper.*
+Ankh.NoLoad
+build.force
+build/
+x64/
+
+# Libraries
+CSDBCReader.dll
+SereniaBLPLib.dll
+SharpDX
+
+# NuGet
+Packages/*
+
+# Don't include cached data files
+*.db2
