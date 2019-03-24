@@ -20,12 +20,24 @@ namespace OBJExporterUI
 
         public struct Vertex
         {
-            public Vector3 Position;
-            public Vector3 Normal;
-            public Vector2 TexCoord;
-            public Vector3 Color;
+            public Vector3D Position;
+            public Vector3D Normal;
+            public Vector2D TexCoord;
+            public Vector3D Color;
         }
 
+        public struct Vector3D
+        {
+            public double X;
+            public double Y;
+            public double Z;
+        }
+
+        public struct Vector2D
+        {
+            public double X;
+            public double Y;
+        }
         public struct Material
         {
             public string filename;

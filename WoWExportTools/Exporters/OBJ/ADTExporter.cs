@@ -26,9 +26,11 @@ namespace OBJExporterUI.Exporters.OBJ
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
-            var TileSize = 1600.0f / 3.0; //533.333
-            var ChunkSize = TileSize / 16.0; //33.333
-            var UnitSize = ChunkSize / 8.0; //4.166666
+            var MaxSize = 51200 / 3.0;
+            var TileSize = MaxSize / 32.0;
+            var ChunkSize = TileSize / 16.0;
+            var UnitSize = ChunkSize / 8.0;
+            var UnitSizeHalf = UnitSize / 2.0;
 
             Logger.WriteLine("ADT OBJ Exporter: Starting export of {0}..", file);
 
@@ -47,6 +49,27 @@ namespace OBJExporterUI.Exporters.OBJ
                 Logger.WriteLine("ADT OBJ Exporter: File {0} has no chunks, skipping export!", file);
                 return;
             }
+
+            var unitSizesHalf = new double[8];
+            unitSizesHalf[0] = 2.08463550;
+            unitSizesHalf[1] = 6.25065136;
+            unitSizesHalf[2] = 10.41666698;
+            unitSizesHalf[3] = 14.58463573;
+            unitSizesHalf[4] = 18.75065041;
+            unitSizesHalf[5] = 22.91666603;
+            unitSizesHalf[6] = 27.08463478;
+            unitSizesHalf[7] = 31.25065041;
+
+            var unitSizes = new double[9];
+            unitSizes[0] = 0;
+            unitSizes[1] = 4.16796875;
+            unitSizes[2] = 8.33398438;
+            unitSizes[3] = 12.50000000;
+            unitSizes[4] = 16.66796875;
+            unitSizes[5] = 20.83398438;
+            unitSizes[6] = 25.0000000;
+            unitSizes[7] = 29.16796875;
+            unitSizes[8] = 33.33398438;
 
             var renderBatches = new List<Structs.RenderBatch>();
             var verticelist = new List<Structs.Vertex>();
@@ -72,18 +95,39 @@ namespace OBJExporterUI.Exporters.OBJ
                     for (var j = 0; j < (((i % 2) != 0) ? 8 : 9); j++)
                     {
                         var v = new Structs.Vertex();
-                        v.Normal = new Vector3(chunk.normals.normal_2[idx] / 127f, chunk.normals.normal_0[idx] / 127f, chunk.normals.normal_1[idx] / 127f);
-                        v.Position = new Vector3(chunk.header.position.Y - (j * (float)UnitSize), chunk.vertices.vertices[idx++] + chunk.header.position.Z, chunk.header.position.X - (i * (float)UnitSize * 0.5f));
-                        if ((i % 2) != 0) v.Position.X -= 0.5f * (float)UnitSize;
-                        if(bakeQuality == "low" || bakeQuality == "medium")
+
+                        /*v.Normal = new Structs.Vector3D
                         {
-                            // One texture per model
-                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkY) / (float)TileSize, -(v.Position.Z - initialChunkX) / (float)TileSize);
+                            X = (double)chunk.normals.normal_2[idx] / 127,
+                            Y = (double)chunk.normals.normal_0[idx] / 127,
+                            Z = (double)chunk.normals.normal_1[idx] / 127
+                        };*/
+
+                        var x = chunk.header.position.Y - unitSizes[j];
+                        var y = chunk.vertices.vertices[idx++] + chunk.header.position.Z;
+                        var z = chunk.header.position.X - (i * UnitSizeHalf);
+
+                        v.Position = new Structs.Vector3D
+                            {
+                                X = x,
+                                Y = y,
+                                Z = z
+                           };
+
+                        if ((i % 2) != 0) v.Position.X = (x - UnitSizeHalf);
+
+                        if (bakeQuality == "low" || bakeQuality == "medium")
+                        {
+                            var tx = -(x - initialChunkY) / TileSize;
+                            var ty = -(z - initialChunkX) / TileSize;
+                            v.TexCoord = new Structs.Vector2D { X = Math.Round(tx, 3), Y = Math.Round(ty, 3) };
                         }
                         else if(bakeQuality == "high")
                         {
                             // Multiple textures per model, one per chunk
-                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkY) / (float)ChunkSize, -(v.Position.Z - initialChunkX) / (float)ChunkSize);
+                            var tx = -(x - initialChunkY) / ChunkSize;
+                            var ty = -(z - initialChunkX) / ChunkSize;
+                            v.TexCoord = new Structs.Vector2D { X = Math.Round(tx, 3), Y = Math.Round(ty, 3) };
                         }
                         verticelist.Add(v);
                     }
@@ -139,10 +183,9 @@ namespace OBJExporterUI.Exporters.OBJ
                         indicelist.AddRange(new int[] { off + j + 9, off + j + 8, off + j });
 
                         // Generates quads instead of 4x triangles
-                        /*
-                        indicelist.AddRange(new Int32[] { off + j + 8, off + j - 9, off + j - 8 });
-                        indicelist.AddRange(new Int32[] { off + j - 8, off + j + 9, off + j + 8 });
-                        */
+                        //indicelist.AddRange(new int[] { off + j + 8, off + j - 9, off + j - 8 });
+                        //indicelist.AddRange(new int[] { off + j - 8, off + j + 9, off + j + 8 });
+                        
                     }
 
                     if ((j + 1) % (9 + 8) == 0) j += 9;
@@ -366,12 +409,20 @@ namespace OBJExporterUI.Exporters.OBJ
             }
 
             objsw.WriteLine("g " + adtname.Replace(" ", ""));
-
+            var verticeCounter = 1;
+            var chunkCounter =1;
             foreach (var vertex in verticelist)
             {
+                objsw.WriteLine("# C" + chunkCounter + ".V" + verticeCounter);
                 objsw.WriteLine("v " + vertex.Position.X.ToString("R") + " " + vertex.Position.Y.ToString("R") + " " + vertex.Position.Z.ToString("R"));
                 objsw.WriteLine("vt " + vertex.TexCoord.X + " " + -vertex.TexCoord.Y);
                 objsw.WriteLine("vn " + vertex.Normal.X.ToString("R") + " " + vertex.Normal.Y.ToString("R") + " " + vertex.Normal.Z.ToString("R"));
+                verticeCounter++;
+                if(verticeCounter == 146)
+                {
+                    chunkCounter++;
+                    verticeCounter = 1;
+                }
             }
 
             if(bakeQuality == "low" || bakeQuality == "medium")
@@ -386,7 +437,10 @@ namespace OBJExporterUI.Exporters.OBJ
                 if (bakeQuality != "high" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]);  }
                 while (i < (renderBatch.firstFace + renderBatch.numFaces))
                 {
-                    objsw.WriteLine("f " + (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + " " + (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + " " + (indices[i] + 1) + "/" + (indices[i] + 1) + "/" + (indices[i] + 1));
+                    objsw.WriteLine("f " + 
+                        (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + " " + 
+                        (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + " " + 
+                        (indices[i] + 1) + "/" + (indices[i] + 1) + "/" + (indices[i] + 1));
                     i = i + 3;
                 }
             }
