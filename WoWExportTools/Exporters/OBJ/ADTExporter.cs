@@ -26,9 +26,9 @@ namespace OBJExporterUI.Exporters.OBJ
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
-            var TileSize = 1600.0f / 3.0f; //533.333
-            var ChunkSize = TileSize / 16.0f; //33.333
-            var UnitSize = ChunkSize / 8.0f; //4.166666
+            var TileSize = 1600.0f / 3.0; //533.333
+            var ChunkSize = TileSize / 16.0; //33.333
+            var UnitSize = ChunkSize / 8.0; //4.166666
 
             Logger.WriteLine("ADT OBJ Exporter: Starting export of {0}..", file);
 
@@ -73,17 +73,17 @@ namespace OBJExporterUI.Exporters.OBJ
                     {
                         var v = new Structs.Vertex();
                         v.Normal = new Vector3(chunk.normals.normal_2[idx] / 127f, chunk.normals.normal_0[idx] / 127f, chunk.normals.normal_1[idx] / 127f);
-                        v.Position = new Vector3(chunk.header.position.Y - (j * UnitSize), chunk.vertices.vertices[idx++] + chunk.header.position.Z, chunk.header.position.X - (i * UnitSize * 0.5f));
-                        if ((i % 2) != 0) v.Position.X -= 0.5f * UnitSize;
+                        v.Position = new Vector3(chunk.header.position.Y - (j * (float)UnitSize), chunk.vertices.vertices[idx++] + chunk.header.position.Z, chunk.header.position.X - (i * (float)UnitSize * 0.5f));
+                        if ((i % 2) != 0) v.Position.X -= 0.5f * (float)UnitSize;
                         if(bakeQuality == "low" || bakeQuality == "medium")
                         {
                             // One texture per model
-                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkY) / TileSize, -(v.Position.Z - initialChunkX) / TileSize);
+                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkY) / (float)TileSize, -(v.Position.Z - initialChunkX) / (float)TileSize);
                         }
                         else if(bakeQuality == "high")
                         {
                             // Multiple textures per model, one per chunk
-                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkY) / ChunkSize, -(v.Position.Z - initialChunkX) / ChunkSize);
+                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkY) / (float)ChunkSize, -(v.Position.Z - initialChunkX) / (float)ChunkSize);
                         }
                         verticelist.Add(v);
                     }
@@ -369,15 +369,21 @@ namespace OBJExporterUI.Exporters.OBJ
 
             foreach (var vertex in verticelist)
             {
-                objsw.WriteLine("v " + vertex.Position.X + " " + vertex.Position.Y + " " + vertex.Position.Z);
+                objsw.WriteLine("v " + vertex.Position.X.ToString("R") + " " + vertex.Position.Y.ToString("R") + " " + vertex.Position.Z.ToString("R"));
                 objsw.WriteLine("vt " + vertex.TexCoord.X + " " + -vertex.TexCoord.Y);
-                objsw.WriteLine("vn " + vertex.Normal.X + " " + vertex.Normal.Y + " " + vertex.Normal.Z);
+                objsw.WriteLine("vn " + vertex.Normal.X.ToString("R") + " " + vertex.Normal.Y.ToString("R") + " " + vertex.Normal.Z.ToString("R"));
+            }
+
+            if(bakeQuality == "low" || bakeQuality == "medium")
+            {
+                objsw.WriteLine("usemtl " + materials[1]);
+                objsw.WriteLine("s 1");
             }
 
             foreach (var renderBatch in renderBatches)
             {
                 var i = renderBatch.firstFace;
-                if (bakeQuality != "none" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]); objsw.WriteLine("s 1"); }
+                if (bakeQuality != "high" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]);  }
                 while (i < (renderBatch.firstFace + renderBatch.numFaces))
                 {
                     objsw.WriteLine("f " + (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + " " + (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + " " + (indices[i] + 1) + "/" + (indices[i] + 1) + "/" + (indices[i] + 1));
