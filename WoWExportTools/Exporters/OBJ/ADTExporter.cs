@@ -50,27 +50,6 @@ namespace OBJExporterUI.Exporters.OBJ
                 return;
             }
 
-            var unitSizesHalf = new double[8];
-            unitSizesHalf[0] = 2.08463550;
-            unitSizesHalf[1] = 6.25065136;
-            unitSizesHalf[2] = 10.41666698;
-            unitSizesHalf[3] = 14.58463573;
-            unitSizesHalf[4] = 18.75065041;
-            unitSizesHalf[5] = 22.91666603;
-            unitSizesHalf[6] = 27.08463478;
-            unitSizesHalf[7] = 31.25065041;
-
-            var unitSizes = new double[9];
-            unitSizes[0] = 0;
-            unitSizes[1] = 4.16796875;
-            unitSizes[2] = 8.33398438;
-            unitSizes[3] = 12.50000000;
-            unitSizes[4] = 16.66796875;
-            unitSizes[5] = 20.83398438;
-            unitSizes[6] = 25.0000000;
-            unitSizes[7] = 29.16796875;
-            unitSizes[8] = 33.33398438;
-
             var renderBatches = new List<Structs.RenderBatch>();
             var verticelist = new List<Structs.Vertex>();
             var indicelist = new List<int>();
@@ -79,139 +58,155 @@ namespace OBJExporterUI.Exporters.OBJ
             ConfigurationManager.RefreshSection("appSettings");
             var bakeQuality = ConfigurationManager.AppSettings["bakeQuality"];
 
-            var initialChunkY = reader.adtfile.chunks[0].header.position.Y;
-            var initialChunkX = reader.adtfile.chunks[0].header.position.X;
+            // Calculate ADT offset in world coordinates
+            var adtStartX = ((reader.adtfile.x - 32) * TileSize) * -1;
+            var adtStartY = ((reader.adtfile.y - 32) * TileSize) * -1;
 
-            for (uint c = 0; c < reader.adtfile.chunks.Count(); c++)
+            // Calculate first chunk offset in world coordinates
+            var initialChunkX = adtStartY + (reader.adtfile.chunks[0].header.indexX * ChunkSize) * -1;
+            var initialChunkY = adtStartX + (reader.adtfile.chunks[0].header.indexY * ChunkSize) * -1;
+
+            uint ci = 0;
+            for(var x = 0; x < 16; x++)
             {
-                var chunk = reader.adtfile.chunks[c];
-
-                var off = verticelist.Count();
-
-                var batch = new Structs.RenderBatch();
-
-                for (int i = 0, idx = 0; i < 17; i++)
+                for (var y = 0; y < 16; y++)
                 {
-                    for (var j = 0; j < (((i % 2) != 0) ? 8 : 9); j++)
+                    var genx = (initialChunkX + (ChunkSize * x) * -1);
+                    var geny = (initialChunkY + (ChunkSize * y) * -1);
+
+                    Console.WriteLine(ci + ": " + x + "." + y + ": Gen X " + genx.ToString("G") + ", Gen Y " + geny.ToString("G") + ", Orig X " + reader.adtfile.chunks[ci].header.position.X + ", Orig Y " + reader.adtfile.chunks[ci].header.position.Y);
+
+                    var chunk = reader.adtfile.chunks[ci];
+
+                    var off = verticelist.Count();
+
+                    var batch = new Structs.RenderBatch();
+
+                    for (int i = 0, idx = 0; i < 17; i++)
                     {
-                        var v = new Structs.Vertex();
-
-                        /*v.Normal = new Structs.Vector3D
+                        for (var j = 0; j < (((i % 2) != 0) ? 8 : 9); j++)
                         {
-                            X = (double)chunk.normals.normal_2[idx] / 127,
-                            Y = (double)chunk.normals.normal_0[idx] / 127,
-                            Z = (double)chunk.normals.normal_1[idx] / 127
-                        };*/
+                            var v = new Structs.Vertex();
 
-                        var x = chunk.header.position.Y - unitSizes[j];
-                        var y = chunk.vertices.vertices[idx++] + chunk.header.position.Z;
-                        var z = chunk.header.position.X - (i * UnitSizeHalf);
-
-                        v.Position = new Structs.Vector3D
+                            v.Normal = new Structs.Vector3D
                             {
-                                X = x,
-                                Y = y,
-                                Z = z
-                           };
+                                X = (double)chunk.normals.normal_2[idx] / 127,
+                                Y = (double)chunk.normals.normal_0[idx] / 127,
+                                Z = (double)chunk.normals.normal_1[idx] / 127
+                            };
 
-                        if ((i % 2) != 0) v.Position.X = (x - UnitSizeHalf);
+                            var px = geny - (j * UnitSize);
+                            var py = chunk.vertices.vertices[idx++] + chunk.header.position.Z;
+                            var pz = genx - (i * UnitSizeHalf);
 
-                        if (bakeQuality == "low" || bakeQuality == "medium")
-                        {
-                            var tx = -(x - initialChunkY) / TileSize;
-                            var ty = -(z - initialChunkX) / TileSize;
-                            v.TexCoord = new Structs.Vector2D { X = Math.Round(tx, 3), Y = Math.Round(ty, 3) };
-                        }
-                        else if(bakeQuality == "high")
-                        {
-                            // Multiple textures per model, one per chunk
-                            var tx = -(x - initialChunkY) / ChunkSize;
-                            var ty = -(z - initialChunkX) / ChunkSize;
-                            v.TexCoord = new Structs.Vector2D { X = Math.Round(tx, 3), Y = Math.Round(ty, 3) };
-                        }
-                        verticelist.Add(v);
-                    }
-                }
+                            v.Position = new Structs.Vector3D
+                            {
+                                X = px,
+                                Y = py,
+                                Z = pz
+                            };
 
-                batch.firstFace = (uint)indicelist.Count();
+                            if ((i % 2) != 0) v.Position.X = (px - UnitSizeHalf);
 
-                // Stupid C# and its structs
-                var holesHighRes = new byte[8];
-                holesHighRes[0] = chunk.header.holesHighRes_0;
-                holesHighRes[1] = chunk.header.holesHighRes_1;
-                holesHighRes[2] = chunk.header.holesHighRes_2;
-                holesHighRes[3] = chunk.header.holesHighRes_3;
-                holesHighRes[4] = chunk.header.holesHighRes_4;
-                holesHighRes[5] = chunk.header.holesHighRes_5;
-                holesHighRes[6] = chunk.header.holesHighRes_6;
-                holesHighRes[7] = chunk.header.holesHighRes_7;
-
-                for (int j = 9, xx = 0, yy = 0; j < 145; j++, xx++)
-                {
-                    if (xx >= 8) { xx = 0; ++yy; }
-                    var isHole = true;
-
-                    // Check if chunk is using low-res holes
-                    if ((chunk.header.flags & 0x10000) == 0)
-                    {
-                        // Calculate current hole number
-                        var currentHole = (int) Math.Pow (2,
-                                Math.Floor (xx / 2f) * 1f +
-                                Math.Floor (yy / 2f) * 4f);
-
-                        // Check if current hole number should be a hole
-                        if ((chunk.header.holesLowRes & currentHole) == 0)
-                        {
-                            isHole = false;
+                            if (bakeQuality == "low" || bakeQuality == "medium")
+                            {
+                                var tx = -(v.Position.X - initialChunkY) / TileSize;
+                                var ty = -(v.Position.Z - initialChunkX) / TileSize;
+                                v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
+                            }
+                            else if (bakeQuality == "high")
+                            {
+                                // Multiple textures per model, one per chunk
+                                var tx = -(v.Position.X - initialChunkY) / ChunkSize;
+                                var ty = -(v.Position.Z - initialChunkX) / ChunkSize;
+                                v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
+                            }
+                            verticelist.Add(v);
                         }
                     }
 
-                    else
+                    batch.firstFace = (uint)indicelist.Count();
+
+                    // Stupid C# and its structs
+                    var holesHighRes = new byte[8];
+                    holesHighRes[0] = chunk.header.holesHighRes_0;
+                    holesHighRes[1] = chunk.header.holesHighRes_1;
+                    holesHighRes[2] = chunk.header.holesHighRes_2;
+                    holesHighRes[3] = chunk.header.holesHighRes_3;
+                    holesHighRes[4] = chunk.header.holesHighRes_4;
+                    holesHighRes[5] = chunk.header.holesHighRes_5;
+                    holesHighRes[6] = chunk.header.holesHighRes_6;
+                    holesHighRes[7] = chunk.header.holesHighRes_7;
+
+                    for (int j = 9, xx = 0, yy = 0; j < 145; j++, xx++)
                     {
-                        // Check if current section is a hole
-                        if (((holesHighRes[yy] >> xx) & 1) == 0)
+                        if (xx >= 8) { xx = 0; ++yy; }
+                        var isHole = true;
+
+                        // Check if chunk is using low-res holes
+                        if ((chunk.header.flags & 0x10000) == 0)
                         {
-                            isHole = false;
+                            // Calculate current hole number
+                            var currentHole = (int)Math.Pow(2,
+                                    Math.Floor(xx / 2f) * 1f +
+                                    Math.Floor(yy / 2f) * 4f);
+
+                            // Check if current hole number should be a hole
+                            if ((chunk.header.holesLowRes & currentHole) == 0)
+                            {
+                                isHole = false;
+                            }
                         }
+
+                        else
+                        {
+                            // Check if current section is a hole
+                            if (((holesHighRes[yy] >> xx) & 1) == 0)
+                            {
+                                isHole = false;
+                            }
+                        }
+
+                        if (!isHole)
+                        {
+                            indicelist.AddRange(new int[] { off + j + 8, off + j - 9, off + j });
+                            indicelist.AddRange(new int[] { off + j - 9, off + j - 8, off + j });
+                            indicelist.AddRange(new int[] { off + j - 8, off + j + 9, off + j });
+                            indicelist.AddRange(new int[] { off + j + 9, off + j + 8, off + j });
+
+                            // Generates quads instead of 4x triangles
+                            //indicelist.AddRange(new int[] { off + j + 8, off + j - 9, off + j - 8 });
+                            //indicelist.AddRange(new int[] { off + j - 8, off + j + 9, off + j + 8 });
+
+                        }
+
+                        if ((j + 1) % (9 + 8) == 0) j += 9;
                     }
 
-                    if (!isHole)
+                    if (bakeQuality == "low" || bakeQuality == "medium")
                     {
-                        indicelist.AddRange(new int[] { off + j + 8, off + j - 9, off + j });
-                        indicelist.AddRange(new int[] { off + j - 9, off + j - 8, off + j });
-                        indicelist.AddRange(new int[] { off + j - 8, off + j + 9, off + j });
-                        indicelist.AddRange(new int[] { off + j + 9, off + j + 8, off + j });
-
-                        // Generates quads instead of 4x triangles
-                        //indicelist.AddRange(new int[] { off + j + 8, off + j - 9, off + j - 8 });
-                        //indicelist.AddRange(new int[] { off + j - 8, off + j + 9, off + j + 8 });
-                        
+                        if (!materials.ContainsKey(1))
+                        {
+                            materials.Add(1, Path.GetFileNameWithoutExtension(file));
+                        }
+                        batch.materialID = (uint)materials.Count();
                     }
-
-                    if ((j + 1) % (9 + 8) == 0) j += 9;
-                }
-
-                if (bakeQuality == "low" || bakeQuality == "medium")
-                {
-                    if (!materials.ContainsKey(1))
+                    else if (bakeQuality == "high")
                     {
-                        materials.Add(1, Path.GetFileNameWithoutExtension(file));
+                        materials.Add((int)ci + 1, Path.GetFileNameWithoutExtension(file) + "_" + ci);
+                        batch.materialID = ci + 1;
                     }
-                    batch.materialID = (uint)materials.Count();
+
+                    batch.numFaces = (uint)(indicelist.Count()) - batch.firstFace;
+
+                    var layermats = new List<uint>();
+
+
+                    renderBatches.Add(batch);
+                    ci++;
                 }
-                else if(bakeQuality == "high")
-                {
-                    materials.Add((int)c + 1, Path.GetFileNameWithoutExtension(file) + "_" + c);
-                    batch.materialID = c + 1;
-                }
-
-                batch.numFaces = (uint)(indicelist.Count()) - batch.firstFace;
-
-                var layermats = new List<uint>();
-
-
-                renderBatches.Add(batch);
             }
+
             ConfigurationManager.RefreshSection("appSettings");
 
             if (ConfigurationManager.AppSettings["exportWMO"] == "True" || ConfigurationManager.AppSettings["exportM2"] == "True")
