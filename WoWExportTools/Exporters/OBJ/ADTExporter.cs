@@ -429,7 +429,7 @@ namespace OBJExporterUI.Exporters.OBJ
             foreach (var renderBatch in renderBatches)
             {
                 var i = renderBatch.firstFace;
-                if (bakeQuality != "high" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]);  }
+                if (bakeQuality == "high" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]);  }
                 while (i < (renderBatch.firstFace + renderBatch.numFaces))
                 {
                     objsw.WriteLine("f " + 
