@@ -8,8 +8,6 @@ namespace OBJExporterUI
     /// </summary>
     public partial class Splash : Window
     {
-        //private readonly BackgroundWorker loadWorker = new BackgroundWorker();
-
         public Splash()
         {
             InitializeComponent();
@@ -20,20 +18,7 @@ namespace OBJExporterUI
             MainWindow win = new MainWindow(this);
             win.Visibility = Visibility.Hidden;
             win.Show();
-
-            //loadWorker.DoWork += LoadWorker_DoWork;
-            //loadWorker.ProgressChanged += LoadWorker_ProgressChanged;
         }
-
-        /*private void LoadWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }*/
-
-        /*private void LoadWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            throw new NotImplementedException();
-        }*/
 
         private void CheckFirstRun()
         {
@@ -63,14 +48,5 @@ namespace OBJExporterUI
 
             SplashProgressBar.Value = percent;
         }
-
-        /*private void SplashLoad_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            string state = (string)e.UserState;
-            if (!string.IsNullOrEmpty(state))
-                SplashProgressText.Content = state;
-
-            SplashProgressBar.Value = e.ProgressPercentage;
-        }*/
     }
 }
