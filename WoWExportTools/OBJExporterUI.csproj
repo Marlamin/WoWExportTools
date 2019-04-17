@@ -101,6 +101,7 @@
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="WoWFormatLib">
       <HintPath>..\..\WoWFormatTest\WoWFormatLib\bin\Debug\WoWFormatLib.dll</HintPath>
+    </Reference>
     <Reference Include="WpfAnimatedGif, Version=1.4.18.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\WpfAnimatedGif.1.4.18\lib\net\WpfAnimatedGif.dll</HintPath>
     </Reference>
