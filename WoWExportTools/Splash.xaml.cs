@@ -1,21 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.IO;
-using System.Linq;
+﻿using System.Configuration;
 using System.Windows;
-using System.Windows.Controls;
-using WoWFormatLib.Utils;
-using CASCLib;
-using System.Drawing.Imaging;
-using System.Windows.Media.Imaging;
-using System.Net;
-using System.IO.Compression;
-using Microsoft.VisualBasic.FileIO;
-using System.Windows.Media;
-using DBDefsLib;
-using System.Drawing;
 
 namespace OBJExporterUI
 {
