@@ -17,7 +17,6 @@ using System.Windows.Media;
 using DBDefsLib;
 using System.Drawing;
 
-
 namespace OBJExporterUI
 {
     /// <summary>
@@ -49,23 +48,22 @@ namespace OBJExporterUI
         private static bool ignoreTextureAlpha;
 
         private PreviewControl previewControl;
+        private Splash splash;
 
-        public MainWindow()
+        public MainWindow(Splash splash)
         {
-            if (bool.Parse(ConfigurationManager.AppSettings["firstrun"]) == true)
+            try
             {
-                var cfgWindow = new ConfigurationWindow();
-                cfgWindow.ShowDialog();
-
-                ConfigurationManager.RefreshSection("appSettings");
+                InitializeComponent();
+            }
+            catch (InvalidOperationException)
+            {
+                // For some reason, this throws when the MainWindow instance is created after
+                // the configuration window is closed on a first-run.
             }
 
-            if (bool.Parse(ConfigurationManager.AppSettings["firstrun"]) == true)
-            {
-                Close();
-            }
-
-            InitializeComponent();
+            this.splash = splash;
+            Closed += MainWindow_Closed;
 
             tileBox = tileListBox;
 
@@ -82,7 +80,7 @@ namespace OBJExporterUI
 
             cascworker.DoWork += CASCworker_DoWork;
             cascworker.RunWorkerCompleted += CASCworker_RunWorkerCompleted;
-            cascworker.ProgressChanged += Worker_ProgressChanged;
+            cascworker.ProgressChanged += CASC_ProgressChanged;
             cascworker.WorkerReportsProgress = true;
 
             fileworker.DoWork += Fileworker_DoWork;
@@ -117,6 +115,12 @@ namespace OBJExporterUI
                 exportM2.IsChecked = false;
             }
         }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            splash.Close();
+        }
+
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             cascworker.RunWorkerAsync();
@@ -214,7 +218,7 @@ namespace OBJExporterUI
         {
             worker.DoWork += Worker_DoWork;
             worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
-            worker.ProgressChanged += Worker_ProgressChanged;
+            worker.ProgressChanged += CASC_ProgressChanged;
             worker.WorkerReportsProgress = true;
 
             models = new List<string>();
@@ -325,6 +329,10 @@ namespace OBJExporterUI
             wmoCheckBox.Visibility = Visibility.Visible;
             m2CheckBox.Visibility = Visibility.Visible;
 
+            splash.Visibility = Visibility.Hidden;
+            Visibility = Visibility.Collapsed;
+            Visibility = Visibility.Visible;
+
             progressBar.Value = 100;
             loadingLabel.Content = "Done";
 
@@ -352,6 +360,22 @@ namespace OBJExporterUI
 
             progressBar.Value = e.ProgressPercentage;
         }
+
+        private void CASC_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            var state = (string)e.UserState;
+            string text = null;
+
+            if (!string.IsNullOrEmpty(state))
+            {
+                loadingLabel.Content = state;
+                text = state;
+            }
+
+            progressBar.Value = e.ProgressPercentage;
+            splash.SetLoadingStatus(text, e.ProgressPercentage);
+        }
+
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
             worker.ReportProgress(0, "Loading listfile..");
