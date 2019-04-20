@@ -17,7 +17,8 @@
         <Separator HorizontalAlignment="Left" Height="10" Margin="0,118,0,0" VerticalAlignment="Top" Width="292"/>
         <Separator HorizontalAlignment="Left" Height="17" Margin="0,51,0,0" VerticalAlignment="Top" Width="292"/>
         <Label Name="VersionLabel" Content="VERSION" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Height="41" Width="292" HorizontalContentAlignment="Center"/>
-        <Separator HorizontalAlignment="Left" Height="10" Margin="0,213,0,0" VerticalAlignment="Top" Width="292"/>
-        <Label Content="Expansion icons by WoWPedia" HorizontalAlignment="Left" Margin="58,228,0,0" VerticalAlignment="Top"/>
+        <Separator HorizontalAlignment="Left" Height="10" Margin="0,209,0,0" VerticalAlignment="Top" Width="292"/>
+        <Label Content="Expansion icons by WoWPedia" HorizontalAlignment="Left" Margin="58,213,0,0" VerticalAlignment="Top"/>
+        <Label Content="Icon &amp; splash screen animation by Kruithne" HorizontalAlignment="Left" Margin="24,239,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>
