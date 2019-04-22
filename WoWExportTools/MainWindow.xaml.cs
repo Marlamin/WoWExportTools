@@ -909,12 +909,7 @@ namespace OBJExporterUI
             //var mw = new MapWindow(selectedItem.Internal);
             //mw.Show();
         }
-        private void BakeSize_DropDownClosed(object sender, EventArgs e)
-        {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings["bakeQuality"].Value = ((ComboBoxItem)bakeSize.SelectedItem).Name;
-            config.Save(ConfigurationSaveMode.Full);
-        }
+
         private void BakeSize_Loaded(object sender, RoutedEventArgs e)
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -1239,6 +1234,15 @@ namespace OBJExporterUI
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.AppSettings.Settings["exportM2"].Value = exportM2.IsChecked.ToString();
             config.Save(ConfigurationSaveMode.Full);
+        }
+
+        private void BakeSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings["bakeQuality"].Value = ((ComboBoxItem)bakeSize.SelectedItem).Name;
+            config.Save(ConfigurationSaveMode.Full);
+
+            e.Handled = true;
         }
     }
 }
