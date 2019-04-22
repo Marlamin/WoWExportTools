@@ -75,7 +75,10 @@ namespace OBJExporterUI
                 ResetCamera();
 
             if (state.IsKeyDown(Key.I))
+            {
                 Console.WriteLine(Pos.ToString());
+                Console.WriteLine(rotationAngle.ToString());
+            }
         }
 
         public void ResetCamera()
