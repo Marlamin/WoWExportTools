@@ -132,12 +132,13 @@ namespace OBJExporterUI
             previewControl.LoadModel((string)modelListBox.SelectedItem);
         }
 
-        private void FilterBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void UpdateFilter()
         {
-            var filtered = new List<string>();
+            if (!MainMenu.IsEnabled)
+                return;
 
-            var selectedTab = (TabItem)tabs.SelectedItem;
-            if ((string)selectedTab.Header == "Textures")
+            var filtered = new List<string>();
+            if (TexturesTab.IsSelected)
             {
                 for (var i = 0; i < textures.Count(); i++)
                 {
@@ -149,11 +150,11 @@ namespace OBJExporterUI
 
                 textureListBox.DataContext = filtered;
             }
-            else if ((string)selectedTab.Header == "Maps")
+            else if (MapsTab.IsSelected)
             {
                 UpdateMapListView();
             }
-            else
+            else if (ModelsTab.IsSelected)
             {
                 if (filterTextBox.Text.StartsWith("maptile:"))
                 {
@@ -187,8 +188,13 @@ namespace OBJExporterUI
 
                 modelListBox.DataContext = filtered;
             }
-
         }
+
+        private void FilterBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateFilter();
+        }
+
         private void ExportButton_Click(object sender, RoutedEventArgs e)
         {
             if ((string)exportButton.Content == "Crawl maptile for models")
@@ -583,21 +589,7 @@ namespace OBJExporterUI
 
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(e.Source == tabs)
-            {
-                if (MapsTab.IsSelected)
-                {
-
-                }
-                else if (ModelsTab.IsSelected)
-                {
-
-                }
-                else if (TexturesTab.IsSelected)
-                {
-
-                }
-            }
+            UpdateFilter();
         }
 
         /* Model tab */
@@ -637,6 +629,7 @@ namespace OBJExporterUI
             {
                 textureListBox.DataContext = textures;
                 texturesLoaded = true;
+                UpdateFilter();
             }
         }
         private void TextureListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
