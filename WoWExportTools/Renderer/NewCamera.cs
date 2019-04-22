@@ -69,6 +69,12 @@ namespace OBJExporterUI
             if (state.IsKeyDown(Key.Down))
                 Pos.Z -= 0.1f;
 
+            if (state.IsKeyDown(Key.Right))
+                Pos.Y -= 0.1f;
+
+            if (state.IsKeyDown(Key.Left))
+                Pos.Y += 0.1f;
+
             if (state.IsKeyDown(Key.R))
                 ResetCamera();
 
