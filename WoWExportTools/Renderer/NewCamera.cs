@@ -20,8 +20,6 @@ namespace OBJExporterUI
         private Vector3 Target;
         private Vector3 Up;
 
-        public string mode = "perspective";
-
         private float rotationAngle = 0.0f;
 
         private float stepSize = 1.0f;
@@ -37,28 +35,6 @@ namespace OBJExporterUI
 
             Up = Vector3.UnitZ;
             Up.Normalize();
-        }
-
-        public void switchMode(string mode)
-        {
-            this.mode = mode;
-
-            if(mode == "perspective")
-            {
-                Up = Vector3.UnitZ;
-                Up.Normalize();
-            }
-            else if(mode == "ortho")
-            {
-                Up = Vector3.UnitY;
-                Up.Normalize();
-            }
-            else
-            {
-                throw new Exception("Unknown camera mode " + mode);
-            }
-
-            viewportSize(Width, Height);
         }
 
         public void processKeyboardInput(KeyboardState state)
@@ -111,14 +87,7 @@ namespace OBJExporterUI
             Width = viewportWidth;
             Height = viewportHeight;
             float aspectRatio = Width / (float)Height;
-            if(mode == "perspective")
-            {
-                projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 1.0f, 4096.0f);
-            }
-            else
-            {
-                projectionMatrix = Matrix4.CreateOrthographic(Width, Height, 1.0f, 50.0f);
-            }
+            projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 1.0f, 4096.0f);
         }
 
         public void setupGLRenderMatrix(int shaderProgram)

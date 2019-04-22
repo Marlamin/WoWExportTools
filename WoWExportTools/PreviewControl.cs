@@ -102,7 +102,6 @@ namespace OBJExporterUI
                     return;
                 }
 
-                ActiveCamera.switchMode("perspective");
                 ActiveCamera.Pos = new Vector3((cache.doodadBatches[filename].boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
                 modelType = "m2";
 
@@ -114,7 +113,6 @@ namespace OBJExporterUI
                 {
                     WMOLoader.LoadWMO(filename, cache, wmoShaderProgram);
                 }
-                ActiveCamera.switchMode("perspective");
                 modelType = "wmo";
 
                 ready = true;
