@@ -601,6 +601,8 @@ namespace OBJExporterUI
             {
                 previewControl.LoadModel((string)modelListBox.SelectedItem);
             }
+
+            e.Handled = true;
         }
         private void ModelCheckBoxChanged(object sender, RoutedEventArgs e)
         {
@@ -675,6 +677,8 @@ namespace OBJExporterUI
             {
                 Console.WriteLine(blpException.Message);
             }
+
+            e.Handled = true;
         }
 
         private void IgnoreAlpha_Checked(object sender, RoutedEventArgs e)
@@ -785,6 +789,8 @@ namespace OBJExporterUI
                     }
                 }
             }
+
+            e.Handled = true;
         }
         private void TileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -829,6 +835,8 @@ namespace OBJExporterUI
             {
                 Console.WriteLine(blpException.Message);
             }
+
+            e.Handled = true;
         }
         private void MapCheckBox_Click(object sender, RoutedEventArgs e)
         {
