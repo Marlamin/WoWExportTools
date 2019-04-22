@@ -132,12 +132,13 @@ namespace OBJExporterUI
             previewControl.LoadModel((string)modelListBox.SelectedItem);
         }
 
-        private void FilterBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void UpdateFilter()
         {
-            var filtered = new List<string>();
+            if (!MainMenu.IsEnabled)
+                return;
 
-            var selectedTab = (TabItem)tabs.SelectedItem;
-            if ((string)selectedTab.Header == "Textures")
+            var filtered = new List<string>();
+            if (TexturesTab.IsSelected)
             {
                 for (var i = 0; i < textures.Count(); i++)
                 {
@@ -149,11 +150,11 @@ namespace OBJExporterUI
 
                 textureListBox.DataContext = filtered;
             }
-            else if ((string)selectedTab.Header == "Maps")
+            else if (MapsTab.IsSelected)
             {
                 UpdateMapListView();
             }
-            else
+            else if (ModelsTab.IsSelected)
             {
                 if (filterTextBox.Text.StartsWith("maptile:"))
                 {
@@ -187,8 +188,13 @@ namespace OBJExporterUI
 
                 modelListBox.DataContext = filtered;
             }
-
         }
+
+        private void FilterBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateFilter();
+        }
+
         private void ExportButton_Click(object sender, RoutedEventArgs e)
         {
             if ((string)exportButton.Content == "Crawl maptile for models")
@@ -342,7 +348,10 @@ namespace OBJExporterUI
             textureListBox.DataContext = textures;
 
             Logger.WriteLine("Worker: Startup complete!");
-            previewControl.LoadModel("world/arttest/boxtest/xyz.m2");
+            previewControl.LoadModel("spells/axistestobject.m2");
+            previewControl.SetCamera(3.200006f, 0f, 0.6000016f, 0.9000001f);
+
+            UpdateFilter();
 #if DEBUG
             //var file = "world/maps/troll raid/troll raid_23_33.adt";
            /// Exporters.glTF.ADTExporter.exportADT(file);
@@ -583,21 +592,7 @@ namespace OBJExporterUI
 
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(e.Source == tabs)
-            {
-                if (MapsTab.IsSelected)
-                {
-
-                }
-                else if (ModelsTab.IsSelected)
-                {
-
-                }
-                else if (TexturesTab.IsSelected)
-                {
-
-                }
-            }
+            UpdateFilter();
         }
 
         /* Model tab */
@@ -607,6 +602,8 @@ namespace OBJExporterUI
             {
                 previewControl.LoadModel((string)modelListBox.SelectedItem);
             }
+
+            e.Handled = true;
         }
         private void ModelCheckBoxChanged(object sender, RoutedEventArgs e)
         {
@@ -637,6 +634,7 @@ namespace OBJExporterUI
             {
                 textureListBox.DataContext = textures;
                 texturesLoaded = true;
+                UpdateFilter();
             }
         }
         private void TextureListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -672,12 +670,16 @@ namespace OBJExporterUI
                     bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                     bitmapImage.EndInit();
                     blpImage.Source = bitmapImage;
+                    blpImage.MaxWidth = bitmapImage.Width;
+                    blpImage.MaxHeight = bitmapImage.Height;
                 }
             }
             catch (Exception blpException)
             {
                 Console.WriteLine(blpException.Message);
             }
+
+            e.Handled = true;
         }
 
         private void IgnoreAlpha_Checked(object sender, RoutedEventArgs e)
@@ -788,19 +790,17 @@ namespace OBJExporterUI
                     }
                 }
             }
+
+            e.Handled = true;
         }
         private void TileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
                 var file = (string)tileListBox.SelectedItem;
-
                 var selectedItem = (MapListItem)mapListBox.SelectedItem;
-
                 var splitTile = file.Split('_');
-
                 var fixedTileName = splitTile[0].PadLeft(2, '0') + "_" + splitTile[1].PadLeft(2, '0');
-
                 var minimapFile = "world\\minimaps\\" + selectedItem.Internal + "\\map" + fixedTileName + ".blp";
 
                 if (!CASC.FileExists(minimapFile))
@@ -836,6 +836,8 @@ namespace OBJExporterUI
             {
                 Console.WriteLine(blpException.Message);
             }
+
+            e.Handled = true;
         }
         private void MapCheckBox_Click(object sender, RoutedEventArgs e)
         {
@@ -907,12 +909,7 @@ namespace OBJExporterUI
             //var mw = new MapWindow(selectedItem.Internal);
             //mw.Show();
         }
-        private void BakeSize_DropDownClosed(object sender, EventArgs e)
-        {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings["bakeQuality"].Value = ((ComboBoxItem)bakeSize.SelectedItem).Name;
-            config.Save(ConfigurationSaveMode.Full);
-        }
+
         private void BakeSize_Loaded(object sender, RoutedEventArgs e)
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -1237,6 +1234,15 @@ namespace OBJExporterUI
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.AppSettings.Settings["exportM2"].Value = exportM2.IsChecked.ToString();
             config.Save(ConfigurationSaveMode.Full);
+        }
+
+        private void BakeSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings["bakeQuality"].Value = ((ComboBoxItem)bakeSize.SelectedItem).Name;
+            config.Save(ConfigurationSaveMode.Full);
+
+            e.Handled = true;
         }
     }
 }

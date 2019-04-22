@@ -51,14 +51,17 @@
                 </Grid>
             </TabItem>
             <TabItem x:Name="TexturesTab" Header="Textures" GotFocus="TexturesTab_GotFocus">
-                <Grid Background="Black">
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="2*" />
                     </Grid.RowDefinitions>
                     <ListBox Grid.Row="0" x:Name="textureListBox" SelectionMode="Extended" SelectionChanged="TextureListBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" ItemsSource="{Binding}"></ListBox>
-                    <CheckBox Content="Ignore transparency" Unchecked="IgnoreAlpha_Checked" Checked="IgnoreAlpha_Checked" Panel.ZIndex="2" x:Name="ignoreAlpha" HorizontalAlignment="Left" Margin="10,0,0,40" Foreground="White" VerticalAlignment="Bottom" IsChecked="False" Width="140" Grid.Row="1"/>
+                    <CheckBox Content="Ignore transparency" Unchecked="IgnoreAlpha_Checked" Checked="IgnoreAlpha_Checked" Panel.ZIndex="2" x:Name="ignoreAlpha" HorizontalAlignment="Left" Margin="10,0,0,40" Foreground="Black" VerticalAlignment="Bottom" IsChecked="False" Width="140" Grid.Row="1"/>
                     <Border Grid.Row="1" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,40">
+                        <Border.Background>
+                            <ImageBrush TileMode="Tile" Stretch="None" Viewport="0, 0, 16, 16" ViewportUnits="Absolute" ImageSource="Resources/checker.png"/>
+                        </Border.Background>
                         <Image x:Name="blpImage"/>
                     </Border>
                     <Button Grid.Row="1" x:Name="exportTextureButton" Height="25" Content="Export texture to PNG!" HorizontalAlignment="Stretch" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="ExportTextureButton_Click"/>
@@ -122,7 +125,7 @@
                     <CheckBox x:Name="exportWMO" Content="Export WMOs (Larger models like buildings or cities)" IsChecked="True" HorizontalAlignment="Left" Margin="83,0,0,220" Grid.Row="2" HorizontalContentAlignment="Center" Height="20" VerticalAlignment="Bottom" Click="ExportWMO_Click"/>
                     <CheckBox x:Name="exportM2" Content="Export M2s (Smaller models like trees and fences)" IsChecked="True" HorizontalAlignment="Left" Margin="83,0,0,200" Grid.Row="2" HorizontalContentAlignment="Center" Height="20" VerticalAlignment="Bottom" Click="ExportM2_Click"/>
                     <Label Content="Terrain texture size:" HorizontalAlignment="Left" Margin="78,0,0,170" Grid.Row="2" VerticalAlignment="Bottom" Width="113" Height="24"/>
-                    <ComboBox x:Name="bakeSize" SelectedIndex="1" Loaded="BakeSize_Loaded" DropDownClosed="BakeSize_DropDownClosed" HorizontalAlignment="Left" Margin="90,0,0,140" Grid.Row="2" HorizontalContentAlignment="Center" VerticalAlignment="Bottom" Height="25" Width="117">
+                    <ComboBox x:Name="bakeSize" SelectedIndex="1" Loaded="BakeSize_Loaded" SelectionChanged="BakeSize_SelectionChanged" HorizontalAlignment="Left" Margin="90,0,0,140" Grid.Row="2" HorizontalContentAlignment="Center" VerticalAlignment="Bottom" Height="25" Width="117">
                         <ComboBoxItem Name="none">None</ComboBoxItem>
                         <ComboBoxItem Name="low">4K (one file)</ComboBoxItem>
                         <ComboBoxItem Name="medium">8K (one file)</ComboBoxItem>

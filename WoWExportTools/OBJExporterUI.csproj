@@ -84,6 +84,7 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Net" />
     <Reference Include="System.Security" />
+    <Reference Include="System.ValueTuple" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -182,6 +183,7 @@
     <Resource Include="Resources\icon.ico" />
     <Resource Include="Resources\loading.gif" />
     <Resource Include="Resources\wet-logo.png" />
+    <Resource Include="Resources\checker.png" />
     <Content Include="Utils\Blender plugins\2.7\io_scene_adt\import_adtobj.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

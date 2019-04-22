@@ -39,6 +39,12 @@ namespace OBJExporterUI
             ActiveCamera = new NewCamera(renderCanvas.Width, renderCanvas.Height, new Vector3(0, 0, -1), new Vector3(-11, 0, 0));
         }
 
+        public void SetCamera(float x, float y, float z, float rot)
+        {
+            ActiveCamera.Pos = new Vector3(x, y, z);
+            ActiveCamera.rotationAngle = rot;
+        }
+
         private void RenderCanvas_Resize(object sender, EventArgs e)
         {
             GL.Viewport(0, 0, renderCanvas.Width, renderCanvas.Height);
@@ -102,7 +108,6 @@ namespace OBJExporterUI
                     return;
                 }
 
-                ActiveCamera.switchMode("perspective");
                 ActiveCamera.Pos = new Vector3((cache.doodadBatches[filename].boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
                 modelType = "m2";
 
@@ -114,11 +119,12 @@ namespace OBJExporterUI
                 {
                     WMOLoader.LoadWMO(filename, cache, wmoShaderProgram);
                 }
-                ActiveCamera.switchMode("perspective");
                 modelType = "wmo";
 
                 ready = true;
             }
+
+            ActiveCamera.ResetCamera();
         }
 
         public void WindowsFormsHost_Initialized(object sender, EventArgs e)

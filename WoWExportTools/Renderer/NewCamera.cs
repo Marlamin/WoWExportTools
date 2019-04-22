@@ -2,10 +2,6 @@
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OBJExporterUI
 {
@@ -20,11 +16,9 @@ namespace OBJExporterUI
         private Vector3 Target;
         private Vector3 Up;
 
-        public string mode = "perspective";
+        public float rotationAngle = 0.0f;
 
-        private float rotationAngle = 0.0f;
-
-        private float stepSize = 1.0f;
+        private float stepSize = 0.2f;
 
         public NewCamera(int viewportWidth, int viewportHeight, Vector3 pos, Vector3 target)
         {
@@ -39,86 +33,58 @@ namespace OBJExporterUI
             Up.Normalize();
         }
 
-        public void switchMode(string mode)
-        {
-            this.mode = mode;
-
-            if(mode == "perspective")
-            {
-                Up = Vector3.UnitZ;
-                Up.Normalize();
-            }
-            else if(mode == "ortho")
-            {
-                Up = Vector3.UnitY;
-                Up.Normalize();
-            }
-            else
-            {
-                throw new Exception("Unknown camera mode " + mode);
-            }
-
-            viewportSize(Width, Height);
-        }
-
         public void processKeyboardInput(KeyboardState state)
         {
             if (state.IsKeyDown(Key.W))
-            {
                 Pos += (Target * stepSize);
-            }
 
             if (state.IsKeyDown(Key.S))
-            {
                 Pos -= (Target * stepSize);
-            }
 
             if (flyMode)
             {
                 if (state.IsKeyDown(Key.A))
-                {
                     Pos.Y -= 0.1f;
-                }
 
                 if (state.IsKeyDown(Key.D))
-                {
                     Pos.Y += 0.1f;
-                }
             }
             else
             {
                 if (state.IsKeyDown(Key.A))
-                {
                     rotationAngle += 0.1f;
-                }
 
                 if (state.IsKeyDown(Key.D))
-                {
                     rotationAngle -= 0.1f;
-                }
             }
 
           
             if (state.IsKeyDown(Key.Up))
-            {
                 Pos.Z += 0.1f;
-            }
 
             if (state.IsKeyDown(Key.Down))
-            {
                 Pos.Z -= 0.1f;
-            }
+
+            if (state.IsKeyDown(Key.Right))
+                Pos.Y -= 0.1f;
+
+            if (state.IsKeyDown(Key.Left))
+                Pos.Y += 0.1f;
 
             if (state.IsKeyDown(Key.R))
-            {
-                Pos = new Vector3(11.0f, 0, 4.0f);
-                rotationAngle = 0.0f;
-            }
+                ResetCamera();
 
             if (state.IsKeyDown(Key.I))
             {
                 Console.WriteLine(Pos.ToString());
+                Console.WriteLine(rotationAngle.ToString());
             }
+        }
+
+        public void ResetCamera()
+        {
+            Pos = new Vector3(11.0f, 0, 4.0f);
+            rotationAngle = 0.0f;
         }
 
         public void viewportSize(int viewportWidth, int viewportHeight)
@@ -126,14 +92,7 @@ namespace OBJExporterUI
             Width = viewportWidth;
             Height = viewportHeight;
             float aspectRatio = Width / (float)Height;
-            if(mode == "perspective")
-            {
-                projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 1.0f, 4096.0f);
-            }
-            else
-            {
-                projectionMatrix = Matrix4.CreateOrthographic(Width, Height, 1.0f, 50.0f);
-            }
+            projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 1.0f, 4096.0f);
         }
 
         public void setupGLRenderMatrix(int shaderProgram)

@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Loaded="Window_Loaded"
         WindowStyle="ToolWindow"
-        Title="Version" Height="300" Width="300">
+        Title="Version" Height="310" Width="300">
     <Grid>
         <Label Content="You can always find the latest version on the.." HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top" FontSize="10" Width="272" HorizontalContentAlignment="Center"/>
         <Label Content="Please report any bugs/issues by going to.." HorizontalAlignment="Left" Margin="10,133,0,0" VerticalAlignment="Top" FontSize="10" Width="272" HorizontalContentAlignment="Center"/>
