@@ -64,61 +64,41 @@ namespace OBJExporterUI
         public void processKeyboardInput(KeyboardState state)
         {
             if (state.IsKeyDown(Key.W))
-            {
                 Pos += (Target * stepSize);
-            }
 
             if (state.IsKeyDown(Key.S))
-            {
                 Pos -= (Target * stepSize);
-            }
 
             if (flyMode)
             {
                 if (state.IsKeyDown(Key.A))
-                {
                     Pos.Y -= 0.1f;
-                }
 
                 if (state.IsKeyDown(Key.D))
-                {
                     Pos.Y += 0.1f;
-                }
             }
             else
             {
                 if (state.IsKeyDown(Key.A))
-                {
                     rotationAngle += 0.1f;
-                }
 
                 if (state.IsKeyDown(Key.D))
-                {
                     rotationAngle -= 0.1f;
-                }
             }
 
           
             if (state.IsKeyDown(Key.Up))
-            {
                 Pos.Z += 0.1f;
-            }
 
             if (state.IsKeyDown(Key.Down))
-            {
                 Pos.Z -= 0.1f;
-            }
 
             if (state.IsKeyDown(Key.R))
-            {
                 Pos = new Vector3(11.0f, 0, 4.0f);
                 rotationAngle = 0.0f;
-            }
 
             if (state.IsKeyDown(Key.I))
-            {
                 Console.WriteLine(Pos.ToString());
-            }
         }
 
         public void viewportSize(int viewportWidth, int viewportHeight)
