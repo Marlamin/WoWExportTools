@@ -22,7 +22,7 @@ namespace OBJExporterUI
 
         private float rotationAngle = 0.0f;
 
-        private float stepSize = 1.0f;
+        private float stepSize = 0.2f;
 
         public NewCamera(int viewportWidth, int viewportHeight, Vector3 pos, Vector3 target)
         {
