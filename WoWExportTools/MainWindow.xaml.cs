@@ -665,6 +665,8 @@ namespace OBJExporterUI
                     bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                     bitmapImage.EndInit();
                     blpImage.Source = bitmapImage;
+                    blpImage.MaxWidth = bitmapImage.Width;
+                    blpImage.MaxHeight = bitmapImage.Height;
                 }
             }
             catch (Exception blpException)
