@@ -119,6 +119,8 @@ namespace OBJExporterUI
 
                 ready = true;
             }
+
+            ActiveCamera.ResetCamera();
         }
 
         public void WindowsFormsHost_Initialized(object sender, EventArgs e)
