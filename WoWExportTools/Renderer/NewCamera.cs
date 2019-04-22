@@ -16,7 +16,7 @@ namespace OBJExporterUI
         private Vector3 Target;
         private Vector3 Up;
 
-        private float rotationAngle = 0.0f;
+        public float rotationAngle = 0.0f;
 
         private float stepSize = 0.2f;
 

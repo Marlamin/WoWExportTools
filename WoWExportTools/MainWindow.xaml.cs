@@ -348,7 +348,8 @@ namespace OBJExporterUI
             textureListBox.DataContext = textures;
 
             Logger.WriteLine("Worker: Startup complete!");
-            previewControl.LoadModel("world/arttest/boxtest/xyz.m2");
+            previewControl.LoadModel("spells/axistestobject.m2");
+            previewControl.SetCamera(3.200006f, 0f, 0.6000016f, 0.9000001f);
 
             UpdateFilter();
 #if DEBUG

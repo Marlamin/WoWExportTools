@@ -39,6 +39,12 @@ namespace OBJExporterUI
             ActiveCamera = new NewCamera(renderCanvas.Width, renderCanvas.Height, new Vector3(0, 0, -1), new Vector3(-11, 0, 0));
         }
 
+        public void SetCamera(float x, float y, float z, float rot)
+        {
+            ActiveCamera.Pos = new Vector3(x, y, z);
+            ActiveCamera.rotationAngle = rot;
+        }
+
         private void RenderCanvas_Resize(object sender, EventArgs e)
         {
             GL.Viewport(0, 0, renderCanvas.Width, renderCanvas.Height);
