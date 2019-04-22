@@ -791,13 +791,9 @@ namespace OBJExporterUI
             try
             {
                 var file = (string)tileListBox.SelectedItem;
-
                 var selectedItem = (MapListItem)mapListBox.SelectedItem;
-
                 var splitTile = file.Split('_');
-
                 var fixedTileName = splitTile[0].PadLeft(2, '0') + "_" + splitTile[1].PadLeft(2, '0');
-
                 var minimapFile = "world\\minimaps\\" + selectedItem.Internal + "\\map" + fixedTileName + ".blp";
 
                 if (!CASC.FileExists(minimapFile))
