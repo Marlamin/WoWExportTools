@@ -349,6 +349,8 @@ namespace OBJExporterUI
 
             Logger.WriteLine("Worker: Startup complete!");
             previewControl.LoadModel("world/arttest/boxtest/xyz.m2");
+
+            UpdateFilter();
 #if DEBUG
             //var file = "world/maps/troll raid/troll raid_23_33.adt";
            /// Exporters.glTF.ADTExporter.exportADT(file);
