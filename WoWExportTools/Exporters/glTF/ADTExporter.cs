@@ -103,18 +103,32 @@ namespace OBJExporterUI.Exporters.glTF
                     {
                         var v = new Structs.Vertex
                         {
-                            Normal = new Vector3(chunk.normals.normal_2[idx] / 127f, chunk.normals.normal_0[idx] / 127f, chunk.normals.normal_1[idx] / 127f),
-                            Position = new Vector3(chunk.header.position.Y - (j * UnitSize), chunk.vertices.vertices[idx++] + chunk.header.position.Z, chunk.header.position.X - (i * UnitSize * 0.5f))
+                            Normal = new Structs.Vector3D
+                            {
+                                X = chunk.normals.normal_2[idx] / 127f,
+                                Y = chunk.normals.normal_0[idx] / 127f,
+                                Z = chunk.normals.normal_1[idx] / 127f
+                            },
+                            Position = new Structs.Vector3D{
+                                X = chunk.header.position.Y - (j * UnitSize),
+                                Y = chunk.vertices.vertices[idx++] + chunk.header.position.Z,
+                                Z = chunk.header.position.X - (i * UnitSize * 0.5f)
+                            }
                         };
 
                         if ((i % 2) != 0) v.Position.X -= 0.5f * UnitSize;
                         if (bakeQuality == "low" || bakeQuality == "medium")
                         {
-                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkX) / TileSize, -(v.Position.Z - initialChunkY) / TileSize);
+                            var tx = -(v.Position.X - initialChunkY) / TileSize;
+                            var ty = -(v.Position.Y - initialChunkX) / TileSize;
+                            v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                         }
                         else if (bakeQuality == "high")
                         {
-                            v.TexCoord = new Vector2(-(v.Position.X - initialChunkX) / ChunkSize, -(v.Position.Z - initialChunkY) / ChunkSize);
+                            // Multiple textures per model, one per chunk
+                            var tx = -(v.Position.X - initialChunkY) / ChunkSize;
+                            var ty = -(v.Position.Y - initialChunkX) / ChunkSize;
+                            v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                         }
                         localVertices[idx - 1] = v;
                     }
@@ -127,13 +141,13 @@ namespace OBJExporterUI.Exporters.glTF
                     target = 34962
                 };
 
-                var minPosX = float.MaxValue;
-                var minPosY = float.MaxValue;
-                var minPosZ = float.MaxValue;
+                var minPosX = double.MaxValue;
+                var minPosY = double.MaxValue;
+                var minPosZ = double.MaxValue;
 
-                var maxPosX = float.MinValue;
-                var maxPosY = float.MinValue;
-                var maxPosZ = float.MinValue;
+                var maxPosX = double.MinValue;
+                var maxPosY = double.MinValue;
+                var maxPosZ = double.MinValue;
 
                 // Position buffer
                 foreach (var vertex in localVertices)
@@ -163,8 +177,8 @@ namespace OBJExporterUI.Exporters.glTF
                     componentType = 5126,
                     count = 145,
                     type = "VEC3",
-                    min = new float[] { minPosX, minPosY, minPosZ },
-                    max = new float[] { maxPosX, maxPosY, maxPosZ }
+                    min = new float[] { (float)minPosX, (float)minPosY, (float)minPosZ },
+                    max = new float[] { (float)maxPosX, (float)maxPosY, (float)maxPosZ }
                 });
 
                 bufferViews.Add(vPosBuffer);

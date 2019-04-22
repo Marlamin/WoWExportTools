@@ -69,9 +69,26 @@ namespace OBJExporterUI.Exporters.OBJ
 
                 for (var i = 0; i < wmo.group[g].mogp.vertices.Count(); i++)
                 {
-                    groups[g].vertices[i].Position = new Vector3(wmo.group[g].mogp.vertices[i].vector.X * -1, wmo.group[g].mogp.vertices[i].vector.Z, wmo.group[g].mogp.vertices[i].vector.Y);
-                    groups[g].vertices[i].Normal = new Vector3(wmo.group[g].mogp.normals[i].normal.X, wmo.group[g].mogp.normals[i].normal.Z, wmo.group[g].mogp.normals[i].normal.Y);
-                    groups[g].vertices[i].TexCoord = new Vector2(wmo.group[g].mogp.textureCoords[0][i].X, wmo.group[g].mogp.textureCoords[0][i].Y);
+                    groups[g].vertices[i].Position = new Structs.Vector3D()
+                    {
+                        X = wmo.group[g].mogp.vertices[i].vector.X * -1,
+                        Y = wmo.group[g].mogp.vertices[i].vector.Z,
+                        Z = wmo.group[g].mogp.vertices[i].vector.Y
+                    };
+
+                    groups[g].vertices[i].Normal = new Structs.Vector3D()
+                    {
+                        X = wmo.group[g].mogp.normals[i].normal.X,
+                        Y = wmo.group[g].mogp.normals[i].normal.Z,
+                        Z = wmo.group[g].mogp.normals[i].normal.Y
+                    };
+
+                    groups[g].vertices[i].TexCoord = new Structs.Vector2D()
+                    {
+                        X = wmo.group[g].mogp.textureCoords[0][i].X,
+                        Y = wmo.group[g].mogp.textureCoords[0][i].Y
+                    };
+
                     totalVertices++;
                 }
 

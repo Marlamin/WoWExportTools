@@ -50,9 +50,23 @@ namespace OBJExporterUI.Exporters.OBJ
 
             for (var i = 0; i < reader.model.vertices.Count(); i++)
             {
-                vertices[i].Position = new OpenTK.Vector3(reader.model.vertices[i].position.X, reader.model.vertices[i].position.Z, reader.model.vertices[i].position.Y * -1);
-                vertices[i].Normal = new OpenTK.Vector3(reader.model.vertices[i].normal.X, reader.model.vertices[i].normal.Z, reader.model.vertices[i].normal.Y);
-                vertices[i].TexCoord = new Vector2(reader.model.vertices[i].textureCoordX, reader.model.vertices[i].textureCoordY);
+                vertices[i].Position = new Structs.Vector3D(){
+                    X = reader.model.vertices[i].position.X,
+                    Y = reader.model.vertices[i].position.Z,
+                    Z = reader.model.vertices[i].position.Y * -1
+                };
+
+                vertices[i].Normal = new Structs.Vector3D() {
+                    X = reader.model.vertices[i].normal.X,
+                    Y = reader.model.vertices[i].normal.Z,
+                    Z = reader.model.vertices[i].normal.Y
+                };
+
+                vertices[i].TexCoord = new Structs.Vector2D()
+                {
+                    X = reader.model.vertices[i].textureCoordX,
+                    Y = reader.model.vertices[i].textureCoordY
+                };
             }
 
             StreamWriter objsw;
