@@ -89,31 +89,13 @@ namespace OBJExporterUI
             fileworker.WorkerReportsProgress = true;
 
             if (ConfigurationManager.AppSettings["exportFormat"] == "glTF")
-            {
                 exportButton.Content = "Export model to glTF!";
-            }
             else
-            {
                 exportButton.Content = "Export model to OBJ!";
-            }
 
-            if (ConfigurationManager.AppSettings["exportWMO"] == "True")
-            {
-                exportWMO.IsChecked = true;
-            }
-            else
-            {
-                exportWMO.IsChecked = false;
-            }
-
-            if (ConfigurationManager.AppSettings["exportM2"] == "True")
-            {
-                exportM2.IsChecked = true;
-            }
-            else
-            {
-                exportM2.IsChecked = false;
-            }
+            exportWMO.IsChecked = ConfigurationManager.AppSettings["exportWMO"] == "True";
+            exportM2.IsChecked = ConfigurationManager.AppSettings["exportM2"] == "True";
+            exportFoliage.IsChecked = ConfigurationManager.AppSettings["exportFoliage"] == "True";
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -1233,6 +1215,13 @@ namespace OBJExporterUI
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.AppSettings.Settings["exportM2"].Value = exportM2.IsChecked.ToString();
+            config.Save(ConfigurationSaveMode.Full);
+        }
+
+        private void ExportFoliage_Click(object sender, RoutedEventArgs e)
+        {
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings["exportFoliage"].Value = exportFoliage.IsChecked.ToString();
             config.Save(ConfigurationSaveMode.Full);
         }
 
