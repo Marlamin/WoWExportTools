@@ -106,12 +106,12 @@ namespace OBJExporterUI.Exporters.OBJ
 
             if (!string.IsNullOrEmpty(filename))
             {
-                objsw.WriteLine("# Written by Marlamin's WoW Exporter. Original file: " + filename);
+                objsw.WriteLine("# Written by Marlamin's WoW Export Tools. Original file: " + filename);
                 objsw.WriteLine("mtllib " + Path.GetFileNameWithoutExtension(filename) + ".mtl");
             }
             else
             {
-                objsw.WriteLine("# Written by Marlamin's WoW Exporter. Original fileDataID: " + fileDataID);
+                objsw.WriteLine("# Written by Marlamin's WoW Export Tools. Original fileDataID: " + fileDataID);
                 objsw.WriteLine("mtllib " + fileDataID + ".mtl");
             }
 
@@ -309,7 +309,7 @@ namespace OBJExporterUI.Exporters.OBJ
                     objsw = new StreamWriter(Path.Combine(outdir, fileDataID + ".phys.obj"));
                 }
 
-                objsw.WriteLine("# Written by Marlamin's WoW Exporter. Original file id: " + fileDataID);
+                objsw.WriteLine("# Written by Marlamin's WoW Export Tools. Original file id: " + fileDataID);
 
                 for (var i = 0; i < reader.model.boundingvertices.Count(); i++)
                 {

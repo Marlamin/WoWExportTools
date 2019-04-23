@@ -452,7 +452,7 @@ namespace OBJExporterUI.Exporters.OBJ
                     objsw = new StreamWriter(Path.Combine(outdir, destinationOverride, Path.GetFileName(filename.ToLower()).Replace(".wmo", ".obj")));
                 }
 
-                objsw.WriteLine("# Written by Marlamin's WoW OBJExporter. Original file: " + filename);
+                objsw.WriteLine("# Written by Marlamin's WoW Export Tools. Original file: " + filename);
                 objsw.WriteLine("mtllib " + Path.GetFileNameWithoutExtension(filename) + ".mtl");
             }
             else
@@ -466,7 +466,7 @@ namespace OBJExporterUI.Exporters.OBJ
                     objsw = new StreamWriter(Path.Combine(outdir, destinationOverride, filedataid + ".obj"));
                 }
 
-                objsw.WriteLine("# Written by Marlamin's WoW OBJExporter. Original file id: " + filedataid);
+                objsw.WriteLine("# Written by Marlamin's WoW Export Tools. Original file id: " + filedataid);
                 objsw.WriteLine("mtllib " + filedataid + ".mtl");
             }
 

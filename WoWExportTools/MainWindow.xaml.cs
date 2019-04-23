@@ -67,7 +67,7 @@ namespace OBJExporterUI
 
             tileBox = tileListBox;
 
-            Title = "Marlamin's WoW Exporter " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            Title = "WoW Export Tools " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             previewControl = new PreviewControl(renderCanvas);
             CompositionTarget.Rendering += previewControl.CompositionTarget_Rendering;
