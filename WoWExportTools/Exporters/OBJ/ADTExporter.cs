@@ -127,7 +127,7 @@ namespace OBJExporterUI.Exporters.OBJ
                             else
                             {
                                 double tx = -(v.Position.X - initialChunkY) / TileSize;
-                                double ty = -(v.Position.Z - initialChunkX) / TileSize;
+                                double ty = (v.Position.Z - initialChunkX) / TileSize;
 
                                 v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                             }
