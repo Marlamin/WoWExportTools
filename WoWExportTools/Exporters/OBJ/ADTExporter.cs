@@ -117,8 +117,8 @@ namespace OBJExporterUI.Exporters.OBJ
                             else if (bakeQuality == "high")
                             {
                                 // Multiple textures per model, one per chunk
-                                var tx = -(v.Position.X - initialChunkY) / ChunkSize;
-                                var ty = -(v.Position.Z - initialChunkX) / ChunkSize;
+                                var tx = -(v.Position.X) / ChunkSize;
+                                var ty = -(v.Position.Z) / ChunkSize;
                                 v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                             }
                             verticelist.Add(v);
