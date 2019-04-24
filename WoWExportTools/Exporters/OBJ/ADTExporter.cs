@@ -118,17 +118,17 @@ namespace OBJExporterUI.Exporters.OBJ
                             if (isSmallRow)
                                 ofs += 0.5;
 
-                            if (bakeQuality == "low" || bakeQuality == "medium")
+                            if (bakeQuality == "high")
+                            {
+                                double tx = ofs / 8d;
+                                double ty = 1 - (i / 16d);
+                                v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
+                            }
+                            else
                             {
                                 double tx = -(v.Position.X - initialChunkY) / TileSize;
                                 double ty = -(v.Position.Z - initialChunkX) / TileSize;
 
-                                v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
-                            }
-                            else if (bakeQuality == "high")
-                            {
-                                double tx = ofs / 8d;
-                                double ty = 1 - (i / 16d);
                                 v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                             }
                             verticelist.Add(v);
@@ -193,18 +193,18 @@ namespace OBJExporterUI.Exporters.OBJ
                         if ((j + 1) % (9 + 8) == 0) j += 9;
                     }
 
-                    if (bakeQuality == "low" || bakeQuality == "medium")
+                    if (bakeQuality == "high")
+                    {
+                        materials.Add((int)ci + 1, Path.GetFileNameWithoutExtension(file) + "_" + ci);
+                        batch.materialID = ci + 1;
+                    }
+                    else
                     {
                         if (!materials.ContainsKey(1))
                         {
                             materials.Add(1, Path.GetFileNameWithoutExtension(file));
                         }
                         batch.materialID = (uint)materials.Count();
-                    }
-                    else if (bakeQuality == "high")
-                    {
-                        materials.Add((int)ci + 1, Path.GetFileNameWithoutExtension(file) + "_" + ci);
-                        batch.materialID = ci + 1;
                     }
 
                     batch.numFaces = (uint)(indicelist.Count()) - batch.firstFace;
@@ -433,7 +433,7 @@ namespace OBJExporterUI.Exporters.OBJ
                 }
             }
 
-            if(bakeQuality == "low" || bakeQuality == "medium")
+            if(bakeQuality != "high")
             {
                 objsw.WriteLine("usemtl " + materials[1]);
                 objsw.WriteLine("s 1");
