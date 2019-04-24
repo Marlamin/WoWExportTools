@@ -24,7 +24,7 @@ bl_info = {
     "version": (0, 1, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export > WMO OBJ (.obj)",
-    "description": "Import WMO OBJ files exported by Marlamin's OBJ Exporter with doodads",
+    "description": "Import WMO OBJ files exported by Marlamin's WoW Export Tools with doodads",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",

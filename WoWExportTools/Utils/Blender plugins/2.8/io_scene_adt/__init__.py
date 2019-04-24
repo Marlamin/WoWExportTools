@@ -24,7 +24,7 @@ bl_info = {
     "version": (0, 1, 1),
     "blender": (2, 80, 0),
     "location": "File > Import-Export > ADT OBJ (.obj)",
-    "description": "Import OBJ files exported by Machinima Studio or Marlamin's OBJ Exporter with WMOs and doodads",
+    "description": "Import OBJ files exported by Machinima Studio or Marlamin's WoW Export Tools with WMOs and doodads",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",

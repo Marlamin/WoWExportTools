@@ -46,7 +46,7 @@ namespace OBJExporterUI.Exporters.glTF
                 asset = new Asset()
                 {
                     version = "2.0",
-                    generator = "Marlamin's WoW Exporter " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(),
+                    generator = "Marlamin's WoW Export Tools " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(),
                     copyright = "Contents are owned by Blizzard Entertainment",
                     minVersion = "2.0"
                 }
