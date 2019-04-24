@@ -69,8 +69,11 @@ namespace OBJExporterUI.Exporters.OBJ
             uint ci = 0;
             for(var x = 0; x < 16; x++)
             {
+                double xOfs = x / 16d;
                 for (var y = 0; y < 16; y++)
                 {
+                    double yOfs = y / 16d;
+
                     var genx = (initialChunkX + (ChunkSize * x) * -1);
                     var geny = (initialChunkY + (ChunkSize * y) * -1);
 
@@ -84,7 +87,10 @@ namespace OBJExporterUI.Exporters.OBJ
 
                     for (int i = 0, idx = 0; i < 17; i++)
                     {
-                        for (var j = 0; j < (((i % 2) != 0) ? 8 : 9); j++)
+                        bool isSmallRow = (i % 2) != 0;
+                        int rowLength = isSmallRow ? 8 : 9;
+
+                        for (var j = 0; j < rowLength; j++)
                         {
                             var v = new Structs.Vertex();
 
@@ -108,17 +114,21 @@ namespace OBJExporterUI.Exporters.OBJ
 
                             if ((i % 2) != 0) v.Position.X = (px - UnitSizeHalf);
 
+                            double ofs = j;
+                            if (isSmallRow)
+                                ofs += 0.5;
+
                             if (bakeQuality == "low" || bakeQuality == "medium")
                             {
-                                var tx = -(v.Position.X - initialChunkY) / TileSize;
-                                var ty = -(v.Position.Z - initialChunkX) / TileSize;
+                                double tx = -(v.Position.X - initialChunkY) / TileSize;
+                                double ty = -(v.Position.Z - initialChunkX) / TileSize;
+
                                 v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                             }
                             else if (bakeQuality == "high")
                             {
-                                // Multiple textures per model, one per chunk
-                                var tx = -(v.Position.X) / ChunkSize;
-                                var ty = -(v.Position.Z) / ChunkSize;
+                                double tx = ofs / 8d;
+                                double ty = 1 - (i / 16d);
                                 v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                             }
                             verticelist.Add(v);
@@ -413,7 +423,7 @@ namespace OBJExporterUI.Exporters.OBJ
             {
                 objsw.WriteLine("# C" + chunkCounter + ".V" + verticeCounter);
                 objsw.WriteLine("v " + vertex.Position.X.ToString("R") + " " + vertex.Position.Y.ToString("R") + " " + vertex.Position.Z.ToString("R"));
-                objsw.WriteLine("vt " + vertex.TexCoord.X + " " + -vertex.TexCoord.Y);
+                objsw.WriteLine("vt " + vertex.TexCoord.X + " " + vertex.TexCoord.Y);
                 objsw.WriteLine("vn " + vertex.Normal.X.ToString("R") + " " + vertex.Normal.Y.ToString("R") + " " + vertex.Normal.Z.ToString("R"));
                 verticeCounter++;
                 if(verticeCounter == 146)
