@@ -128,6 +128,7 @@
                     <Label Content="Terrain texture size:" HorizontalAlignment="Left" Margin="78,0,0,160" Grid.Row="2" VerticalAlignment="Bottom" Width="113" Height="24"/>
                     <ComboBox x:Name="bakeSize" SelectedIndex="1" Loaded="BakeSize_Loaded" SelectionChanged="BakeSize_SelectionChanged" HorizontalAlignment="Left" Margin="90,0,0,130" Grid.Row="2" HorizontalContentAlignment="Center" VerticalAlignment="Bottom" Height="25" Width="117">
                         <ComboBoxItem Name="none">None</ComboBoxItem>
+                        <ComboBoxItem Name="minimap">256px (one file)</ComboBoxItem>
                         <ComboBoxItem Name="low">4K (one file)</ComboBoxItem>
                         <ComboBoxItem Name="medium">8K (one file)</ComboBoxItem>
                         <ComboBoxItem Name="high">16K (split files)</ComboBoxItem>

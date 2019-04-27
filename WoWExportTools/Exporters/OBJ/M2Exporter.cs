@@ -137,7 +137,7 @@ namespace OBJExporterUI.Exporters.OBJ
             var renderbatches = new Structs.RenderBatch[reader.model.skins[0].submeshes.Count()];
             for (var i = 0; i < reader.model.skins[0].submeshes.Count(); i++)
             {
-                if (!string.IsNullOrEmpty(filename) && filename.StartsWith("character", StringComparison.CurrentCultureIgnoreCase))
+                /*if (!string.IsNullOrEmpty(filename) && filename.StartsWith("character", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (reader.model.skins[0].submeshes[i].submeshID != 0)
                     {
@@ -146,7 +146,7 @@ namespace OBJExporterUI.Exporters.OBJ
                             continue;
                         }
                     }
-                }
+                }*/
 
                 renderbatches[i].firstFace = reader.model.skins[0].submeshes[i].startTriangle;
                 renderbatches[i].numFaces = reader.model.skins[0].submeshes[i].nTriangles;

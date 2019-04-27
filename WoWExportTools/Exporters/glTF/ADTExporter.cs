@@ -78,18 +78,18 @@ namespace OBJExporterUI.Exporters.glTF
 
             glTF.buffers = new Buffer[1];
 
-            if (bakeQuality == "low" || bakeQuality == "medium")
+            if (bakeQuality == "high")
+            {
+                glTF.images = new Image[256];
+                glTF.materials = new Material[256];
+                glTF.textures = new Texture[256];
+            } else
             {
                 glTF.images = new Image[1];
                 glTF.materials = new Material[1];
                 glTF.textures = new Texture[1];
             }
-            else if (bakeQuality == "high")
-            {
-                glTF.images = new Image[256];
-                glTF.materials = new Material[256];
-                glTF.textures = new Texture[256];
-            }
+
             var stream = new FileStream(Path.Combine(outdir, file.Replace(".adt", ".bin")), FileMode.OpenOrCreate);
             var writer = new BinaryWriter(stream);
             for (var c = 0; c < reader.adtfile.chunks.Count(); c++)
@@ -117,19 +117,21 @@ namespace OBJExporterUI.Exporters.glTF
                         };
 
                         if ((i % 2) != 0) v.Position.X -= 0.5f * UnitSize;
-                        if (bakeQuality == "low" || bakeQuality == "medium")
-                        {
-                            var tx = -(v.Position.X - initialChunkY) / TileSize;
-                            var ty = -(v.Position.Y - initialChunkX) / TileSize;
-                            v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
-                        }
-                        else if (bakeQuality == "high")
+
+                        if (bakeQuality == "high")
                         {
                             // Multiple textures per model, one per chunk
                             var tx = -(v.Position.X - initialChunkY) / ChunkSize;
                             var ty = -(v.Position.Y - initialChunkX) / ChunkSize;
                             v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
                         }
+                        else
+                        {
+                            var tx = -(v.Position.X - initialChunkY) / TileSize;
+                            var ty = -(v.Position.Y - initialChunkX) / TileSize;
+                            v.TexCoord = new Structs.Vector2D { X = tx, Y = ty };
+                        }
+
                         localVertices[idx - 1] = v;
                     }
                 }
@@ -331,13 +333,14 @@ namespace OBJExporterUI.Exporters.glTF
                     };
 
                 mesh.primitives[0].indices = (uint)accessorInfo.Count() - 1;
-                if (bakeQuality == "low" || bakeQuality == "medium")
-                {
-                    mesh.primitives[0].material = 0;
-                }
-                else if (bakeQuality == "high")
+
+                if (bakeQuality == "high")
                 {
                     mesh.primitives[0].material = (uint)c;
+                }
+                else
+                {
+                    mesh.primitives[0].material = 0;
                 }
 
                 mesh.primitives[0].mode = 4;
@@ -347,19 +350,7 @@ namespace OBJExporterUI.Exporters.glTF
                 glTF.buffers[0].byteLength = (uint)writer.BaseStream.Length;
                 glTF.buffers[0].uri = Path.GetFileNameWithoutExtension(file) + ".bin";
 
-                if (bakeQuality == "low" || bakeQuality == "medium")
-                {
-                    glTF.images[0].uri = Path.GetFileNameWithoutExtension(file) + ".png";
-                    glTF.textures[0].sampler = 0;
-                    glTF.textures[0].source = 0;
-                    glTF.materials[0].pbrMetallicRoughness = new PBRMetallicRoughness();
-                    glTF.materials[0].pbrMetallicRoughness.baseColorTexture = new TextureIndex();
-                    glTF.materials[0].pbrMetallicRoughness.baseColorTexture.index = 0;
-                    glTF.materials[0].pbrMetallicRoughness.metallicFactor = 0.0f;
-                    glTF.materials[0].alphaMode = "OPAQUE";
-                    glTF.materials[0].alphaCutoff = 0.0f;
-                }
-                else if (bakeQuality == "high")
+                if (bakeQuality == "high")
                 {
                     glTF.images[c].uri = Path.GetFileNameWithoutExtension(file) + "_" + c + ".png";
                     glTF.textures[c].sampler = 0;
@@ -370,6 +361,18 @@ namespace OBJExporterUI.Exporters.glTF
                     glTF.materials[c].pbrMetallicRoughness.metallicFactor = 0.0f;
                     glTF.materials[c].alphaMode = "OPAQUE";
                     glTF.materials[c].alphaCutoff = 0.0f;
+                }
+                else
+                {
+                    glTF.images[0].uri = Path.GetFileNameWithoutExtension(file) + ".png";
+                    glTF.textures[0].sampler = 0;
+                    glTF.textures[0].source = 0;
+                    glTF.materials[0].pbrMetallicRoughness = new PBRMetallicRoughness();
+                    glTF.materials[0].pbrMetallicRoughness.baseColorTexture = new TextureIndex();
+                    glTF.materials[0].pbrMetallicRoughness.baseColorTexture.index = 0;
+                    glTF.materials[0].pbrMetallicRoughness.metallicFactor = 0.0f;
+                    glTF.materials[0].alphaMode = "OPAQUE";
+                    glTF.materials[0].alphaCutoff = 0.0f;
                 }
             }
 
