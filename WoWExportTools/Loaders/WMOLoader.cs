@@ -26,10 +26,15 @@ namespace OBJExporterUI.Loaders
             }
             else
             {
-                //Load WMO from file
-                if (WoWFormatLib.Utils.CASC.FileExists(filename))
+                if (!Listfile.TryGetFileDataID(filename, out uint fileDataID))
                 {
-                    var wmofile = new WMOReader().LoadWMO(filename);
+                    CASCLib.Logger.WriteLine("Could not get filedataid for " + filename);
+                }
+
+                //Load WMO from file
+                if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
+                {
+                    var wmofile = new WMOReader().LoadWMO(fileDataID);
                     cache.worldModels.Add(filename, wmofile);
                     wmo = cache.worldModels[filename];
                 }

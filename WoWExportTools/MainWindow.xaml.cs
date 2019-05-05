@@ -395,7 +395,10 @@ namespace OBJExporterUI
 
             worker.ReportProgress(50, "Loading listfile from disk..");
 
-            Listfile.Load();
+            if(Listfile.FDIDToFilename.Count == 0)
+            {
+                Listfile.Load();
+            }
 
             foreach (var line in Listfile.FDIDToFilename)
             {
@@ -479,7 +482,13 @@ namespace OBJExporterUI
 
             foreach (string selectedFile in selectedFiles)
             {
-                if (!CASC.FileExists(selectedFile))
+                if(!Listfile.TryGetFileDataID(selectedFile, out var fileDataID))
+                {
+                    Logger.WriteLine("ExportWorker: File {0} does not exist in listfile, skipping export!", selectedFile);
+                    continue;
+                }
+
+                if (!CASC.FileExists(fileDataID))
                 {
                     Logger.WriteLine("ExportWorker: File {0} does not exist, skipping export!", selectedFile);
                     continue;
@@ -757,10 +766,17 @@ namespace OBJExporterUI
 
                 var wdt = "world\\maps\\" + selectedItem.Internal + "\\" + selectedItem.Internal + ".wdt";
 
-                if (CASC.FileExists(wdt))
+                // TODO: Use filedataid from DBCs instead of relying on listfile to have filename
+                if (!Listfile.TryGetFileDataID(wdt, out var wdtFileDataID))
+                {
+                    // Set to non-existent filedataid to fail the if check below
+                    wdtFileDataID = 0;
+                }
+                
+                if (CASC.FileExists(wdtFileDataID))
                 {
                     var reader = new WoWFormatLib.FileReaders.WDTReader();
-                    reader.LoadWDT(wdt);
+                    reader.LoadWDT(wdtFileDataID);
                     for (var i = 0; i < reader.tiles.Count; i++)
                     {
                         tileListBox.Items.Add(reader.tiles[i].Item1.ToString() + "_" + reader.tiles[i].Item2.ToString());
@@ -780,13 +796,19 @@ namespace OBJExporterUI
                 var fixedTileName = splitTile[0].PadLeft(2, '0') + "_" + splitTile[1].PadLeft(2, '0');
                 var minimapFile = "world\\minimaps\\" + selectedItem.Internal + "\\map" + fixedTileName + ".blp";
 
-                if (!CASC.FileExists(minimapFile))
+                if(!Listfile.TryGetFileDataID(minimapFile, out var minimapFileDataID))
                 {
-                    minimapFile = @"interface\icons\inv_misc_questionmark.blp";
+                    Logger.WriteLine("Unable to find filedataid for minimap file " + minimapFile);
+                }
+
+                if (!CASC.FileExists(minimapFileDataID))
+                {
+                    // interface\icons\inv_misc_questionmark.blp
+                    minimapFileDataID = 134400;
                 }
 
                 var blp = new WoWFormatLib.FileReaders.BLPReader();
-                blp.LoadBLP(minimapFile);
+                blp.LoadBLP(minimapFileDataID);
 
                 var bmp = blp.bmp;
 
@@ -1059,7 +1081,16 @@ namespace OBJExporterUI
                     var mapExpansionID = entry.ExpansionID;
                     var mapType = entry.MapType;
 
-                    if (CASC.FileExists("World/Maps/" + mapDirectory + "/" + mapDirectory + ".wdt"))
+                    var wdt = "World/Maps/" + mapDirectory + "/" + mapDirectory + ".wdt";
+
+                    // TODO: Use filedataid from DBCs instead of relying on listfile to have filename
+                    if (!Listfile.TryGetFileDataID(wdt, out uint wdtFileDataID))
+                    {
+                        // Set to non-existent filedataid to fail the if check below
+                        wdtFileDataID = 0;
+                    }
+
+                    if (CASC.FileExists(wdtFileDataID))
                     {
                         var mapItem = new MapListItem { Internal = mapDirectory };
 
@@ -1114,7 +1145,16 @@ namespace OBJExporterUI
                 Console.WriteLine("An error occured during DBC reading.. falling back to CSV!" + ex.Message);
                 foreach (var map in mapNames)
                 {
-                    if (CASC.FileExists("World/Maps/" + map.Value.Internal + "/" + map.Value.Internal + ".wdt"))
+                    var wdt = "World/Maps/" + map.Value.Internal + "/" + map.Value.Internal + ".wdt";
+
+                    // TODO: Use filedataid from DBCs instead of relying on listfile to have filename
+                    if (!Listfile.TryGetFileDataID(wdt, out var wdtFileDataID))
+                    {
+                        // Set to non-existent filedataid to fail the if check below
+                        wdtFileDataID = 0;
+                    }
+
+                    if (CASC.FileExists(wdtFileDataID))
                     {
                         mapListBox.Items.Add(new MapListItem { Name = map.Value.Name, Internal = map.Value.Internal, Type = map.Value.Type, Image = "pack://application:,,,/Resources/wow" + ExpansionNameToID(map.Value.Expansion) + ".png" });
                     }

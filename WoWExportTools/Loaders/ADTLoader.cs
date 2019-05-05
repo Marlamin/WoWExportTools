@@ -16,8 +16,14 @@ namespace OBJExporterUI.Loaders
 
             var result = new Terrain();
 
+            // TODO: LoadADT by WDT filedataid and coordinates
+            if(!Listfile.TryGetFileDataID(filename, out uint fileDataID))
+            {
+                CASCLib.Logger.WriteLine("Could not get filedataid for " + filename);
+            }
+
             //Load ADT from file
-            if (WoWFormatLib.Utils.CASC.FileExists(filename))
+            if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
             {
                 var adtreader = new ADTReader();
                 adtreader.LoadADT(filename);
@@ -25,7 +31,7 @@ namespace OBJExporterUI.Loaders
             }
             else
             {
-                throw new Exception("ADT " + filename + " does not exist!");
+                throw new Exception("ADT " + fileDataID + " does not exist!");
             }
 
             var TileSize = 1600.0f / 3.0f; //533.333
