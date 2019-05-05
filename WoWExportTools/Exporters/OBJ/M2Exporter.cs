@@ -1,5 +1,4 @@
-﻿using OpenTK;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -14,7 +13,15 @@ namespace OBJExporterUI.Exporters.OBJ
     {
         public static void ExportM2(string file, BackgroundWorker exportworker = null, string destinationOverride = null)
         {
-            ExportM2(CASC.getFileDataIdByName(file), exportworker, destinationOverride, file);
+            if (!Listfile.TryGetFileDataID(file, out var filedataid))
+            {
+                CASCLib.Logger.WriteLine("Error! Could not find filedataid for " + file + ", skipping export!");
+                return;
+            }
+            else
+            {
+                ExportM2(filedataid, exportworker, destinationOverride, file);
+            }
         }
 
         public static void ExportM2(uint fileDataID, BackgroundWorker exportworker = null, string destinationOverride = null, string filename = "")
@@ -50,13 +57,15 @@ namespace OBJExporterUI.Exporters.OBJ
 
             for (var i = 0; i < reader.model.vertices.Count(); i++)
             {
-                vertices[i].Position = new Structs.Vector3D(){
+                vertices[i].Position = new Structs.Vector3D()
+                {
                     X = reader.model.vertices[i].position.X,
                     Y = reader.model.vertices[i].position.Z,
                     Z = reader.model.vertices[i].position.Y * -1
                 };
 
-                vertices[i].Normal = new Structs.Vector3D() {
+                vertices[i].Normal = new Structs.Vector3D()
+                {
                     X = reader.model.vertices[i].normal.X,
                     Y = reader.model.vertices[i].normal.Z,
                     Z = reader.model.vertices[i].normal.Y
@@ -71,7 +80,7 @@ namespace OBJExporterUI.Exporters.OBJ
 
             StreamWriter objsw;
 
-            if(destinationOverride == null)
+            if (destinationOverride == null)
             {
                 if (!string.IsNullOrEmpty(filename))
                 {
@@ -198,8 +207,8 @@ namespace OBJExporterUI.Exporters.OBJ
                 switch (reader.model.textures[i].type)
                 {
                     case 0:
-                        textureFileDataID = CASC.getFileDataIdByName(reader.model.textures[i].filename);
-                        if(textureFileDataID == 372993)
+                        Listfile.TryGetFileDataID(reader.model.textures[i].filename, out textureFileDataID);
+                        if (textureFileDataID == 372993)
                         {
                             textureFileDataID = reader.model.textureFileDataIDs[i];
                         }
@@ -214,14 +223,14 @@ namespace OBJExporterUI.Exporters.OBJ
 
                 materials[i].textureID = textureID + i;
 
-                if(!MainWindow.filenameLookup.TryGetValue(CASC.getHashByFileDataID(textureFileDataID), out var textureFilename))
+                if (!Listfile.TryGetFilename(textureFileDataID, out var textureFilename))
                 {
                     textureFilename = textureFileDataID.ToString();
                 }
 
                 materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename);
 
-                var textureSaveLocation = "";
+                string textureSaveLocation;
 
                 if (destinationOverride == null)
                 {
@@ -236,7 +245,7 @@ namespace OBJExporterUI.Exporters.OBJ
                 }
                 else
                 {
-                    textureSaveLocation = Path.Combine(outdir, destinationOverride,  materials[i].filename + ".png");
+                    textureSaveLocation = Path.Combine(outdir, destinationOverride, materials[i].filename + ".png");
                 }
 
                 try

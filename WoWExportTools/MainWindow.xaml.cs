@@ -1,21 +1,20 @@
-﻿using System;
+﻿using CASCLib;
+using Microsoft.VisualBasic.FileIO;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Windows;
 using System.Windows.Controls;
-using WoWFormatLib.Utils;
-using CASCLib;
-using System.Drawing.Imaging;
-using System.Windows.Media.Imaging;
-using System.Net;
-using System.IO.Compression;
-using Microsoft.VisualBasic.FileIO;
 using System.Windows.Media;
-using DBDefsLib;
-using System.Drawing;
+using System.Windows.Media.Imaging;
+using WoWFormatLib.Utils;
 
 namespace OBJExporterUI
 {
@@ -41,7 +40,6 @@ namespace OBJExporterUI
         private List<string> textures;
 
         private Dictionary<int, NiceMapEntry> mapNames = new Dictionary<int, NiceMapEntry>();
-        public static Dictionary<ulong, string> filenameLookup = new Dictionary<ulong, string>();
         private List<string> mapFilters = new List<string>();
 
         private static ListBox tileBox;
@@ -233,8 +231,8 @@ namespace OBJExporterUI
                 catch (Exception exception)
                 {
                     Logger.WriteLine("CASCWorker: Exception from {0} during CASC startup: {1}", exception.Source, exception.Message);
-                    var result = MessageBox.Show("A fatal error occured during loading your local WoW installation.\n\n"+exception.Message+"\n\nPlease try updating/repairing WoW through the Battle.net App. \n\nIf that doesn't work do the following: \n- Go to your WoW install directory\n- Go inside the data folder\n- Rename the 'indices' folder to 'indices_old'\n- Start WoW to regenerate indices\n- After WoW has started, quit WoW\n\nStill having issues?\nGo to marlam.in/obj and contact me for further help.", "Fatal error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    if(result == MessageBoxResult.OK)
+                    var result = MessageBox.Show("A fatal error occured during loading your local WoW installation.\n\n" + exception.Message + "\n\nPlease try updating/repairing WoW through the Battle.net App. \n\nIf that doesn't work do the following: \n- Go to your WoW install directory\n- Go inside the data folder\n- Rename the 'indices' folder to 'indices_old'\n- Start WoW to regenerate indices\n- After WoW has started, quit WoW\n\nStill having issues?\nGo to marlam.in/obj and contact me for further help.", "Fatal error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    if (result == MessageBoxResult.OK)
                     {
                         Environment.Exit(1);
                     }
@@ -336,7 +334,7 @@ namespace OBJExporterUI
             UpdateFilter();
 #if DEBUG
             //var file = "world/maps/troll raid/troll raid_23_33.adt";
-           /// Exporters.glTF.ADTExporter.exportADT(file);
+            /// Exporters.glTF.ADTExporter.exportADT(file);
             //previewControl.BakeTexture(file.Replace("/", "\\"), Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file) + ".png"), true);
 #endif
         }
@@ -378,7 +376,7 @@ namespace OBJExporterUI
                 worker.ReportProgress(20, "Downloading listfile..");
                 Listfile.Update();
             }
-            else if(DateTime.Now.AddDays(-7) > File.GetLastWriteTime("listfile.txt"))
+            else if (DateTime.Now.AddDays(-7) > File.GetLastWriteTime("listfile.txt"))
             {
                 worker.ReportProgress(20, "Updating listfile..");
                 Listfile.Update();
@@ -397,16 +395,8 @@ namespace OBJExporterUI
 
             worker.ReportProgress(50, "Loading listfile from disk..");
 
-            var generateLookup = true;
-
-            if(filenameLookup.Count > 0)
-            {
-                generateLookup = false;
-            }
-
             Listfile.Load();
 
-            var hasher = new Jenkins96();
             foreach (var line in Listfile.FDIDToFilename)
             {
                 var filename = line.Value;
@@ -414,7 +404,6 @@ namespace OBJExporterUI
                 if (CASC.FileExists(line.Key))
                 {
                     linelist.Add(filename);
-                    if(generateLookup) filenameLookup.Add(hasher.ComputeHash(filename), filename);
                 }
             }
 
@@ -490,7 +479,8 @@ namespace OBJExporterUI
 
             foreach (string selectedFile in selectedFiles)
             {
-                if (!CASC.FileExists(selectedFile)) {
+                if (!CASC.FileExists(selectedFile))
+                {
                     Logger.WriteLine("ExportWorker: File {0} does not exist, skipping export!", selectedFile);
                     continue;
                 }
@@ -502,7 +492,7 @@ namespace OBJExporterUI
                     {
                         if (exportFormat == "OBJ")
                         {
-                            Exporters.OBJ.WMOExporter.exportWMO(selectedFile, exportworker);
+                            Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker);
                         }
                         else if (exportFormat == "glTF")
                         {
@@ -524,7 +514,7 @@ namespace OBJExporterUI
                     {
                         if (exportFormat == "OBJ")
                         {
-                            Exporters.OBJ.ADTExporter.exportADT(selectedFile, exportworker);
+                            Exporters.OBJ.ADTExporter.ExportADT(selectedFile, exportworker);
                         }
                         else if (exportFormat == "glTF")
                         {
@@ -629,7 +619,7 @@ namespace OBJExporterUI
                 using (var memory = new MemoryStream())
                 {
                     var blp = new WoWFormatLib.FileReaders.BLPReader();
-                    if(Listfile.TryGetFileDataID(file, out var filedataid))
+                    if (Listfile.TryGetFileDataID(file, out var filedataid))
                     {
                         blp.LoadBLP(filedataid);
                     }
@@ -705,7 +695,7 @@ namespace OBJExporterUI
             var selectedMap = (MapListItem)mapListBox.SelectedItem;
             var selectedTile = (string)tileListBox.SelectedItem;
 
-            if(selectedMap == null || selectedTile == null)
+            if (selectedMap == null || selectedTile == null)
             {
                 Console.WriteLine("Nothing selected, not exporting.");
                 return;
@@ -749,7 +739,7 @@ namespace OBJExporterUI
                 ConfigurationManager.RefreshSection("appSettings");
                 var outdir = ConfigurationManager.AppSettings["outdir"];
 
-                if(((ComboBoxItem)bakeSize.SelectedItem).Name != "none")
+                if (((ComboBoxItem)bakeSize.SelectedItem).Name != "none")
                 {
                     previewControl.BakeTexture(file.Replace("/", "\\"), Path.Combine(outdir, Path.GetDirectoryName(file), mapname.Replace(" ", "") + "_" + centerx + "_" + centery + ".png"));
                 }
@@ -1018,7 +1008,7 @@ namespace OBJExporterUI
                     responseStream.Dispose();
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.WriteLine("Unable to download map names csv: " + e.Message);
             }
@@ -1159,7 +1149,7 @@ namespace OBJExporterUI
         }
         private void PreviewCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            previewsEnabled = (bool) previewCheckbox.IsChecked;
+            previewsEnabled = (bool)previewCheckbox.IsChecked;
         }
         private void RenderMinimapButton_Click(object sender, RoutedEventArgs e)
         {

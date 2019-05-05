@@ -1,4 +1,4 @@
-﻿using OpenTK;
+﻿using CASCLib;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,13 +6,12 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using WoWFormatLib.FileReaders;
-using CASCLib;
 
 namespace OBJExporterUI.Exporters.OBJ
 {
     public class ADTExporter
     {
-        public static void exportADT(string file, BackgroundWorker exportworker = null)
+        public static void ExportADT(string file, BackgroundWorker exportworker = null)
         {
             if (exportworker == null)
             {
@@ -67,7 +66,7 @@ namespace OBJExporterUI.Exporters.OBJ
             var initialChunkY = adtStartX + (reader.adtfile.chunks[0].header.indexY * ChunkSize) * -1;
 
             uint ci = 0;
-            for(var x = 0; x < 16; x++)
+            for (var x = 0; x < 16; x++)
             {
                 double xOfs = x / 16d;
                 for (var y = 0; y < 16; y++)
@@ -267,8 +266,11 @@ namespace OBJExporterUI.Exporters.OBJ
 
                                 var filedataid = (uint)doodadEntry.ModelFileID;
 
-                                var lookup = WoWFormatLib.Utils.CASC.getHashByFileDataID(filedataid);
-                                MainWindow.filenameLookup.TryGetValue(lookup, out var filename);
+                                if (!Listfile.TryGetFilename(filedataid, out var filename))
+                                {
+                                    Logger.WriteLine("Could not find filename for " + filedataid + ", setting filename to filedataid..");
+                                    filename = filedataid.ToString();
+                                }
 
                                 if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), "foliage")))
                                 {
@@ -308,21 +310,28 @@ namespace OBJExporterUI.Exporters.OBJ
                         if (reader.adtfile.objects.wmoNames.filenames == null)
                         {
                             filedataid = wmo.mwidEntry;
-                            var lookup = WoWFormatLib.Utils.CASC.getHashByFileDataID(filedataid);
-                            MainWindow.filenameLookup.TryGetValue(lookup, out filename);
+                            if (!Listfile.TryGetFilename(filedataid, out filename))
+                            {
+                                Logger.WriteLine("Warning! Could not find filename for " + filedataid + ", setting filename to filedataid..");
+                                filename = filedataid.ToString();
+                            }
                         }
                         else
                         {
                             Logger.WriteLine("Warning!! File " + filename + " ID: " + filedataid + " still has filenames!");
                             filename = reader.adtfile.objects.wmoNames.filenames[wmo.mwidEntry];
-                            filedataid = WoWFormatLib.Utils.CASC.getFileDataIdByName(filename);
+                            if (!Listfile.TryGetFileDataID(filename, out filedataid))
+                            {
+                                Logger.WriteLine("Error! Could not find filedataid for " + filename + "!");
+                                continue;
+                            }
                         }
 
                         if (string.IsNullOrEmpty(filename))
                         {
                             if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj")))
                             {
-                                WMOExporter.exportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), wmo.doodadSet);
+                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), wmo.doodadSet);
                             }
 
                             if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj")))
@@ -334,7 +343,7 @@ namespace OBJExporterUI.Exporters.OBJ
                         {
                             if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
                             {
-                                WMOExporter.exportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), wmo.doodadSet, filename);
+                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), wmo.doodadSet, filename);
                             }
 
                             if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
@@ -353,19 +362,26 @@ namespace OBJExporterUI.Exporters.OBJ
                     {
                         var doodad = reader.adtfile.objects.models.entries[mi];
 
-                        var filename = "";
-                        uint filedataid = 0;
+                        string filename;
+                        uint filedataid;
 
                         if (reader.adtfile.objects.wmoNames.filenames == null)
                         {
                             filedataid = doodad.mmidEntry;
-                            var lookup = WoWFormatLib.Utils.CASC.getHashByFileDataID(filedataid);
-                            MainWindow.filenameLookup.TryGetValue(lookup, out filename);
+                            if (!Listfile.TryGetFilename(filedataid, out filename))
+                            {
+                                Logger.WriteLine("Could not find filename for " + filedataid + ", setting filename to filedataid..");
+                                filename = filedataid.ToString();
+                            }
                         }
                         else
                         {
                             filename = reader.adtfile.objects.wmoNames.filenames[doodad.mmidEntry];
-                            filedataid = WoWFormatLib.Utils.CASC.getFileDataIdByName(filename);
+                            if (!Listfile.TryGetFileDataID(filename, out filedataid))
+                            {
+                                Logger.WriteLine("Error! Could not find filedataid for " + filename + "!");
+                                continue;
+                            }
                         }
 
                         if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
@@ -385,7 +401,7 @@ namespace OBJExporterUI.Exporters.OBJ
 
             exportworker.ReportProgress(75, "Exporting terrain textures..");
 
-            if(bakeQuality != "none")
+            if (bakeQuality != "none")
             {
                 var mtlsw = new StreamWriter(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file).Replace(" ", "") + ".mtl"));
 
@@ -418,7 +434,7 @@ namespace OBJExporterUI.Exporters.OBJ
 
             objsw.WriteLine("g " + adtname.Replace(" ", ""));
             var verticeCounter = 1;
-            var chunkCounter =1;
+            var chunkCounter = 1;
             foreach (var vertex in verticelist)
             {
                 objsw.WriteLine("# C" + chunkCounter + ".V" + verticeCounter);
@@ -426,14 +442,14 @@ namespace OBJExporterUI.Exporters.OBJ
                 objsw.WriteLine("vt " + vertex.TexCoord.X + " " + vertex.TexCoord.Y);
                 objsw.WriteLine("vn " + vertex.Normal.X.ToString("R") + " " + vertex.Normal.Y.ToString("R") + " " + vertex.Normal.Z.ToString("R"));
                 verticeCounter++;
-                if(verticeCounter == 146)
+                if (verticeCounter == 146)
                 {
                     chunkCounter++;
                     verticeCounter = 1;
                 }
             }
 
-            if(bakeQuality != "high")
+            if (bakeQuality != "high")
             {
                 objsw.WriteLine("usemtl " + materials[1]);
                 objsw.WriteLine("s 1");
@@ -442,12 +458,12 @@ namespace OBJExporterUI.Exporters.OBJ
             foreach (var renderBatch in renderBatches)
             {
                 var i = renderBatch.firstFace;
-                if (bakeQuality == "high" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]);  }
+                if (bakeQuality == "high" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]); }
                 while (i < (renderBatch.firstFace + renderBatch.numFaces))
                 {
-                    objsw.WriteLine("f " + 
-                        (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + " " + 
-                        (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + " " + 
+                    objsw.WriteLine("f " +
+                        (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + "/" + (indices[i + 2] + 1) + " " +
+                        (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + "/" + (indices[i + 1] + 1) + " " +
                         (indices[i] + 1) + "/" + (indices[i] + 1) + "/" + (indices[i] + 1));
                     i = i + 3;
                 }

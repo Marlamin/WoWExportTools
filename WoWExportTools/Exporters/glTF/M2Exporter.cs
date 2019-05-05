@@ -357,11 +357,12 @@ namespace OBJExporterUI.Exporters.glTF
                 switch (reader.model.textures[i].type)
                 {
                     case 0:
-                        textureFileDataID = CASC.getFileDataIdByName(reader.model.textures[i].filename);
+                        Listfile.TryGetFileDataID(reader.model.textures[i].filename, out textureFileDataID);
                         break;
                     case 1:
                     case 2:
                     case 11:
+                        /*
                         var fileDataID = CASC.getFileDataIdByName(file);
                         var cdifilenames = WoWFormatLib.DBC.DBCHelper.getTexturesByModelFilename(fileDataID, (int)reader.model.textures[i].type);
                         for (var ti = 0; ti < cdifilenames.Count(); ti++)
@@ -369,6 +370,7 @@ namespace OBJExporterUI.Exporters.glTF
                             textureFileDataID = cdifilenames[0];
                         }
                         break;
+                        */
                     default:
                         Console.WriteLine("      Falling back to placeholder texture");
                         break;

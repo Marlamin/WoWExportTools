@@ -2,22 +2,29 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using WoWFormatLib.FileReaders;
-using OpenTK;
-using System.IO;
 
 namespace OBJExporterUI.Exporters.OBJ
 {
     public class WMOExporter
     {
-        public static void exportWMO(string file, BackgroundWorker exportworker = null, string destinationOverride = null, ushort doodadSetExportID = ushort.MaxValue)
+        public static void ExportWMO(string file, BackgroundWorker exportworker = null, string destinationOverride = null, ushort doodadSetExportID = ushort.MaxValue)
         {
-            exportWMO(WoWFormatLib.Utils.CASC.getFileDataIdByName(file), exportworker, destinationOverride, doodadSetExportID, file);
+            if (!Listfile.TryGetFileDataID(file, out var filedataid))
+            {
+                CASCLib.Logger.WriteLine("Error! Could not find filedataid for " + file + ", skipping export!");
+                return;
+            }
+            else
+            {
+                ExportWMO(filedataid, exportworker, destinationOverride, doodadSetExportID, file);
+            }
         }
 
-        public static void exportWMO(uint filedataid, BackgroundWorker exportworker = null, string destinationOverride = null, ushort doodadSetExportID = ushort.MaxValue, string filename = "")
+        public static void ExportWMO(uint filedataid, BackgroundWorker exportworker = null, string destinationOverride = null, ushort doodadSetExportID = ushort.MaxValue, string filename = "")
         {
             if (exportworker == null)
             {
@@ -27,8 +34,10 @@ namespace OBJExporterUI.Exporters.OBJ
 
             if (string.IsNullOrEmpty(filename))
             {
-                var lookup = WoWFormatLib.Utils.CASC.getHashByFileDataID(filedataid);
-                MainWindow.filenameLookup.TryGetValue(lookup, out filename);
+                if (!Listfile.TryGetFilename(filedataid, out filename))
+                {
+                    CASCLib.Logger.WriteLine("Warning! Could not find filename for " + filedataid + "!");
+                }
             }
 
             Console.WriteLine("Loading WMO file..");
@@ -177,8 +186,11 @@ namespace OBJExporterUI.Exporters.OBJ
                     if (wmo.doodadIds != null)
                     {
                         doodadFileDataID = wmo.doodadIds[doodadDefinition.offset];
-                        var lookup = WoWFormatLib.Utils.CASC.getHashByFileDataID(doodadFileDataID);
-                        MainWindow.filenameLookup.TryGetValue(lookup, out doodadFilename);
+                        if (!Listfile.TryGetFilename(doodadFileDataID, out doodadFilename))
+                        {
+                            CASCLib.Logger.WriteLine("Could not find filename for " + doodadFileDataID + ", setting filename to filedataid..");
+                            doodadFilename = doodadFileDataID.ToString();
+                        }
                     }
                     else
                     {
@@ -188,7 +200,11 @@ namespace OBJExporterUI.Exporters.OBJ
                             if (doodadNameEntry.startOffset == doodadDefinition.offset)
                             {
                                 doodadFilename = doodadNameEntry.filename.Replace(".MDX", ".M2").Replace(".MDL", ".M2").ToLower();
-                                doodadFileDataID = WoWFormatLib.Utils.CASC.getFileDataIdByName(doodadFilename);
+                                if (!Listfile.TryGetFileDataID(doodadFilename, out doodadFileDataID))
+                                {
+                                    CASCLib.Logger.WriteLine("Error! Could not find filedataid for " + doodadFilename + "!");
+                                    continue;
+                                }
                             }
                         }
                     }
@@ -271,8 +287,7 @@ namespace OBJExporterUI.Exporters.OBJ
 
                 if (wmo.textures == null)
                 {
-                    var lookup = WoWFormatLib.Utils.CASC.getHashByFileDataID(wmo.materials[i].texture1);
-                    if(MainWindow.filenameLookup.TryGetValue(lookup, out var textureFilename))
+                    if (Listfile.TryGetFilename(wmo.materials[i].texture1, out var textureFilename))
                     {
                         materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename);
                     }
@@ -361,7 +376,7 @@ namespace OBJExporterUI.Exporters.OBJ
                     mtlsb.Append("map_d " + material.filename + ".png\n");
                 }
 
-                if(ConfigurationManager.AppSettings["textureMetadata"] == "True")
+                if (ConfigurationManager.AppSettings["textureMetadata"] == "True")
                 {
                     mtlsb.Append("blend " + material.blendMode + "\n");
                     mtlsb.Append("shader " + material.shaderID + "\n");
