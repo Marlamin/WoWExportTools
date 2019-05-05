@@ -9,7 +9,14 @@ namespace OBJExporterUI.Loaders
     {
         public static int LoadTexture(string filename, CacheStorage cache)
         {
-            return LoadTexture(CASC.getFileDataIdByName(filename), cache);
+            if(Listfile.TryGetFileDataID(filename, out var filedataid))
+            {
+                return LoadTexture(filedataid, cache);
+            }
+            else
+            {
+                throw new Exception("Couldn't find filedataid for file " + filename + " in listfile!");
+            }
         }
 
         public static int LoadTexture(uint filedataid, CacheStorage cache)

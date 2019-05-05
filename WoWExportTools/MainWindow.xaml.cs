@@ -376,12 +376,12 @@ namespace OBJExporterUI
             if (!File.Exists("listfile.txt"))
             {
                 worker.ReportProgress(20, "Downloading listfile..");
-                UpdateListfile();
+                Listfile.Update();
             }
             else if(DateTime.Now.AddDays(-7) > File.GetLastWriteTime("listfile.txt"))
             {
                 worker.ReportProgress(20, "Updating listfile..");
-                UpdateListfile();
+                Listfile.Update();
             }
 
             if (!File.Exists("definitions/Map.dbd"))
@@ -404,13 +404,17 @@ namespace OBJExporterUI
                 generateLookup = false;
             }
 
+            Listfile.Load();
+
             var hasher = new Jenkins96();
-            foreach (var line in File.ReadAllLines("listfile.txt"))
+            foreach (var line in Listfile.FDIDToFilename)
             {
-                if (CASC.FileExists(line))
+                var filename = line.Value;
+
+                if (CASC.FileExists(line.Key))
                 {
-                    linelist.Add(line.ToLower());
-                    if(generateLookup) filenameLookup.Add(hasher.ComputeHash(line), line);
+                    linelist.Add(filename);
+                    if(generateLookup) filenameLookup.Add(hasher.ComputeHash(filename), filename);
                 }
             }
 
@@ -420,8 +424,6 @@ namespace OBJExporterUI
 
             var lines = linelist.ToArray();
 
-            linelist = null;
-
             var unwantedExtensions = new List<string>();
             for (var u = 0; u < 512; u++)
             {
@@ -429,8 +431,6 @@ namespace OBJExporterUI
             }
 
             var unwanted = unwantedExtensions.ToArray();
-
-            unwantedExtensions = null;
 
             for (var i = 0; i < lines.Count(); i++)
             {
@@ -458,8 +458,6 @@ namespace OBJExporterUI
                     worker.ReportProgress(progress, "Filtering listfile..");
                 }
             }
-
-            lines = null;
         }
 
         private void Exportworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -631,7 +629,14 @@ namespace OBJExporterUI
                 using (var memory = new MemoryStream())
                 {
                     var blp = new WoWFormatLib.FileReaders.BLPReader();
-                    blp.LoadBLP(file);
+                    if(Listfile.TryGetFileDataID(file, out var filedataid))
+                    {
+                        blp.LoadBLP(filedataid);
+                    }
+                    else
+                    {
+                        return;
+                    }
 
                     var bmp = blp.bmp;
 
@@ -960,7 +965,7 @@ namespace OBJExporterUI
             m2CheckBox.Visibility = Visibility.Hidden;
             tabs.Visibility = Visibility.Hidden;
 
-            UpdateListfile();
+            Listfile.Update();
 
             models.Clear();
             textures.Clear();
@@ -999,19 +1004,6 @@ namespace OBJExporterUI
             }
         }
 
-        private void UpdateListfile()
-        {
-            using (var client = new WebClient())
-            using (var stream = new MemoryStream())
-            {
-                client.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
-                var responseStream = new GZipStream(client.OpenRead(ConfigurationManager.AppSettings["listfileurl"]), CompressionMode.Decompress);
-                responseStream.CopyTo(stream);
-                File.WriteAllBytes("listfile.txt", stream.ToArray());
-                responseStream.Close();
-                responseStream.Dispose();
-            }
-        }
         private void UpdateMapList()
         {
             try

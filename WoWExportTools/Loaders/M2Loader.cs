@@ -30,16 +30,23 @@ namespace OBJExporterUI.Loaders
             }
             else
             {
-                if (WoWFormatLib.Utils.CASC.FileExists(filename))
+                if (Listfile.TryGetFileDataID(filename, out var filedataid))
                 {
-                    var modelreader = new M2Reader();
-                    modelreader.LoadM2(filename);
-                    cache.models.Add(filename, modelreader.model);
-                    model = modelreader.model;
+                    if (WoWFormatLib.Utils.CASC.FileExists(filedataid))
+                    {
+                        var modelreader = new M2Reader();
+                        modelreader.LoadM2(filedataid);
+                        cache.models.Add(filename, modelreader.model);
+                        model = modelreader.model;
+                    }
+                    else
+                    {
+                        throw new Exception("Model " + filename + " does not exist!");
+                    }
                 }
                 else
                 {
-                    throw new Exception("Model " + filename + " does not exist!");
+                    throw new Exception("Filename " + filename + " does not exist in listfile!");
                 }
             }
 
@@ -139,7 +146,14 @@ namespace OBJExporterUI.Loaders
                         }
                         else
                         {
-                            textureFileDataID = WoWFormatLib.Utils.CASC.getFileDataIdByName(model.textures[model.texlookup[model.skins[0].textureunit[tu].texture].textureID].filename);
+                            if(Listfile.FilenameToFDID.TryGetValue(model.textures[model.texlookup[model.skins[0].textureunit[tu].texture].textureID].filename.Replace('\\', '/').ToLower(), out var filedataid))
+                            {
+                                textureFileDataID = filedataid;
+                            }
+                            else
+                            {
+                                textureFileDataID = 372993;
+                            }
                         }
 
                         if (!cache.materials.ContainsKey(textureFileDataID))
