@@ -6,12 +6,13 @@ using System.Drawing;
 using System.Configuration;
 using System.IO;
 using CASCLib;
+using static OBJExporterUI.Structs;
 
 namespace OBJExporterUI.Renderer
 {
     class RenderMinimap
     {
-        public void Generate(string filename, string outName, CacheStorage cache, int bakeShaderProgram, bool loadModels = false)
+        public void Generate(MapTile mapTile, string outName, CacheStorage cache, int bakeShaderProgram, bool loadModels = false)
         {
             var TileSize = 1600.0f / 3.0f; //533.333
             var ChunkSize = TileSize / 16.0f; //33.333
@@ -66,17 +67,18 @@ namespace OBJExporterUI.Renderer
                 GC.Collect();
             }
 
-            if (!cache.terrain.ContainsKey(filename))
+            if (!cache.terrain.ContainsKey(mapTile.wdtFileDataID + "_" + mapTile.tileX + "_" + mapTile.tileY))
             {
-                ADTLoader.LoadADT(filename, cache, bakeShaderProgram, loadModels);
+                ADTLoader.LoadADT(mapTile, cache, bakeShaderProgram, loadModels);
             }
 
+            var cachedFile = cache.terrain[mapTile.wdtFileDataID + "_" + mapTile.tileX + "_" + mapTile.tileY];
             GL.ClearColor(Color.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.UseProgram(bakeShaderProgram);
 
             // Look up uniforms beforehand instead of during drawing
-            var firstPos = cache.terrain[filename].startPos.Position;
+            var firstPos = cachedFile.startPos.Position;
             var projectionMatrixLocation = GL.GetUniformLocation(bakeShaderProgram, "projection_matrix");
             var modelviewMatrixLocation = GL.GetUniformLocation(bakeShaderProgram, "modelview_matrix");
             var firstPosLocation = GL.GetUniformLocation(bakeShaderProgram, "firstPos");
@@ -104,9 +106,9 @@ namespace OBJExporterUI.Renderer
 
             if (splitFiles)
             {
-                GL.BindVertexArray(cache.terrain[filename].vao);
+                GL.BindVertexArray(cachedFile.vao);
 
-                for (var i = 0; i < cache.terrain[filename].renderBatches.Length; i++)
+                for (var i = 0; i < cachedFile.renderBatches.Length; i++)
                 {
                     if(File.Exists(outName.Replace(".png", "_" + i + ".png")))
                     {
@@ -153,36 +155,36 @@ namespace OBJExporterUI.Renderer
 
                     GL.Viewport(0,0, bakeSize, bakeSize);
 
-                    GL.Uniform4(heightScaleLoc, cache.terrain[filename].renderBatches[i].heightScales);
+                    GL.Uniform4(heightScaleLoc, cachedFile.renderBatches[i].heightScales);
 
-                    GL.Uniform4(heightOffsetLoc, cache.terrain[filename].renderBatches[i].heightOffsets);
+                    GL.Uniform4(heightOffsetLoc, cachedFile.renderBatches[i].heightOffsets);
 
-                    for (var j = 0; j < cache.terrain[filename].renderBatches[i].materialID.Length; j++)
+                    for (var j = 0; j < cachedFile.renderBatches[i].materialID.Length; j++)
                     {
                         GL.Uniform1(layerLocs[j], j);
-                        GL.Uniform1(scaleLocs[j], cache.terrain[filename].renderBatches[i].scales[j]);
+                        GL.Uniform1(scaleLocs[j], cachedFile.renderBatches[i].scales[j]);
 
                         GL.ActiveTexture(TextureUnit.Texture0 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, (int)cache.terrain[filename].renderBatches[i].materialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, (int)cachedFile.renderBatches[i].materialID[j]);
                     }
 
-                    for (var j = 1; j < cache.terrain[filename].renderBatches[i].alphaMaterialID.Length; j++)
+                    for (var j = 1; j < cachedFile.renderBatches[i].alphaMaterialID.Length; j++)
                     {
                         GL.Uniform1(blendLocs[j], 3 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture3 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cache.terrain[filename].renderBatches[i].alphaMaterialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].alphaMaterialID[j]);
                     }
 
-                    for (var j = 0; j < cache.terrain[filename].renderBatches[i].heightMaterialIDs.Length; j++)
+                    for (var j = 0; j < cachedFile.renderBatches[i].heightMaterialIDs.Length; j++)
                     {
                         GL.Uniform1(heightLocs[j], 7 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture7 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cache.terrain[filename].renderBatches[i].heightMaterialIDs[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].heightMaterialIDs[j]);
                     }
 
-                    GL.DrawElements(PrimitiveType.Triangles, (int)cache.terrain[filename].renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)cache.terrain[filename].renderBatches[i].firstFace * 4);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)cachedFile.renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)cachedFile.renderBatches[i].firstFace * 4);
 
                     for (var j = 0; j < 11; j++)
                     {
@@ -251,39 +253,39 @@ namespace OBJExporterUI.Renderer
 
                 GL.Viewport(0, 0, bakeSize, bakeSize);
 
-                GL.BindVertexArray(cache.terrain[filename].vao);
+                GL.BindVertexArray(cachedFile.vao);
 
-                for (var i = 0; i < cache.terrain[filename].renderBatches.Length; i++)
+                for (var i = 0; i < cachedFile.renderBatches.Length; i++)
                 {
-                    GL.Uniform4(heightScaleLoc, cache.terrain[filename].renderBatches[i].heightScales);
-                    GL.Uniform4(heightOffsetLoc, cache.terrain[filename].renderBatches[i].heightOffsets);
+                    GL.Uniform4(heightScaleLoc, cachedFile.renderBatches[i].heightScales);
+                    GL.Uniform4(heightOffsetLoc, cachedFile.renderBatches[i].heightOffsets);
 
-                    for (var j = 0; j < cache.terrain[filename].renderBatches[i].materialID.Length; j++)
+                    for (var j = 0; j < cachedFile.renderBatches[i].materialID.Length; j++)
                     {
                         GL.Uniform1(layerLocs[j], j);
-                        GL.Uniform1(scaleLocs[j], cache.terrain[filename].renderBatches[i].scales[j]);
+                        GL.Uniform1(scaleLocs[j], cachedFile.renderBatches[i].scales[j]);
 
                         GL.ActiveTexture(TextureUnit.Texture0 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, (int)cache.terrain[filename].renderBatches[i].materialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, (int)cachedFile.renderBatches[i].materialID[j]);
                     }
 
-                    for (var j = 1; j < cache.terrain[filename].renderBatches[i].alphaMaterialID.Length; j++)
+                    for (var j = 1; j < cachedFile.renderBatches[i].alphaMaterialID.Length; j++)
                     {
                         GL.Uniform1(blendLocs[j], 3 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture3 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cache.terrain[filename].renderBatches[i].alphaMaterialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].alphaMaterialID[j]);
                     }
 
-                    for (var j = 0; j < cache.terrain[filename].renderBatches[i].heightMaterialIDs.Length; j++)
+                    for (var j = 0; j < cachedFile.renderBatches[i].heightMaterialIDs.Length; j++)
                     {
                         GL.Uniform1(heightLocs[j], 7 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture7 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cache.terrain[filename].renderBatches[i].heightMaterialIDs[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].heightMaterialIDs[j]);
                     }
 
-                    GL.DrawElements(PrimitiveType.Triangles, (int)cache.terrain[filename].renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)cache.terrain[filename].renderBatches[i].firstFace * 4);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)cachedFile.renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)cachedFile.renderBatches[i].firstFace * 4);
 
                     for (var j = 0; j < 11; j++)
                     {

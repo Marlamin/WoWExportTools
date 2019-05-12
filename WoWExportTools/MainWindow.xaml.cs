@@ -25,6 +25,7 @@ namespace OBJExporterUI
     {
         private readonly BackgroundWorker worker = new BackgroundWorker();
         private readonly BackgroundWorker exportworker = new BackgroundWorker();
+        private readonly BackgroundWorker adtexportworker = new BackgroundWorker();
         private readonly BackgroundWorkerEx cascworker = new BackgroundWorkerEx();
         private readonly BackgroundWorkerEx fileworker = new BackgroundWorkerEx();
         private readonly BackgroundWorkerEx tileworker = new BackgroundWorkerEx();
@@ -71,6 +72,10 @@ namespace OBJExporterUI
             CompositionTarget.Rendering += previewControl.CompositionTarget_Rendering;
             wfHost.Initialized += previewControl.WindowsFormsHost_Initialized;
 
+            adtexportworker.DoWork += Adtexporterworker_DoWork; ;
+            adtexportworker.RunWorkerCompleted += Exportworker_RunWorkerCompleted;
+            adtexportworker.WorkerReportsProgress = true;
+
             exportworker.DoWork += Exportworker_DoWork;
             exportworker.RunWorkerCompleted += Exportworker_RunWorkerCompleted;
             exportworker.ProgressChanged += Worker_ProgressChanged;
@@ -94,6 +99,42 @@ namespace OBJExporterUI
             exportWMO.IsChecked = ConfigurationManager.AppSettings["exportWMO"] == "True";
             exportM2.IsChecked = ConfigurationManager.AppSettings["exportM2"] == "True";
             exportFoliage.IsChecked = ConfigurationManager.AppSettings["exportFoliage"] == "True";
+        }
+
+        private void Adtexporterworker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var selectedFiles = (System.Collections.IList)e.Argument;
+
+            var exportFormat = "OBJ";
+
+            ConfigurationManager.RefreshSection("appSettings");
+            if (ConfigurationManager.AppSettings["exportFormat"] != null && ConfigurationManager.AppSettings["exportFormat"] == "glTF")
+            {
+                exportFormat = "glTF";
+            }
+
+            Logger.WriteLine("ExportWorker: Export format is {0}", exportFormat);
+
+            foreach (Structs.MapTile selectedFile in selectedFiles)
+            {
+                Logger.WriteLine("ExportWorker: Exporting {0}..", selectedFile);
+                try
+                {
+                    if (exportFormat == "OBJ")
+                    {
+                        Exporters.OBJ.ADTExporter.ExportADT(selectedFile.wdtFileDataID, selectedFile.tileX, selectedFile.tileY, adtexportworker);
+                    }
+                    else if (exportFormat == "glTF")
+                    {
+                        Logger.WriteLine("ExportWorker: Export format glTF not supported right now, sorry!");
+                        //Exporters.glTF.ADTExporter.ExportADT(selectedFile, exportworker);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.WriteLine("ExportWorker: Exception occured in " + ex.Source + " " + ex.Message + " " + ex.StackTrace);
+                }
+            }
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -143,9 +184,15 @@ namespace OBJExporterUI
                     {
                         exportButton.Content = "Crawl maptile for models";
 
-                        if (CASC.FileExists("world/maps/" + filterSplit[0] + "/" + filterSplit[0] + "_" + filterSplit[1] + "_" + filterSplit[2] + ".adt"))
-                        {
-                            exportButton.IsEnabled = true;
+                        if(Listfile.TryGetFileDataID("world/maps/" + filterSplit[0] + "/" + filterSplit[0] + "_" + filterSplit[1] + "_" + filterSplit[2] + ".adt", out var fileDataID)){
+                            if (CASC.FileExists(fileDataID))
+                            {
+                                exportButton.IsEnabled = true;
+                            }
+                            else
+                            {
+                                exportButton.IsEnabled = false;
+                            }
                         }
                         else
                         {
@@ -371,12 +418,12 @@ namespace OBJExporterUI
 
             var linelist = new List<string>();
 
-            if (!File.Exists("listfile.txt"))
+            if (!File.Exists("listfile.csv"))
             {
                 worker.ReportProgress(20, "Downloading listfile..");
                 Listfile.Update();
             }
-            else if (DateTime.Now.AddDays(-7) > File.GetLastWriteTime("listfile.txt"))
+            else if (DateTime.Now.AddDays(-7) > File.GetLastWriteTime("listfile.csv"))
             {
                 worker.ReportProgress(20, "Updating listfile..");
                 Listfile.Update();
@@ -517,17 +564,6 @@ namespace OBJExporterUI
                         else if (exportFormat == "glTF")
                         {
                             Exporters.glTF.M2Exporter.ExportM2(selectedFile, exportworker);
-                        }
-                    }
-                    else if (selectedFile.EndsWith(".adt"))
-                    {
-                        if (exportFormat == "OBJ")
-                        {
-                            Exporters.OBJ.ADTExporter.ExportADT(selectedFile, exportworker);
-                        }
-                        else if (exportFormat == "glTF")
-                        {
-                            Exporters.glTF.ADTExporter.ExportADT(selectedFile, exportworker);
                         }
                     }
                     else if (selectedFile.EndsWith(".blp"))
@@ -726,35 +762,39 @@ namespace OBJExporterUI
             mapListBox.IsEnabled = false;
             tileListBox.IsEnabled = false;
 
-            var tileList = new List<string>();
+            var tileList = new List<Structs.MapTile>();
 
             progressBar.Value = 10;
             loadingLabel.Content = "Baking map textures, this will take a while.";
 
             Dispatcher.Invoke(new Action(() => { }), System.Windows.Threading.DispatcherPriority.ContextIdle, null);
 
-            foreach (var item in tileListBox.SelectedItems)
+            foreach (string item in tileListBox.SelectedItems)
             {
-                var file = "world/maps/" + selectedMap.Internal.ToLower() + "/" + selectedMap.Internal.ToLower() + "_" + item + ".adt";
-                tileList.Add(file);
+                var mapName = selectedMap.Internal.ToLower();
+                var mapTile = new Structs.MapTile();
+                var coord = item.Split('_');
+                mapTile.tileX = byte.Parse(coord[0]);
+                mapTile.tileY = byte.Parse(coord[1]);
 
-                // Hackfix because I can't seem to get GL and backgroundworkers due to work well together due to threading, will freeze everything
-                var mapname = file.Replace("world/maps/", "").Substring(0, file.Replace("world/maps/", "").IndexOf("/"));
-                var coord = file.Replace("world/maps/" + mapname + "/" + mapname, "").Replace(".adt", "").Split('_');
+                var wdtFileName = "world/maps/" + mapName + "/" + mapName + ".wdt";
+                if (!Listfile.TryGetFileDataID(wdtFileName, out mapTile.wdtFileDataID))
+                {
+                    Logger.WriteLine("Unable to find WDT fileDataID for map " + selectedMap.Internal.ToLower());
+                }
 
-                var centerx = int.Parse(coord[1]);
-                var centery = int.Parse(coord[2]);
+                tileList.Add(mapTile);
 
                 ConfigurationManager.RefreshSection("appSettings");
                 var outdir = ConfigurationManager.AppSettings["outdir"];
 
                 if (((ComboBoxItem)bakeSize.SelectedItem).Name != "none")
                 {
-                    previewControl.BakeTexture(file.Replace("/", "\\"), Path.Combine(outdir, Path.GetDirectoryName(file), mapname.Replace(" ", "") + "_" + centerx + "_" + centery + ".png"));
+                    previewControl.BakeTexture(mapTile, Path.Combine(outdir, Path.GetDirectoryName(wdtFileName), mapName.Replace(" ", "") + "_" + mapTile.tileX + "_" + mapTile.tileY + ".png"));
                 }
             }
 
-            exportworker.RunWorkerAsync(tileList);
+            adtexportworker.RunWorkerAsync(tileList);
         }
         private void MapListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1071,7 +1111,7 @@ namespace OBJExporterUI
 
                 var build = CASC.BuildName;
 
-                var storage = DBCManager.LoadDBC("map", build, true);
+                var storage = DBCManager.LoadDBC(1349477, "map", build, true);
 
                 foreach (dynamic entry in storage.Values)
                 {
@@ -1191,42 +1231,7 @@ namespace OBJExporterUI
         {
             previewsEnabled = (bool)previewCheckbox.IsChecked;
         }
-        private void RenderMinimapButton_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var item in tileListBox.SelectedItems)
-            {
-                var selectedMap = (MapListItem)mapListBox.SelectedItem;
-                var selectedTile = (string)tileListBox.SelectedItem;
-
-                if (selectedMap == null || selectedTile == null)
-                {
-                    Console.WriteLine("Nothing selected, not exporting.");
-                    return;
-                }
-
-                var file = "world/maps/" + selectedMap.Internal.ToLower() + "/" + selectedMap.Internal.ToLower() + "_" + item + ".adt";
-
-                // Hackfix because I can't seem to get GL and backgroundworkers due to work well together due to threading, will freeze everything
-                var mapname = file.Replace("world/maps/", "").Substring(0, file.Replace("world/maps/", "").IndexOf("/"));
-                var coord = file.Replace("world/maps/" + mapname + "/" + mapname, "").Replace(".adt", "").Split('_');
-
-                var centerx = int.Parse(coord[1]);
-                var centery = int.Parse(coord[2]);
-
-                var prevConfig = ConfigurationManager.AppSettings["bakeQuality"];
-
-                var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                config.AppSettings.Settings["bakeQuality"].Value = "minimap";
-                config.Save(ConfigurationSaveMode.Full);
-
-                ConfigurationManager.RefreshSection("appSettings");
-                var outdir = ConfigurationManager.AppSettings["outdir"];
-                previewControl.BakeTexture(file.Replace("/", "\\"), Path.Combine(outdir, Path.GetDirectoryName(file), mapname.Replace(" ", "") + "_" + centerx + "_" + centery + ".png"), true);
-
-                config.AppSettings.Settings["bakeQuality"].Value = prevConfig;
-                config.Save(ConfigurationSaveMode.Full);
-            }
-        }
+        
         private void ExportWMO_Click(object sender, RoutedEventArgs e)
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

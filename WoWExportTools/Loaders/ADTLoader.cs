@@ -10,29 +10,14 @@ namespace OBJExporterUI.Loaders
 {
     class ADTLoader
     {
-        public static Terrain LoadADT(string filename, CacheStorage cache, int shaderProgram, bool loadModels = false)
+        public static Terrain LoadADT(Structs.MapTile mapTile, CacheStorage cache, int shaderProgram, bool loadModels = false)
         {
             var adt = new WoWFormatLib.Structs.ADT.ADT();
 
             var result = new Terrain();
-
-            // TODO: LoadADT by WDT filedataid and coordinates
-            if(!Listfile.TryGetFileDataID(filename, out uint fileDataID))
-            {
-                CASCLib.Logger.WriteLine("Could not get filedataid for " + filename);
-            }
-
-            //Load ADT from file
-            if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
-            {
-                var adtreader = new ADTReader();
-                adtreader.LoadADT(filename);
-                adt = adtreader.adtfile;
-            }
-            else
-            {
-                throw new Exception("ADT " + fileDataID + " does not exist!");
-            }
+            var adtreader = new ADTReader();
+            adtreader.LoadADT(mapTile.wdtFileDataID, mapTile.tileX, mapTile.tileY);
+            adt = adtreader.adtfile;
 
             var TileSize = 1600.0f / 3.0f; //533.333
             var ChunkSize = TileSize / 16.0f; //33.333
@@ -322,7 +307,7 @@ namespace OBJExporterUI.Loaders
             result.doodads = doodads.ToArray();
             result.worldModelBatches = worldModelBatches.ToArray();
 
-            cache.terrain.Add(filename, result);
+            cache.terrain.Add(mapTile.wdtFileDataID + "_" + mapTile.tileX + "_" + mapTile.tileY, result);
             return result;
         }
     }

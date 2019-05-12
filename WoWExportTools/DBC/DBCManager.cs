@@ -11,7 +11,7 @@ namespace OBJExporterUI
     {
         private static Dictionary<(string, string), IDictionary> _dbcCache = new Dictionary<(string, string), IDictionary>();
 
-        public static IDictionary LoadDBC(string name, string build, bool fromCache = false)
+        public static IDictionary LoadDBC(uint filedataid, string name, string build, bool fromCache = false)
         {
             if (name.Contains("."))
             {
@@ -31,7 +31,7 @@ namespace OBJExporterUI
 
             var filename = Path.Combine("cache", name + ".db2");
 
-            using (var stream = CASC.OpenFile("DBFilesClient\\" + name + ".db2"))
+            using (var stream = CASC.OpenFile(filedataid))
             using (var ms = new MemoryStream())
             {
                 stream.CopyTo(ms);

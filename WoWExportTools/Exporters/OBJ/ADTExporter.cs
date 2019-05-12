@@ -11,7 +11,7 @@ namespace OBJExporterUI.Exporters.OBJ
 {
     public class ADTExporter
     {
-        public static void ExportADT(string file, BackgroundWorker exportworker = null)
+        public static void ExportADT(uint wdtFileDataID, byte tileX, byte tileY, BackgroundWorker exportworker = null)
         {
             if (exportworker == null)
             {
@@ -31,6 +31,24 @@ namespace OBJExporterUI.Exporters.OBJ
             var UnitSize = ChunkSize / 8.0;
             var UnitSizeHalf = UnitSize / 2.0;
 
+            if (!Listfile.TryGetFilename(wdtFileDataID, out string wdtFilename))
+            {
+                Logger.WriteLine("ADT OBJ Exporter: WDT {0} has no known filename, skipping export!", wdtFileDataID);
+                return;
+            }
+
+            var mapName = Path.GetFileNameWithoutExtension(wdtFilename);
+            var file = "world/maps/" + mapName + "/" + mapName + "_" + tileX.ToString() + "_" + tileY.ToString() + ".adt";
+
+            var reader = new ADTReader();
+            reader.LoadADT(wdtFileDataID, tileX, tileY);
+
+            if (reader.adtfile.chunks == null)
+            {
+                Logger.WriteLine("ADT OBJ Exporter: File {0} has no chunks, skipping export!", file);
+                return;
+            }
+
             Logger.WriteLine("ADT OBJ Exporter: Starting export of {0}..", file);
 
             if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(file))))
@@ -39,15 +57,6 @@ namespace OBJExporterUI.Exporters.OBJ
             }
 
             exportworker.ReportProgress(0, "Loading ADT " + file);
-
-            var reader = new ADTReader();
-            reader.LoadADT(file.Replace('/', '\\'));
-
-            if (reader.adtfile.chunks == null)
-            {
-                Logger.WriteLine("ADT OBJ Exporter: File {0} has no chunks, skipping export!", file);
-                return;
-            }
 
             var renderBatches = new List<Structs.RenderBatch>();
             var verticelist = new List<Structs.Vertex>();
@@ -236,8 +245,8 @@ namespace OBJExporterUI.Exporters.OBJ
                     }
 
                     var build = WoWFormatLib.Utils.CASC.BuildName;
-                    var groundEffectTextureDB = DBCManager.LoadDBC("GroundEffectTexture", build, true);
-                    var groundEffectDoodadDB = DBCManager.LoadDBC("GroundEffectDoodad", build, true);
+                    var groundEffectTextureDB = DBCManager.LoadDBC(1308499, "GroundEffectTexture", build, true);
+                    var groundEffectDoodadDB = DBCManager.LoadDBC(1308057, "GroundEffectDoodad", build, true);
 
                     for (var c = 0; c < reader.adtfile.texChunks.Length; c++)
                     {
@@ -470,6 +479,8 @@ namespace OBJExporterUI.Exporters.OBJ
             }
 
             objsw.Close();
+
+            Logger.WriteLine("ADT OBJ Exporter: Finished with export of {0}..", file);
         }
     }
 }

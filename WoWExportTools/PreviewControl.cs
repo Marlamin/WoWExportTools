@@ -5,6 +5,7 @@ using OBJExporterUI.Loaders;
 using System.Drawing;
 using OpenTK.Input;
 using System.Collections.Generic;
+using static OBJExporterUI.Structs;
 
 namespace OBJExporterUI
 {
@@ -54,38 +55,17 @@ namespace OBJExporterUI
             }
         }
 
-        public void BakeTexture(string filename, string outname, bool minimap = false)
+        public void BakeTexture(MapTile mapTile, string outname, bool minimap = false)
         {
             var minimapRenderer = new Renderer.RenderMinimap();
             if (minimap)
             {
-                minimapRenderer.Generate(filename, outname, cache, bakeFullMinimapShaderProgram);
+                minimapRenderer.Generate(mapTile, outname, cache, bakeFullMinimapShaderProgram);
             }
             else
             {
-                minimapRenderer.Generate(filename, outname, cache, bakeShaderProgram);
+                minimapRenderer.Generate(mapTile, outname, cache, bakeShaderProgram);
             }
-        }
-        
-        public void LoadModel(List<string> tileList)
-        {
-            foreach(var tile in tileList)
-            {
-                if (!cache.terrain.ContainsKey(tile))
-                {
-                    ADTLoader.LoadADT(tile, cache, adtShaderProgram);
-                }
-
-                ActiveCamera.Pos = new Vector3(cache.terrain[tile].startPos.Position.X, cache.terrain[tile].startPos.Position.Y, cache.terrain[tile].startPos.Position.Z);
-                ActiveCamera.Pos.Y -= 533.33333f / 2;
-                ActiveCamera.Pos.X += 533.33333f / 2;
-                ActiveCamera.Pos.Z += 50f;
-                modelType = "adt";
-
-                ready = true;
-            }
-
-            adtList = tileList;
         }
 
         public void LoadModel(string filename)

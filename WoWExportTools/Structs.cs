@@ -9,6 +9,13 @@ namespace OBJExporterUI
 {
     public class Structs
     {
+        public struct MapTile
+        {
+            public uint wdtFileDataID;
+            public byte tileX;
+            public byte tileY;
+        }
+
         public struct RenderBatch
         {
             public uint firstFace;
