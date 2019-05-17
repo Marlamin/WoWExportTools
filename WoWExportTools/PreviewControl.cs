@@ -6,6 +6,7 @@ using System.Drawing;
 using OpenTK.Input;
 using System.Collections.Generic;
 using static OBJExporterUI.Structs;
+using CASCLib;
 
 namespace OBJExporterUI
 {
@@ -71,39 +72,43 @@ namespace OBJExporterUI
         public void LoadModel(string filename)
         {
             ready = false;
-
             GL.ActiveTexture(TextureUnit.Texture0);
 
             this.filename = filename;
-
-            if (filename.EndsWith(".m2"))
+            try
             {
-                if (!cache.doodadBatches.ContainsKey(filename))
+                if (filename.EndsWith(".m2"))
                 {
-                    M2Loader.LoadM2(filename, cache, m2ShaderProgram);
-                }
+                    if (!cache.doodadBatches.ContainsKey(filename))
+                    {
+                        M2Loader.LoadM2(filename, cache, m2ShaderProgram);
+                    }
 
-                if (!cache.doodadBatches.ContainsKey(filename))
+                    if (!cache.doodadBatches.ContainsKey(filename))
+                    {
+                        return;
+                    }
+
+                    ActiveCamera.Pos = new Vector3((cache.doodadBatches[filename].boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
+                    modelType = "m2";
+
+                    ready = true;
+                }
+                else if (filename.EndsWith(".wmo"))
                 {
-                    return;
+                    if (!cache.worldModels.ContainsKey(filename))
+                    {
+                        WMOLoader.LoadWMO(filename, cache, wmoShaderProgram);
+                    }
+                    modelType = "wmo";
+
+                    ready = true;
                 }
-
-                ActiveCamera.Pos = new Vector3((cache.doodadBatches[filename].boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
-                modelType = "m2";
-
-                ready = true;
-            }
-            else if (filename.EndsWith(".wmo"))
+            }catch(Exception e)
             {
-                if (!cache.worldModels.ContainsKey(filename))
-                {
-                    WMOLoader.LoadWMO(filename, cache, wmoShaderProgram);
-                }
-                modelType = "wmo";
-
-                ready = true;
+                Logger.WriteLine("Error occured when loading model " + filename + ": " + e.StackTrace);
             }
-
+           
             ActiveCamera.ResetCamera();
         }
 
