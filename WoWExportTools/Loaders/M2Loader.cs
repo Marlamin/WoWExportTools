@@ -82,7 +82,7 @@ namespace OBJExporterUI.Loaders
 
             for (var i = 0; i < model.textures.Count(); i++)
             {
-                uint textureFileDataID = 372993;
+                uint textureFileDataID = 528732;
                 ddBatch.mats[i].flags = model.textures[i].flags;
 
                 switch (model.textures[i].type)
@@ -101,14 +101,14 @@ namespace OBJExporterUI.Loaders
                     case 2:
                     case 11:
                     default:
-                        textureFileDataID = 372993;
+                        textureFileDataID = 528732;
                         break;
                 }
 
                 // Not set in TXID
                 if(textureFileDataID == 0)
                 {
-                    textureFileDataID = 372993;
+                    textureFileDataID = 528732;
                 }
 
                 ddBatch.mats[i].textureID = BLPLoader.LoadTexture(textureFileDataID, cache);
@@ -138,7 +138,7 @@ namespace OBJExporterUI.Loaders
                     {
                         ddBatch.submeshes[i].blendType = model.renderflags[model.skins[0].textureunit[tu].renderFlags].blendingMode;
 
-                        uint textureFileDataID = 372993;
+                        uint textureFileDataID = 528732;
 
                         if (model.textureFileDataIDs != null && model.textureFileDataIDs.Length > 0 && model.textureFileDataIDs[model.texlookup[model.skins[0].textureunit[tu].texture].textureID] != 0)
                         {
@@ -152,7 +152,7 @@ namespace OBJExporterUI.Loaders
                             }
                             else
                             {
-                                textureFileDataID = 372993;
+                                textureFileDataID = 528732;
                             }
                         }
 
