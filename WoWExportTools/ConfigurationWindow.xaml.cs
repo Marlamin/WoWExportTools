@@ -145,6 +145,7 @@ namespace OBJExporterUI
         {
             programSelect.Items.Add(new KeyValuePair<string, string>("Live/Retail", "wow"));
             programSelect.Items.Add(new KeyValuePair<string, string>("Public Test Realm (PTR)", "wowt"));
+            programSelect.Items.Add(new KeyValuePair<string, string>("Classic Beta", "wow_classic_beta"));
             programSelect.Items.Add(new KeyValuePair<string, string>("Beta", "wow_beta"));
             programSelect.Items.Add(new KeyValuePair<string, string>("Submission (unknown use)", "wowz"));
             programSelect.DisplayMemberPath = "Key";
