@@ -1,0 +1,3 @@
+[submodule "CascLib"]
+	path = CascLib
+	url = https://github.com/WoW-Tools/CascLib.git

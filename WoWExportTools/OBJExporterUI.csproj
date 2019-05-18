@@ -54,9 +54,6 @@
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CascLibCore">
-      <HintPath>..\..\WoWFormatTest\CASCExplorer\CascLibCore\bin\Debug\netstandard2.0\CascLibCore.dll</HintPath>
-    </Reference>
     <Reference Include="DB2FileReaderLib.NET, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DB2FileReaderLib.NET.1.0.0\lib\net461\DB2FileReaderLib.NET.dll</HintPath>
     </Reference>
@@ -324,6 +321,12 @@
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\description\" />
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\dialogs\" />
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\strings_us\description\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CascLib\CascLib\CascLib.csproj">
+      <Project>{b37a850e-992a-4a8a-a016-9f186dca5997}</Project>
+      <Name>CascLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
