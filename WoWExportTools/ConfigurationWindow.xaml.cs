@@ -106,8 +106,6 @@ namespace OBJExporterUI
             if(basedirLabel == null) { return; }
             if ((bool) onlineMode.IsChecked)
             {
-                programSelect.Visibility = Visibility.Visible;
-                programLabel.Visibility = Visibility.Visible;
                 onlineLabel.Visibility = Visibility.Visible;
                 localLabel.Visibility = Visibility.Hidden;
                 basedirBrowse.Visibility = Visibility.Hidden;
@@ -115,8 +113,6 @@ namespace OBJExporterUI
             }
             else
             {
-                programSelect.Visibility = Visibility.Hidden;
-                programLabel.Visibility = Visibility.Hidden;
                 onlineLabel.Visibility = Visibility.Hidden;
                 localLabel.Visibility = Visibility.Visible;
                 basedirBrowse.Visibility = Visibility.Visible;
@@ -219,7 +215,7 @@ namespace OBJExporterUI
                         needsRestart = true;
                     }
                     config.AppSettings.Settings["basedir"].Value = (string)basedirLabel.Content;
-                    config.AppSettings.Settings["program"].Value = "";
+                    config.AppSettings.Settings["program"].Value = ((KeyValuePair<string, string>)programSelect.SelectedValue).Value;
                     config.AppSettings.Settings["firstrun"].Value = "false";
                 }
             }

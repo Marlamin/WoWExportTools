@@ -24,15 +24,15 @@
                     <!-- Online mode -->
                     <Label Content="Data source" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,78,0.2,0" HorizontalContentAlignment="Center" Grid.ColumnSpan="2"/>
                     <Label x:Name="onlineLabel" Visibility="Hidden" Content="Online mode will use the web to retrieve data, as such its speed will be &#xD;&#xA;dependent on the speed of your internet connection." HorizontalAlignment="Left" Margin="65,107,0,0" VerticalAlignment="Top" Width="368" FontSize="10" Height="59" Grid.ColumnSpan="2"/>
-                    <RadioButton Checked="Mode_Checked" x:Name="onlineMode" GroupName="ContentSource" Content="Online mode" HorizontalAlignment="Left" Margin="53.748,187,0,0" IsChecked="True" VerticalAlignment="Top" Grid.Column="1"/>
-                    <Label x:Name="programLabel" HorizontalContentAlignment="Center" Content="Select the version of WoW to use:" HorizontalAlignment="Stretch" Margin="0,226,0.2,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
-                    <ComboBox x:Name="programSelect" Loaded="ProgramSelect_Loaded" HorizontalAlignment="Center" Margin="94.748,259,168.2,0" VerticalAlignment="Top" Width="150" Grid.Column="1"/>
+                    <RadioButton Checked="Mode_Checked" x:Name="onlineMode" GroupName="ContentSource" Content="Online mode" HorizontalAlignment="Left" Margin="48.6,171,0,0" IsChecked="True" VerticalAlignment="Top" Grid.Column="1"/>
+                    <Label x:Name="programLabel" HorizontalContentAlignment="Center" Content="Select the version of WoW to use:" HorizontalAlignment="Stretch" Margin="0,193,0.2,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <ComboBox x:Name="programSelect" Loaded="ProgramSelect_Loaded" HorizontalAlignment="Center" Margin="94.6,219,168.2,0" VerticalAlignment="Top" Width="150" Grid.Column="1"/>
                     <!-- Local mode -->
                     <Label x:Name="localLabel" Visibility="Visible" Content="Local mode will use your local WoW installation to retrieve data which &#xD;&#xA;is much faster than Online mode but also very prone to data corruption." HorizontalAlignment="Left" Margin="65,107,0,0" VerticalAlignment="Top" Width="368" FontSize="10" Height="59" Grid.ColumnSpan="2"/>
-                    <RadioButton Checked="Mode_Checked" x:Name="localMode" GroupName="ContentSource" Content="Local mode" HorizontalAlignment="Left" Margin="208.748,187,0,0" VerticalAlignment="Top" Grid.Column="1"/>
-                    <Label x:Name="basedirLabel" Content="No WoW directory set" Visibility="Hidden" HorizontalAlignment="Stretch" Margin="0,226,0.2,0" VerticalAlignment="Top" HorizontalContentAlignment="Center" Grid.ColumnSpan="2"/>
-                    <Button x:Name="basedirBrowse" Content="Browse.." Visibility="Hidden" Click="BasedirBrowse_Click" HorizontalAlignment="Center" Margin="94.748,262,168.2,0" VerticalAlignment="Top" Width="150" Grid.Column="1"/>
-                    <Label Content="Changing this option requires a restart" FontSize="10" HorizontalAlignment="Stretch" Margin="0,163,0.2,0" HorizontalContentAlignment="Center" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <RadioButton Checked="Mode_Checked" x:Name="localMode" GroupName="ContentSource" Content="Local mode" HorizontalAlignment="Left" Margin="203.6,171,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                    <Label x:Name="basedirLabel" Content="No WoW directory set" Visibility="Hidden" HorizontalAlignment="Stretch" Margin="0,241,0.2,0" VerticalAlignment="Top" HorizontalContentAlignment="Center" Grid.ColumnSpan="2"/>
+                    <Button x:Name="basedirBrowse" Content="Browse.." Visibility="Hidden" Click="BasedirBrowse_Click" HorizontalAlignment="Center" Margin="94.6,267,168.2,0" VerticalAlignment="Top" Width="150" Grid.Column="1"/>
+                    <Label Content="Changing this option requires a restart" FontSize="10" HorizontalAlignment="Stretch" Margin="-5,147,5.2,0" HorizontalContentAlignment="Center" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="FormatTypeTab" Header="Export" IsEnabled="True" Visibility="Visible">
