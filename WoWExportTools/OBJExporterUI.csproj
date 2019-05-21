@@ -97,9 +97,6 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="WoWFormatLib">
-      <HintPath>..\..\WoWFormatTest\WoWFormatLib\bin\Debug\WoWFormatLib.dll</HintPath>
-    </Reference>
     <Reference Include="WpfAnimatedGif, Version=1.4.18.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\WpfAnimatedGif.1.4.18\lib\net\WpfAnimatedGif.dll</HintPath>
     </Reference>
@@ -323,9 +320,13 @@
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\strings_us\description\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CascLib\CascLib\CascLib.csproj">
-      <Project>{b37a850e-992a-4a8a-a016-9f186dca5997}</Project>
+    <ProjectReference Include="..\WoWFormatLib\CascLib\CascLib\CascLib.csproj">
+      <Project>{954d7a1c-9e54-430d-bbf3-a3a12bc2452e}</Project>
       <Name>CascLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WoWFormatLib\WoWFormatLib\WoWFormatLib.csproj">
+      <Project>{5db0fb8f-0eaa-490a-aa7d-28ae010186a9}</Project>
+      <Name>WoWFormatLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
