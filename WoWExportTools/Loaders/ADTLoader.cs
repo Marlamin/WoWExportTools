@@ -16,7 +16,10 @@ namespace OBJExporterUI.Loaders
 
             var result = new Terrain();
             var adtreader = new ADTReader();
-            adtreader.LoadADT(mapTile.wdtFileDataID, mapTile.tileX, mapTile.tileY);
+
+            Listfile.FDIDToFilename.TryGetValue(mapTile.wdtFileDataID, out string wdtFilename);
+
+            adtreader.LoadADT(mapTile.wdtFileDataID, mapTile.tileX, mapTile.tileY, true, wdtFilename);
             adt = adtreader.adtfile;
 
             var TileSize = 1600.0f / 3.0f; //533.333
@@ -187,9 +190,25 @@ namespace OBJExporterUI.Loaders
                         alphalayermats.Add(BLPLoader.GenerateAlphaTexture(adt.texChunks[c].alphaLayer[li].layer));
                     }
 
-                    layermats.Add((uint)cache.materials[adt.diffuseTextureFileDataIDs[adt.texChunks[c].layers[li].textureId]]);
+                    Material curMat;
 
-                    var curMat = materials.Where(material => material.filename == adt.diffuseTextureFileDataIDs[adt.texChunks[c].layers[li].textureId].ToString()).Single();
+                    if(adt.diffuseTextureFileDataIDs == null)
+                    {
+                        if(adt.textures.filenames == null)
+                        {
+                            throw new Exception("ADT has no textures?");
+                        }
+
+                        var texFileDataID = WoWFormatLib.Utils.CASC.getFileDataIdByName(adt.textures.filenames[adt.texChunks[c].layers[li].textureId]);
+
+                        layermats.Add((uint)cache.materials[texFileDataID]);
+                        curMat = materials.Where(material => material.filename == adt.textures.filenames[adt.texChunks[c].layers[li].textureId]).Single();
+                    }
+                    else
+                    {
+                        layermats.Add((uint)cache.materials[adt.diffuseTextureFileDataIDs[adt.texChunks[c].layers[li].textureId]]);
+                        curMat = materials.Where(material => material.filename == adt.diffuseTextureFileDataIDs[adt.texChunks[c].layers[li].textureId].ToString()).Single();
+                    }
 
                     layerscales.Add(curMat.scale);
                     layerheights.Add(curMat.heightTexture);

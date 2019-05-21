@@ -41,7 +41,7 @@ namespace OBJExporterUI.Exporters.OBJ
             var file = "world/maps/" + mapName + "/" + mapName + "_" + tileX.ToString() + "_" + tileY.ToString() + ".adt";
 
             var reader = new ADTReader();
-            reader.LoadADT(wdtFileDataID, tileX, tileY);
+            reader.LoadADT(wdtFileDataID, tileX, tileY, true, wdtFilename);
 
             if (reader.adtfile.chunks == null)
             {
