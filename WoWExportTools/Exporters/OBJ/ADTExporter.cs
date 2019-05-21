@@ -6,6 +6,8 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using WoWFormatLib.FileReaders;
+using DBCD;
+using DBCD.Providers;
 
 namespace OBJExporterUI.Exporters.OBJ
 {
@@ -235,17 +237,10 @@ namespace OBJExporterUI.Exporters.OBJ
 
                 try
                 {
-                    if (!File.Exists("definitions/GroundEffectTexture.dbd") || !File.Exists("definitions/GroundEffectDoodad.dbd"))
-                    {
-                        MainWindow.UpdateDefinition("GroundEffectTexture");
-                        MainWindow.UpdateDefinition("GroundEffectDoodad");
-                        DefinitionManager.LoadDefinitions();
-                    }
-
                     var build = WoWFormatLib.Utils.CASC.BuildName;
-                    var groundEffectTextureDB = DBCManager.LoadDBC(1308499, "GroundEffectTexture", build, true);
-                    var groundEffectDoodadDB = DBCManager.LoadDBC(1308057, "GroundEffectDoodad", build, true);
-
+                    var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new GithubDBDProvider());
+                    var groundEffectTextureDB = dbcd.Load("GroundEffectTextureDB");
+                    var groundEffectDoodadDB = dbcd.Load("GroundEffectDoodadDB");
                     for (var c = 0; c < reader.adtfile.texChunks.Length; c++)
                     {
                         for (var l = 0; l < reader.adtfile.texChunks[c].layers.Length; l++)

@@ -429,17 +429,6 @@ namespace OBJExporterUI
                 Listfile.Update();
             }
 
-            if (!File.Exists("definitions/Map.dbd"))
-            {
-                worker.ReportProgress(30, "Downloading database definitions..");
-                UpdateDefinition("Map");
-            }
-            else if (DateTime.Now.AddDays(-7) > File.GetLastWriteTime("definitions/Map.dbd"))
-            {
-                worker.ReportProgress(30, "Updating database definitions..");
-                UpdateDefinition("Map");
-            }
-
             worker.ReportProgress(50, "Loading listfile from disk..");
 
             if(Listfile.FDIDToFilename.Count == 0)
@@ -1035,27 +1024,6 @@ namespace OBJExporterUI
             Application.Current.Shutdown();
         }
 
-        /* Utilities */
-        public static void UpdateDefinition(string name)
-        {
-            using (var client = new WebClient())
-            using (var stream = new MemoryStream())
-            {
-                client.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
-                var responseStream = new GZipStream(client.OpenRead("https://raw.githubusercontent.com/wowdev/WoWDBDefs/master/definitions/" + name + ".dbd"), CompressionMode.Decompress);
-
-                responseStream.CopyTo(stream);
-                if (!Directory.Exists("definitions"))
-                {
-                    Directory.CreateDirectory("definitions");
-                }
-
-                File.WriteAllBytes("definitions/" + name + ".dbd", stream.ToArray());
-                responseStream.Close();
-                responseStream.Dispose();
-            }
-        }
-
         private void UpdateMapList()
         {
             try
@@ -1104,14 +1072,10 @@ namespace OBJExporterUI
 
             try
             {
-                if (!File.Exists("definitions/Map.dbd"))
-                {
-                    UpdateDefinition("Map");
-                }
-
                 var build = CASC.BuildName;
 
-                var storage = DBCManager.LoadDBC(1349477, "map", build, true);
+                var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new DBCD.Providers.GithubDBDProvider());
+                var storage = dbcd.Load("Map");
 
                 foreach (dynamic entry in storage.Values)
                 {

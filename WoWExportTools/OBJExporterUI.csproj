@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OBJExporterUI</RootNamespace>
     <AssemblyName>OBJExporterUI</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -54,9 +54,6 @@
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DB2FileReaderLib.NET, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DB2FileReaderLib.NET.1.0.0\lib\net461\DB2FileReaderLib.NET.dll</HintPath>
-    </Reference>
     <Reference Include="DBDefsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DBDefsLib.1.0.0.15\lib\netstandard2.0\DBDefsLib.dll</HintPath>
     </Reference>
@@ -106,13 +103,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DBC\DBCManager.cs" />
+    <Compile Include="DBC\CASCDBCProvider.cs" />
     <Compile Include="Exporters\glTF\ADTExporter.cs" />
     <Compile Include="Exporters\glTF\glTF.cs" />
     <Compile Include="Exporters\glTF\M2Exporter.cs" />
     <Compile Include="Exporters\glTF\WMOExporter.cs" />
     <Compile Include="Loaders\ADTLoader.cs" />
-    <Compile Include="DBC\DefinitionManager.cs" />
     <Compile Include="Renderer\CacheStorage.cs" />
     <Compile Include="Exporters\OBJ\ADTExporter.cs" />
     <Compile Include="Exporters\OBJ\M2Exporter.cs" />
@@ -320,6 +316,10 @@
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\strings_us\description\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DBCD\DBCD.csproj">
+      <Project>{0f5f77d7-2397-4551-a69d-cba30344d6fe}</Project>
+      <Name>DBCD</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WoWFormatLib\CascLib\CascLib\CascLib.csproj">
       <Project>{954d7a1c-9e54-430d-bbf3-a3a12bc2452e}</Project>
       <Name>CascLib</Name>
