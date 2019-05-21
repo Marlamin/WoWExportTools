@@ -85,8 +85,6 @@ namespace OBJExporterUI.Exporters.OBJ
                     var genx = (initialChunkX + (ChunkSize * x) * -1);
                     var geny = (initialChunkY + (ChunkSize * y) * -1);
 
-                    Console.WriteLine(ci + ": " + x + "." + y + ": Gen X " + genx.ToString("G") + ", Gen Y " + geny.ToString("G") + ", Orig X " + reader.adtfile.chunks[ci].header.position.X + ", Orig Y " + reader.adtfile.chunks[ci].header.position.Y);
-
                     var chunk = reader.adtfile.chunks[ci];
 
                     var off = verticelist.Count();
@@ -104,8 +102,8 @@ namespace OBJExporterUI.Exporters.OBJ
 
                             v.Normal = new Structs.Vector3D
                             {
-                                X = (double)chunk.normals.normal_2[idx] / 127,
-                                Y = (double)chunk.normals.normal_0[idx] / 127,
+                                X = (double)chunk.normals.normal_0[idx] / 127,
+                                Y = (double)chunk.normals.normal_2[idx] / 127,
                                 Z = (double)chunk.normals.normal_1[idx] / 127
                             };
 
