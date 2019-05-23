@@ -7,7 +7,6 @@ using System.Configuration;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Windows;
@@ -40,7 +39,9 @@ namespace OBJExporterUI
         private List<string> models;
         private List<string> textures;
 
-        private Dictionary<int, NiceMapEntry> mapNames = new Dictionary<int, NiceMapEntry>();
+        private Dictionary<int, MapListItem> mapNames = new Dictionary<int, MapListItem>();
+        private Dictionary<uint, WoWFormatLib.FileReaders.WDTReader> wdtCache = new Dictionary<uint, WoWFormatLib.FileReaders.WDTReader>();
+
         private List<string> mapFilters = new List<string>();
 
         private static ListBox tileBox;
@@ -184,7 +185,8 @@ namespace OBJExporterUI
                     {
                         exportButton.Content = "Crawl maptile for models";
 
-                        if(Listfile.TryGetFileDataID("world/maps/" + filterSplit[0] + "/" + filterSplit[0] + "_" + filterSplit[1] + "_" + filterSplit[2] + ".adt", out var fileDataID)){
+                        if (Listfile.TryGetFileDataID("world/maps/" + filterSplit[0] + "/" + filterSplit[0] + "_" + filterSplit[1] + "_" + filterSplit[2] + ".adt", out var fileDataID))
+                        {
                             if (CASC.FileExists(fileDataID))
                             {
                                 exportButton.IsEnabled = true;
@@ -261,10 +263,9 @@ namespace OBJExporterUI
 
             worker.RunWorkerAsync();
 
-            UpdateMapListView();
-
             MainMenu.IsEnabled = true;
         }
+
         private void CASCworker_DoWork(object sender, DoWorkEventArgs e)
         {
             var basedir = ConfigurationManager.AppSettings["basedir"];
@@ -431,7 +432,7 @@ namespace OBJExporterUI
 
             worker.ReportProgress(50, "Loading listfile from disk..");
 
-            if(Listfile.FDIDToFilename.Count == 0)
+            if (Listfile.FDIDToFilename.Count == 0)
             {
                 Listfile.Load();
             }
@@ -518,7 +519,7 @@ namespace OBJExporterUI
 
             foreach (string selectedFile in selectedFiles)
             {
-                if(!Listfile.TryGetFileDataID(selectedFile, out var fileDataID))
+                if (!Listfile.TryGetFileDataID(selectedFile, out var fileDataID))
                 {
                     Logger.WriteLine("ExportWorker: File {0} does not exist in listfile, skipping export!", selectedFile);
                     continue;
@@ -793,22 +794,18 @@ namespace OBJExporterUI
             {
                 var selectedItem = (MapListItem)mapListBox.SelectedItem;
 
-                var wdt = "world\\maps\\" + selectedItem.Internal + "\\" + selectedItem.Internal + ".wdt";
-
-                // TODO: Use filedataid from DBCs instead of relying on listfile to have filename
-                if (!Listfile.TryGetFileDataID(wdt, out var wdtFileDataID))
+                if (CASC.FileExists((uint)selectedItem.WDTFileDataID))
                 {
-                    // Set to non-existent filedataid to fail the if check below
-                    wdtFileDataID = 0;
-                }
-                
-                if (CASC.FileExists(wdtFileDataID))
-                {
-                    var reader = new WoWFormatLib.FileReaders.WDTReader();
-                    reader.LoadWDT(wdtFileDataID);
-                    for (var i = 0; i < reader.tiles.Count; i++)
+                    if (!wdtCache.ContainsKey(selectedItem.ID))
                     {
-                        tileListBox.Items.Add(reader.tiles[i].Item1.ToString() + "_" + reader.tiles[i].Item2.ToString());
+                        var reader = new WoWFormatLib.FileReaders.WDTReader();
+                        reader.LoadWDT((uint)selectedItem.WDTFileDataID);
+                        wdtCache.Add(selectedItem.ID, reader);
+                    }
+
+                    for (var i = 0; i < wdtCache[selectedItem.ID].tiles.Count; i++)
+                    {
+                        tileListBox.Items.Add(wdtCache[selectedItem.ID].tiles[i].Item1.ToString() + "_" + wdtCache[selectedItem.ID].tiles[i].Item2.ToString());
                     }
                 }
             }
@@ -817,17 +814,32 @@ namespace OBJExporterUI
         }
         private void TileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (tileListBox.SelectedItem == null)
+            {
+                e.Handled = true;
+                return;
+            }
+
             try
             {
+                var selectedMap = (MapListItem)mapListBox.SelectedItem;
+
+                if (!wdtCache.ContainsKey(selectedMap.ID))
+                {
+                    var reader = new WoWFormatLib.FileReaders.WDTReader();
+                    reader.LoadWDT((uint)selectedMap.WDTFileDataID);
+                    wdtCache.Add(selectedMap.ID, reader);
+                }
+
                 var file = (string)tileListBox.SelectedItem;
-                var selectedItem = (MapListItem)mapListBox.SelectedItem;
                 var splitTile = file.Split('_');
                 var fixedTileName = splitTile[0].PadLeft(2, '0') + "_" + splitTile[1].PadLeft(2, '0');
-                var minimapFile = "world\\minimaps\\" + selectedItem.Internal + "\\map" + fixedTileName + ".blp";
+                var minimapFile = "world\\minimaps\\" + selectedMap.Internal + "\\map" + fixedTileName + ".blp";
 
-                if(!Listfile.TryGetFileDataID(minimapFile, out var minimapFileDataID))
+                if (!Listfile.TryGetFileDataID(minimapFile, out var minimapFileDataID))
                 {
                     Logger.WriteLine("Unable to find filedataid for minimap file " + minimapFile);
+                    minimapFileDataID = wdtCache[selectedMap.ID].tileFiles[(byte.Parse(splitTile[0]), byte.Parse(splitTile[1]))].minimapTexture;
                 }
 
                 if (!CASC.FileExists(minimapFileDataID))
@@ -956,18 +968,13 @@ namespace OBJExporterUI
         }
         public class MapListItem
         {
+            public uint ID { get; set; }
             public string Type { get; set; }
             public string Name { get; set; }
             public string Internal { get; set; }
             public string Image { get; set; }
-        }
-        public class NiceMapEntry
-        {
-            public string ID { get; set; }
-            public string Name { get; set; }
-            public string Internal { get; set; }
-            public string Type { get; set; }
-            public string Expansion { get; set; }
+            public uint ExpansionID { get; set; }
+            public int WDTFileDataID { get; set; }
         }
 
         /* Menu */
@@ -1050,118 +1057,112 @@ namespace OBJExporterUI
                 UpdateMapList();
             }
 
-            if (File.Exists("mapnames.csv") && mapNames.Count == 0)
+            if (mapNames.Count == 0)
             {
-                using (var parser = new TextFieldParser("mapnames.csv"))
+                if (File.Exists("mapnames.csv"))
                 {
-                    parser.TextFieldType = FieldType.Delimited;
-                    parser.SetDelimiters(",");
-                    while (!parser.EndOfData)
+                    using (var parser = new TextFieldParser("mapnames.csv"))
                     {
-                        var fields = parser.ReadFields();
-                        if (fields[0] != "ID")
+                        parser.TextFieldType = FieldType.Delimited;
+                        parser.SetDelimiters(",");
+                        while (!parser.EndOfData)
                         {
-                            mapNames.Add(int.Parse(fields[0]), new NiceMapEntry { ID = fields[0], Name = fields[4], Internal = fields[2], Type = fields[3], Expansion = fields[5] });
+                            var fields = parser.ReadFields();
+                            if (fields[0] != "ID")
+                            {
+                                var expansionID = ExpansionNameToID(fields[5]);
+                                var image = "pack://application:,,,/Resources/wow" + expansionID + ".png";
+
+                                if (!Listfile.TryGetFileDataID("world/maps/" + fields[2] + "/" + fields[2] + ".wdt", out uint wdtFileDataID))
+                                {
+                                    continue;
+                                }
+
+                                mapNames.Add(int.Parse(fields[0]), new MapListItem { ID = uint.Parse(fields[0]), Name = fields[4], Internal = fields[2], Type = fields[3], Image = image, ExpansionID = (uint)expansionID, WDTFileDataID = (int)wdtFileDataID });
+                            }
                         }
                     }
+                }
+
+                try
+                {
+                    var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new DBCD.Providers.GithubDBDProvider());
+                    var storage = dbcd.Load("Map");
+
+                    foreach (dynamic entry in storage.Values)
+                    {
+                        int wdtFileDataID = entry.WdtFileDataID;
+
+                        if (CASC.FileExists((uint)wdtFileDataID))
+                        {
+                            int mapID = entry.ID;
+                            string mapDirectory = entry.Directory;
+                            string mapName = entry.MapName_lang;
+                            if (mapNames.ContainsKey(mapID))
+                            {
+                                mapName = mapNames[mapID].Name;
+                            }
+
+                            uint mapType = entry.MapType;
+
+                            var mapTypeDesc = "Unknown (" + mapType + ")";
+
+                            switch (mapType)
+                            {
+                                case 0:
+                                    mapTypeDesc = "Normal";
+                                    break;
+                                case 1:
+                                    mapTypeDesc = "Instance";
+                                    break;
+                                case 2:
+                                    mapTypeDesc = "Raid";
+                                    break;
+                                case 3:
+                                    mapTypeDesc = "PvP";
+                                    break;
+                                case 4:
+                                    mapTypeDesc = "Arena";
+                                    break;
+                                default:
+                                    mapTypeDesc = "Unknown (" + mapType + ")";
+                                    break;
+                            }
+
+                            var mapItem = new MapListItem { ID = (uint)mapID, Name = mapName, Internal = mapDirectory, ExpansionID = (uint)entry.ExpansionID + 1, Image = "pack://application:,,,/Resources/wow" + (entry.ExpansionID + 1) + ".png", Type = mapTypeDesc, WDTFileDataID = wdtFileDataID };
+
+                            if (!mapNames.ContainsKey(mapID))
+                            {
+                                mapNames.Add(mapID, mapItem);
+                            }
+                            else
+                            {
+                                mapNames[mapID] = mapItem;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error occured during DBC reading: " + ex.Message);
                 }
             }
 
             mapListBox.DisplayMemberPath = "Value";
             mapListBox.Items.Clear();
 
-            try
+            foreach (var map in mapNames)
             {
-                var build = CASC.BuildName;
+                var wdt = "World/Maps/" + map.Value.Internal + "/" + map.Value.Internal + ".wdt";
 
-                var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new DBCD.Providers.GithubDBDProvider());
-                var storage = dbcd.Load("Map");
-
-                foreach (dynamic entry in storage.Values)
+                if (!mapFilters.Contains("wow" + map.Value.ExpansionID) || !mapFilters.Contains(map.Value.Type))
                 {
-                    var mapID = entry.ID;
-                    var mapDirectory = entry.Directory;
-                    var mapName = entry.MapName_lang;
-                    var mapExpansionID = entry.ExpansionID;
-                    var mapType = entry.MapType;
-
-                    var wdt = "World/Maps/" + mapDirectory + "/" + mapDirectory + ".wdt";
-
-                    // TODO: Use filedataid from DBCs instead of relying on listfile to have filename
-                    if (!Listfile.TryGetFileDataID(wdt, out uint wdtFileDataID))
-                    {
-                        // Set to non-existent filedataid to fail the if check below
-                        wdtFileDataID = 0;
-                    }
-
-                    if (CASC.FileExists(wdtFileDataID))
-                    {
-                        var mapItem = new MapListItem { Internal = mapDirectory };
-
-                        if (mapNames.ContainsKey(mapID))
-                        {
-                            mapItem.Name = mapNames[mapID].Name;
-                            mapItem.Type = mapNames[mapID].Type;
-                            var expansionID = ExpansionNameToID(mapNames[mapID].Expansion);
-                            mapItem.Image = "pack://application:,,,/Resources/wow" + expansionID + ".png";
-
-                            if (!mapFilters.Contains("wow" + expansionID) || !mapFilters.Contains(mapItem.Type))
-                            {
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            mapItem.Name = mapName;
-                            switch ((int)mapType)
-                            {
-                                case 0:
-                                    mapItem.Type = "Normal";
-                                    break;
-                                case 1:
-                                    mapItem.Type = "Instance";
-                                    break;
-                                case 2:
-                                    mapItem.Type = "Raid";
-                                    break;
-                                case 3:
-                                    mapItem.Type = "PvP";
-                                    break;
-                                case 4:
-                                    mapItem.Type = "Arena";
-                                    break;
-                                default:
-                                    mapItem.Type = "Unknown (" + mapType + ")";
-                                    break;
-                            }
-                            mapItem.Image = "pack://application:,,,/Resources/wow" + (mapExpansionID + 1) + ".png";
-                        }
-
-                        if (string.IsNullOrEmpty(filterTextBox.Text) || (mapDirectory.IndexOf(filterTextBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1 || mapName.IndexOf(filterTextBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1))
-                        {
-                            mapListBox.Items.Add(mapItem);
-                        }
-                    }
+                    continue;
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("An error occured during DBC reading.. falling back to CSV!" + ex.Message);
-                foreach (var map in mapNames)
+
+                if (string.IsNullOrEmpty(filterTextBox.Text) || (map.Value.Internal.IndexOf(filterTextBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1 || map.Value.Name.IndexOf(filterTextBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1))
                 {
-                    var wdt = "World/Maps/" + map.Value.Internal + "/" + map.Value.Internal + ".wdt";
-
-                    // TODO: Use filedataid from DBCs instead of relying on listfile to have filename
-                    if (!Listfile.TryGetFileDataID(wdt, out var wdtFileDataID))
-                    {
-                        // Set to non-existent filedataid to fail the if check below
-                        wdtFileDataID = 0;
-                    }
-
-                    if (CASC.FileExists(wdtFileDataID))
-                    {
-                        mapListBox.Items.Add(new MapListItem { Name = map.Value.Name, Internal = map.Value.Internal, Type = map.Value.Type, Image = "pack://application:,,,/Resources/wow" + ExpansionNameToID(map.Value.Expansion) + ".png" });
-                    }
+                    mapListBox.Items.Add(map.Value);
                 }
             }
 
@@ -1195,7 +1196,7 @@ namespace OBJExporterUI
         {
             previewsEnabled = (bool)previewCheckbox.IsChecked;
         }
-        
+
         private void ExportWMO_Click(object sender, RoutedEventArgs e)
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
