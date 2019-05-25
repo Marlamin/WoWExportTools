@@ -239,8 +239,8 @@ namespace OBJExporterUI.Exporters.OBJ
                 {
                     var build = WoWFormatLib.Utils.CASC.BuildName;
                     var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new GithubDBDProvider());
-                    var groundEffectTextureDB = dbcd.Load("GroundEffectTextureDB");
-                    var groundEffectDoodadDB = dbcd.Load("GroundEffectDoodadDB");
+                    var groundEffectTextureDB = dbcd.Load("GroundEffectTexture");
+                    var groundEffectDoodadDB = dbcd.Load("GroundEffectDoodad");
                     for (var c = 0; c < reader.adtfile.texChunks.Length; c++)
                     {
                         for (var l = 0; l < reader.adtfile.texChunks[c].layers.Length; l++)
@@ -289,7 +289,7 @@ namespace OBJExporterUI.Exporters.OBJ
                 }
                 catch (Exception e)
                 {
-                    throw e;
+                    Logger.WriteLine("Error exporting GroundEffects: " + e.Message);
                 }
             }
 
