@@ -428,8 +428,6 @@ namespace WoWExportTools
         {
             worker.ReportProgress(0, "Loading listfile..");
 
-            var linelist = new List<string>();
-
             if (!File.Exists("listfile.csv"))
             {
                 worker.ReportProgress(20, "Downloading listfile..");
@@ -448,56 +446,45 @@ namespace WoWExportTools
                 Listfile.Load();
             }
 
+            worker.ReportProgress(70, "Filtering listfile..");
+
+            var linelist = new List<string>();
+
             foreach (var line in Listfile.FDIDToFilename)
             {
-                var filename = line.Value;
-
                 if (CASC.FileExists(line.Key))
                 {
-                    linelist.Add(filename);
+                    linelist.Add(line.Value);
                 }
             }
 
-            worker.ReportProgress(70, "Sorting listfile..");
+            var regex = new System.Text.RegularExpressions.Regex(@"(_\d\d\d_)|(_\d\d\d.wmo$)|(lod\d.wmo$)");
 
-            linelist.Sort();
-
-            var lines = linelist.ToArray();
-
-            var unwantedExtensions = new List<string>();
-            for (var u = 0; u < 512; u++)
+            foreach (var line in linelist)
             {
-                unwantedExtensions.Add("_" + u.ToString().PadLeft(3, '0') + ".wmo");
-            }
-
-            var unwanted = unwantedExtensions.ToArray();
-
-            for (var i = 0; i < lines.Count(); i++)
-            {
-                if (showWMO && lines[i].EndsWith(".wmo"))
+                if (showWMO && line.EndsWith("wmo"))
                 {
-                    if (!unwanted.Contains(lines[i].Substring(lines[i].Length - 8, 8)) && !lines[i].EndsWith("lod.wmo") && !lines[i].EndsWith("lod1.wmo") && !lines[i].EndsWith("lod2.wmo") && !lines[i].EndsWith("lod3.wmo"))
+                    if (!regex.Match(line).Success)
                     {
-                        models.Add(lines[i]);
+                        models.Add(line);
                     }
                 }
 
-                if (showM2 && lines[i].EndsWith(".m2"))
+                if (showM2 && line.EndsWith("m2"))
                 {
-                    models.Add(lines[i]);
+                    models.Add(line);
                 }
 
-                if (lines[i].EndsWith(".blp"))
+                if (line.EndsWith("blp"))
                 {
-                    textures.Add(lines[i]);
-                }
-
-                if (i % 1000 == 0)
-                {
-                    var progress = (i * 100) / lines.Count();
-                    worker.ReportProgress(progress, "Filtering listfile..");
+                    textures.Add(line);
                 }
             }
+
+            worker.ReportProgress(80, "Sorting listfile..");
+
+            models.Sort();
+            textures.Sort();
         }
 
         private void Exportworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
