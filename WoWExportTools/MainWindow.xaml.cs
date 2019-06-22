@@ -376,7 +376,18 @@ namespace OBJExporterUI
             textureListBox.DataContext = textures;
 
             Logger.WriteLine("Worker: Startup complete!");
-            previewControl.LoadModel("spells/axistestobject.m2");
+
+            ConfigurationManager.RefreshSection("appSettings");
+
+            if(ConfigurationManager.AppSettings["program"] == "wow_classic" || ConfigurationManager.AppSettings["program"] == "wow_classic_beta")
+            {
+                previewControl.LoadModel("world/arttest/boxtest/xyz.m2");
+            }
+            else
+            {
+                previewControl.LoadModel("spells/axistestobject.m2");
+            }
+
             previewControl.SetCamera(3.200006f, 0f, 0.6000016f, 0.9000001f);
 
             UpdateFilter();

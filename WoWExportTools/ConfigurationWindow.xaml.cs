@@ -32,7 +32,7 @@ namespace OBJExporterUI
 
                 if(config.AppSettings.Settings["exportFormat"].Value == "glTF")
                 {
-                    glTFCheckbox.IsChecked = true;
+                    //glTFCheckbox.IsChecked = true;
                 }
                 else
                 {
@@ -165,15 +165,16 @@ namespace OBJExporterUI
 
         private void ExportMode_Checked(object sender, RoutedEventArgs e)
         {
-            if (OBJLabel == null || glTFLabel == null){ return; }
+            //if (OBJLabel == null || glTFLabel == null){ return; }
+            if (OBJLabel == null) { return; }
             if ((bool)OBJCheckbox.IsChecked)
             {
-                glTFLabel.Visibility = Visibility.Hidden;
+                //glTFLabel.Visibility = Visibility.Hidden;
                 OBJLabel.Visibility = Visibility.Visible;
             }
             else
             {
-                glTFLabel.Visibility = Visibility.Visible;
+                //glTFLabel.Visibility = Visibility.Visible;
                 OBJLabel.Visibility = Visibility.Hidden;
             }
         }
