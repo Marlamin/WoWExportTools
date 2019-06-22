@@ -196,10 +196,13 @@ namespace OBJExporterUI.Exporters.OBJ
                 switch (reader.model.textures[i].type)
                 {
                     case 0:
-                        Listfile.TryGetFileDataID(reader.model.textures[i].filename, out textureFileDataID);
-                        if (textureFileDataID == 372993)
+                        if (reader.model.textureFileDataIDs != null && reader.model.textureFileDataIDs.Length > 0 && reader.model.textureFileDataIDs[i] != 0)
                         {
                             textureFileDataID = reader.model.textureFileDataIDs[i];
+                        }
+                        else
+                        {
+                            Listfile.TryGetFileDataID(reader.model.textures[i].filename, out textureFileDataID);
                         }
                         break;
                     case 1:

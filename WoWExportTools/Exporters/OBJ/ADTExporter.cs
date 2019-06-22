@@ -249,7 +249,7 @@ namespace OBJExporterUI.Exporters.OBJ
                             if (effectID == 0)
                                 continue;
 
-                            if (!groundEffectTextureDB.Contains(effectID))
+                            if (!groundEffectTextureDB.ContainsKey(effectID))
                             {
                                 Console.WriteLine("Could not find groundEffectTexture entry " + reader.adtfile.texChunks[c].layers[l].effectId);
                                 continue;
@@ -258,7 +258,7 @@ namespace OBJExporterUI.Exporters.OBJ
                             dynamic textureEntry = groundEffectTextureDB[effectID];
                             foreach (int doodad in textureEntry.DoodadID)
                             {
-                                if (!groundEffectDoodadDB.Contains(doodad))
+                                if (!groundEffectDoodadDB.ContainsKey(doodad))
                                 {
                                     Console.WriteLine("Could not find groundEffectDoodad entry " + doodad);
                                     continue;
