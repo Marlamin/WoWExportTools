@@ -280,6 +280,7 @@ namespace OBJExporterUI.Exporters.OBJ
             }
 
             var materials = new Structs.Material[wmo.materials.Count()];
+            var extraMaterials = new List<Structs.Material>();
 
             for (var i = 0; i < wmo.materials.Count(); i++)
             {
@@ -356,6 +357,127 @@ namespace OBJExporterUI.Exporters.OBJ
                 }
 
                 textureID++;
+
+                // Extra materials
+                // Texture 2
+                if (CASC.FileExists(wmo.materials[i].texture2))
+                {
+                    var tex2mat = new Structs.Material();
+                    if (wmo.textures == null)
+                    {
+                        if (Listfile.TryGetFilename(wmo.materials[i].texture2, out var textureFilename))
+                        {
+                            tex2mat.filename = Path.GetFileNameWithoutExtension(textureFilename);
+                        }
+                        else
+                        {
+                            tex2mat.filename = wmo.materials[i].texture2.ToString();
+                        }
+
+                        blpreader.LoadBLP(wmo.materials[i].texture2);
+                    }
+                    else
+                    {
+                        for (var ti = 0; ti < wmo.textures.Count(); ti++)
+                        {
+                            if (wmo.textures[ti].startOffset == wmo.materials[i].texture2)
+                            {
+                                tex2mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename);
+                                blpreader.LoadBLP(wmo.textures[ti].filename);
+                            }
+                        }
+                    }
+
+                    if (destinationOverride == null)
+                    {
+                        if (!string.IsNullOrEmpty(filename))
+                        {
+                            saveLocation = Path.Combine(outdir, Path.GetDirectoryName(filename), tex2mat.filename + ".png");
+                        }
+                        else
+                        {
+                            saveLocation = Path.Combine(outdir, tex2mat.filename + ".png");
+                        }
+                    }
+                    else
+                    {
+                        saveLocation = Path.Combine(outdir, destinationOverride, tex2mat.filename + ".png");
+                    }
+
+                    if (!File.Exists(saveLocation))
+                    {
+                        try
+                        {
+                            blpreader.bmp.Save(saveLocation);
+                        }
+                        catch (Exception e)
+                        {
+                            CASCLib.Logger.WriteLine("Exception while saving BLP " + tex2mat.filename + ": " + e.Message);
+                        }
+                    }
+
+                    extraMaterials.Add(tex2mat);
+                }
+
+                // Texture 3
+                if (CASC.FileExists(wmo.materials[i].texture3))
+                {
+                    var tex3mat = new Structs.Material();
+                    if (wmo.textures == null)
+                    {
+                        if (Listfile.TryGetFilename(wmo.materials[i].texture3, out var textureFilename))
+                        {
+                            tex3mat.filename = Path.GetFileNameWithoutExtension(textureFilename);
+                        }
+                        else
+                        {
+                            tex3mat.filename = wmo.materials[i].texture3.ToString();
+                        }
+
+                        blpreader.LoadBLP(wmo.materials[i].texture2);
+                    }
+                    else
+                    {
+                        for (var ti = 0; ti < wmo.textures.Count(); ti++)
+                        {
+                            if (wmo.textures[ti].startOffset == wmo.materials[i].texture3)
+                            {
+                                tex3mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename);
+                                blpreader.LoadBLP(wmo.textures[ti].filename);
+                            }
+                        }
+                    }
+
+                    if (destinationOverride == null)
+                    {
+                        if (!string.IsNullOrEmpty(filename))
+                        {
+                            saveLocation = Path.Combine(outdir, Path.GetDirectoryName(filename), tex3mat.filename + ".png");
+                        }
+                        else
+                        {
+                            saveLocation = Path.Combine(outdir, tex3mat.filename + ".png");
+                        }
+                    }
+                    else
+                    {
+                        saveLocation = Path.Combine(outdir, destinationOverride, tex3mat.filename + ".png");
+                    }
+
+                    if (!File.Exists(saveLocation))
+                    {
+                        try
+                        {
+                            blpreader.bmp.Save(saveLocation);
+                        }
+                        catch (Exception e)
+                        {
+                            CASCLib.Logger.WriteLine("Exception while saving BLP " + tex3mat.filename + ": " + e.Message);
+                        }
+                    }
+
+                    extraMaterials.Add(tex3mat);
+                }
             }
 
             //No idea how MTL files really work yet. Needs more investigation.
@@ -383,6 +505,25 @@ namespace OBJExporterUI.Exporters.OBJ
                     mtlsb.Append("terrain " + material.terrainType + "\n");
                 }
             }
+
+            foreach (var material in extraMaterials)
+            {
+                mtlsb.Append("newmtl " + material.filename + "\n");
+                mtlsb.Append("Ns 96.078431\n");
+                mtlsb.Append("Ka 1.000000 1.000000 1.000000\n");
+                mtlsb.Append("Kd 0.640000 0.640000 0.640000\n");
+                mtlsb.Append("Ks 0.000000 0.000000 0.000000\n");
+                mtlsb.Append("Ke 0.000000 0.000000 0.000000\n");
+                mtlsb.Append("Ni 1.000000\n");
+                mtlsb.Append("d 1.000000\n");
+                mtlsb.Append("illum 1\n");
+                mtlsb.Append("map_Kd " + material.filename + ".png\n");
+                if (material.transparent)
+                {
+                    mtlsb.Append("map_d " + material.filename + ".png\n");
+                }
+            }
+
 
             if (!string.IsNullOrEmpty(filename))
             {
