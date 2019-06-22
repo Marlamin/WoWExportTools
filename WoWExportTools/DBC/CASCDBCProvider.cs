@@ -6,7 +6,7 @@ namespace OBJExporterUI.DBC
 {
     class CASCDBCProvider : IDBCProvider
     {
-        public Stream StreamForTableName(string tableName)
+        public Stream StreamForTableName(string tableName, string build)
         {
             if(Listfile.TryGetFileDataID("dbfilesclient/" + tableName + ".db2", out var fileDataID))
             {

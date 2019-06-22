@@ -54,18 +54,18 @@
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CascLib, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\CascLib.1.0.3\lib\net472\CascLib.dll</HintPath>
+    <Reference Include="CascLib, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CascLib.1.0.5\lib\net472\CascLib.dll</HintPath>
     </Reference>
     <Reference Include="DB2FileReaderLib.NET, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DB2FileReaderLib.NET.1.0.0\lib\net461\DB2FileReaderLib.NET.dll</HintPath>
     </Reference>
     <Reference Include="DBDefsLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DBDefsLib.1.0.0.16\lib\netstandard2.0\DBDefsLib.dll</HintPath>
+      <HintPath>..\packages\DBDefsLib.1.0.0.17\lib\netstandard2.0\DBDefsLib.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="MimeKitLite, Version=2.1.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
-      <HintPath>..\packages\MimeKitLite.2.1.5.1\lib\net45\MimeKitLite.dll</HintPath>
+    <Reference Include="MimeKitLite, Version=2.2.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
+      <HintPath>..\packages\MimeKitLite.2.2.0\lib\net45\MimeKitLite.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
