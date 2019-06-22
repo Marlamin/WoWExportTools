@@ -207,3 +207,5 @@ def load(context,
     for img in bpy.data.images:
         if not img.users:
             bpy.data.images.remove(img)
+
+        return {'FINISHED'}
