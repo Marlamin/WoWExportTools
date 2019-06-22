@@ -76,6 +76,7 @@ namespace WoWExportTools
                             if (obj != null)
                             {
                                 wowLoc = (string)obj;
+                                wowLoc = wowLoc.Replace("_retail_", "").Replace("_classic_", "").Replace("_ptr_", "").Replace("_classic_beta_", "").Replace("_beta_", "");
                                 wowFound = true;
                             }
                         }
