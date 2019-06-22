@@ -2,7 +2,7 @@
 using System.IO;
 using WoWFormatLib.Utils;
 
-namespace OBJExporterUI.DBC
+namespace WoWExportTools.DBC
 {
     class CASCDBCProvider : IDBCProvider
     {

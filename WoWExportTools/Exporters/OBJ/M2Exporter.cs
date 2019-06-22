@@ -7,7 +7,7 @@ using System.Linq;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
 
-namespace OBJExporterUI.Exporters.OBJ
+namespace WoWExportTools.Exporters.OBJ
 {
     class M2Exporter
     {

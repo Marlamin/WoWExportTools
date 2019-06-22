@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OBJExporterUI", "WoWExportTools\OBJExporterUI.csproj", "{436E7F98-9E8D-4F2F-9150-F48DBE14F2FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WoWExportTools", "WoWExportTools\WoWExportTools.csproj", "{436E7F98-9E8D-4F2F-9150-F48DBE14F2FA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WoWFormatLib", "WoWFormatLib\WoWFormatLib\WoWFormatLib.csproj", "{5DB0FB8F-0EAA-490A-AA7D-28AE010186A9}"
 EndProject

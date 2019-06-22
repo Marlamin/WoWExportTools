@@ -7,7 +7,7 @@ using WoWFormatLib.FileReaders;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace OBJExporterUI.Loaders
+namespace WoWExportTools.Loaders
 {
     class WMOLoader
     {

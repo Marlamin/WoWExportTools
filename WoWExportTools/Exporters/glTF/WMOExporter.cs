@@ -8,7 +8,7 @@ using System.IO;
 using Newtonsoft.Json;
 using CASCLib;
 
-namespace OBJExporterUI.Exporters.glTF
+namespace WoWExportTools.Exporters.glTF
 {
     public class WMOExporter
     {

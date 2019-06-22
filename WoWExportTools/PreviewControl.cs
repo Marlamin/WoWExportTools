@@ -1,14 +1,14 @@
 ﻿using System;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using OBJExporterUI.Loaders;
+using WoWExportTools.Loaders;
 using System.Drawing;
 using OpenTK.Input;
 using System.Collections.Generic;
-using static OBJExporterUI.Structs;
+using static WoWExportTools.Structs;
 using CASCLib;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     public class PreviewControl
     {

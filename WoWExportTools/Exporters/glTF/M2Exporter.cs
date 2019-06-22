@@ -10,7 +10,7 @@ using WoWFormatLib.Utils;
 using CASCLib;
 using Newtonsoft.Json;
 
-namespace OBJExporterUI.Exporters.glTF
+namespace WoWExportTools.Exporters.glTF
 {
     class M2Exporter
     {

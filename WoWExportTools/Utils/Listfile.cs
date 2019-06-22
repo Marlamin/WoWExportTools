@@ -8,7 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     public static class Listfile
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 using System.IO;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     public static class Shader
     {

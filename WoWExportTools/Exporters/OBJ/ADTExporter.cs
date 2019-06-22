@@ -9,7 +9,7 @@ using WoWFormatLib.FileReaders;
 using DBCD;
 using DBCD.Providers;
 
-namespace OBJExporterUI.Exporters.OBJ
+namespace WoWExportTools.Exporters.OBJ
 {
     public class ADTExporter
     {

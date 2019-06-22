@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Windows;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     /// <summary>
     /// Interaction logic for VersionWindow.xaml

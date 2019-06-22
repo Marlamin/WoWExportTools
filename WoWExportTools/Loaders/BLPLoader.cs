@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 using WoWFormatLib.SereniaBLPLib;
 using WoWFormatLib.Utils;
 
-namespace OBJExporterUI.Loaders
+namespace WoWExportTools.Loaders
 {
     class BLPLoader
     {

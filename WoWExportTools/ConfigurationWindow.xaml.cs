@@ -5,7 +5,7 @@ using System.Configuration;
 using System.IO;
 using System.Windows;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     /// <summary>
     /// Interaction logic for ConfigurationWindow.xaml

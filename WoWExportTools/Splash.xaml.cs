@@ -1,7 +1,7 @@
 ﻿using System.Configuration;
 using System.Windows;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     /// <summary>
     /// Interaction logic for Splash.xaml

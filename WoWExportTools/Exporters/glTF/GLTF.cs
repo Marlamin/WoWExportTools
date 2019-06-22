@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OBJExporterUI.Exporters.glTF
+namespace WoWExportTools.Exporters.glTF
 {
     public struct glTF
     {

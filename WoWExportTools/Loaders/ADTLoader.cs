@@ -4,9 +4,9 @@ using System.Linq;
 using WoWFormatLib.FileReaders;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using static OBJExporterUI.Renderer.Structs;
+using static WoWExportTools.Renderer.Structs;
 
-namespace OBJExporterUI.Loaders
+namespace WoWExportTools.Loaders
 {
     class ADTLoader
     {

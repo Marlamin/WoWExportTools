@@ -15,7 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WoWFormatLib.Utils;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

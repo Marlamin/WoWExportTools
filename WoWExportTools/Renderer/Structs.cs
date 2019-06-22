@@ -1,6 +1,6 @@
 ﻿using OpenTK;
 
-namespace OBJExporterUI.Renderer
+namespace WoWExportTools.Renderer
 {
     public class Structs
     {

@@ -1,14 +1,14 @@
 ﻿using System;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using OBJExporterUI.Loaders;
+using WoWExportTools.Loaders;
 using System.Drawing;
 using System.Configuration;
 using System.IO;
 using CASCLib;
-using static OBJExporterUI.Structs;
+using static WoWExportTools.Structs;
 
-namespace OBJExporterUI.Renderer
+namespace WoWExportTools.Renderer
 {
     class RenderMinimap
     {

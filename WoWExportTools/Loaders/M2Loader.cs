@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OBJExporterUI.Loaders;
+using WoWExportTools.Loaders;
 using WoWFormatLib.FileReaders;
 using OpenTK.Graphics.OpenGL;
 using OpenTK;
 
-namespace OBJExporterUI.Loaders
+namespace WoWExportTools.Loaders
 {
     class M2Loader
     {

@@ -10,7 +10,7 @@ using System.Text;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
 
-namespace OBJExporterUI.Exporters.OBJ
+namespace WoWExportTools.Exporters.OBJ
 {
     public class WMOExporter
     {

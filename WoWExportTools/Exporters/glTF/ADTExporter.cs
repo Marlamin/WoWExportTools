@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using WoWFormatLib.FileReaders;
 
-namespace OBJExporterUI.Exporters.glTF
+namespace WoWExportTools.Exporters.glTF
 {
     public class ADTExporter
     {

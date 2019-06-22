@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
 
-namespace OBJExporterUI
+namespace WoWExportTools
 {
     class NewCamera
     {

@@ -1,7 +1,7 @@
-﻿<Application x:Class="OBJExporterUI.App"
+﻿<Application x:Class="WoWExportTools.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:OBJExporterUI"
+             xmlns:local="clr-namespace:WoWExportTools"
              StartupUri="Splash.xaml">
     <Application.Resources>
          

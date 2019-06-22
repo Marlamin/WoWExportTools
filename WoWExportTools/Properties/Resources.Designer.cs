@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace OBJExporterUI.Properties {
+namespace WoWExportTools.Properties {
     using System;
     
     
