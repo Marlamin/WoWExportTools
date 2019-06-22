@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
 using WoWFormatLib.FileReaders;
+using WoWFormatLib.Utils;
 
 namespace OBJExporterUI.Exporters.OBJ
 {
@@ -348,7 +351,14 @@ namespace OBJExporterUI.Exporters.OBJ
                 {
                     try
                     {
-                        blpreader.bmp.Save(saveLocation);
+                        if (materials[i].transparent)
+                        {
+                            blpreader.bmp.Save(saveLocation);
+                        }
+                        else
+                        {
+                            blpreader.bmp.Clone(new Rectangle(0, 0, blpreader.bmp.Width, blpreader.bmp.Height), PixelFormat.Format32bppRgb).Save(saveLocation);
+                        }
                     }
                     catch (Exception e)
                     {
