@@ -139,10 +139,11 @@ namespace OBJExporterUI
 
         private void ProgramSelect_Loaded(object sender, RoutedEventArgs e)
         {
-            programSelect.Items.Add(new KeyValuePair<string, string>("Live/Retail", "wow"));
+            programSelect.Items.Add(new KeyValuePair<string, string>("Live (Retail)", "wow"));
             programSelect.Items.Add(new KeyValuePair<string, string>("Public Test Realm (PTR)", "wowt"));
-            programSelect.Items.Add(new KeyValuePair<string, string>("Classic Beta", "wow_classic_beta"));
             programSelect.Items.Add(new KeyValuePair<string, string>("Beta", "wow_beta"));
+            programSelect.Items.Add(new KeyValuePair<string, string>("Classic (Retail)", "wow_classic"));
+            programSelect.Items.Add(new KeyValuePair<string, string>("Classic Beta", "wow_classic_beta"));
             programSelect.Items.Add(new KeyValuePair<string, string>("Submission (unknown use)", "wowz"));
             programSelect.DisplayMemberPath = "Key";
             if (_editMode)
