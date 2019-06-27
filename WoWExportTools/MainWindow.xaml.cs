@@ -391,11 +391,6 @@ namespace WoWExportTools
             previewControl.SetCamera(3.200006f, 0f, 0.6000016f, 0.9000001f);
 
             UpdateFilter();
-#if DEBUG
-            //var file = "world/maps/troll raid/troll raid_23_33.adt";
-            /// Exporters.glTF.ADTExporter.exportADT(file);
-            //previewControl.BakeTexture(file.Replace("/", "\\"), Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file) + ".png"), true);
-#endif
         }
         private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -560,8 +555,13 @@ namespace WoWExportTools
                         var outdir = ConfigurationManager.AppSettings["outdir"];
                         try
                         {
+                            if(!Listfile.FilenameToFDID.TryGetValue(selectedFile, out uint blpFileDataID))
+                            {
+                                throw new Exception("Unable to find filedata for filename " + selectedFile);
+                            }
+
                             var blp = new WoWFormatLib.FileReaders.BLPReader();
-                            blp.LoadBLP(selectedFile);
+                            blp.LoadBLP(blpFileDataID);
 
                             var bmp = blp.bmp;
 
