@@ -444,7 +444,7 @@ namespace WoWExportTools.Exporters.OBJ
                             tex3mat.filename = wmo.materials[i].texture3.ToString();
                         }
 
-                        blpreader.LoadBLP(wmo.materials[i].texture2);
+                        blpreader.LoadBLP(wmo.materials[i].texture3);
                     }
                     else
                     {
