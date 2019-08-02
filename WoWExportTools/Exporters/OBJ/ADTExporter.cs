@@ -315,7 +315,7 @@ namespace WoWExportTools.Exporters.OBJ
                             if (!Listfile.TryGetFilename(filedataid, out filename))
                             {
                                 Logger.WriteLine("Warning! Could not find filename for " + filedataid + ", setting filename to filedataid..");
-                                filename = filedataid.ToString();
+                                filename = filedataid.ToString() + ".wmo";
                             }
                         }
                         else
