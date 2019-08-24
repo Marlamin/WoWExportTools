@@ -203,14 +203,14 @@ namespace WoWExportTools.Exporters.OBJ
 
                     if (bakeQuality == "high")
                     {
-                        materials.Add((int)ci + 1, Path.GetFileNameWithoutExtension(file) + "_" + ci);
+                        materials.Add((int)ci + 1, Path.GetFileNameWithoutExtension(file).Replace(" ", "") + "_" + ci);
                         batch.materialID = ci + 1;
                     }
                     else
                     {
                         if (!materials.ContainsKey(1))
                         {
-                            materials.Add(1, Path.GetFileNameWithoutExtension(file));
+                            materials.Add(1, Path.GetFileNameWithoutExtension(file).Replace(" ", ""));
                         }
                         batch.materialID = (uint)materials.Count();
                     }
