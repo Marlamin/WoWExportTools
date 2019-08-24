@@ -65,21 +65,22 @@ def load(context,
 
     # Import ADT
     bpy.ops.import_scene.obj(filepath=filepath)
-    
+
     adtObject = bpy.data.objects[mapname + '_' + str(map_x) + '_' + str(map_y)]
-    
+
 	# Make shader sane and fix UV clamping (Kruithne)
-    for mat_slot in adtObject.material_slots:
-        node_tree = mat_slot.material.node_tree
-        nodes = node_tree.nodes
-        for node in nodes:
-            if node.name != 'Image Texture' and node.name != 'Material Output' and node.name != 'Diffuse BSDF':
-                node_tree.nodes.remove(node)
-        node_tree.links.new(nodes['Image Texture'].outputs[0], nodes['Diffuse BSDF'].inputs[0])
-        node_tree.links.new(nodes['Diffuse BSDF'].outputs[0], nodes['Material Output'].inputs[0])
-        imageNode = nodes['Image Texture']
-        imageNode.extension = 'EXTEND'
-        imageNode.image.use_alpha = False
+    # Needs updating for 2.8 if still neccesary?
+    # for mat_slot in adtObject.material_slots:
+    #     node_tree = mat_slot.material.node_tree
+    #     nodes = node_tree.nodes
+    #     for node in nodes:
+    #         if node.name != 'Image Texture' and node.name != 'Material Output' and node.name != 'Diffuse BSDF':
+    #             node_tree.nodes.remove(node)
+    #     node_tree.links.new(nodes['Image Texture'].outputs[0], nodes['Diffuse BSDF'].inputs[0])
+    #     node_tree.links.new(nodes['Diffuse BSDF'].outputs[0], nodes['Material Output'].inputs[0])
+    #     imageNode = nodes['Image Texture']
+    #     imageNode.extension = 'EXTEND'
+    #     imageNode.image.use_alpha = False
 
     bpy.ops.object.add(type='EMPTY')
     doodadparent = bpy.context.active_object
