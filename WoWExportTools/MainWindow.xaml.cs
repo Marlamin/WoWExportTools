@@ -1089,7 +1089,16 @@ namespace WoWExportTools
 
                     foreach (dynamic entry in storage.Values)
                     {
-                        int wdtFileDataID = entry.WdtFileDataID;
+                        int wdtFileDataID = 0;
+
+                        if (storage.AvailableColumns.Contains("WdtFileDataID"))
+                        {
+                            wdtFileDataID = entry.WdtFileDataID;
+                        }
+                        else
+                        {
+                            wdtFileDataID = (int)CASC.getFileDataIdByName("world/maps/" + entry.Directory + "/" + entry.Directory + ".wdt");
+                        }
 
                         if (CASC.FileExists((uint)wdtFileDataID))
                         {

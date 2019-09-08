@@ -367,7 +367,7 @@ namespace WoWExportTools.Exporters.OBJ
                         string filename;
                         uint filedataid;
 
-                        if (reader.adtfile.objects.wmoNames.filenames == null)
+                        if (reader.adtfile.objects.m2Names.filenames == null)
                         {
                             filedataid = doodad.mmidEntry;
                             if (!Listfile.TryGetFilename(filedataid, out filename))
@@ -378,7 +378,7 @@ namespace WoWExportTools.Exporters.OBJ
                         }
                         else
                         {
-                            filename = reader.adtfile.objects.wmoNames.filenames[doodad.mmidEntry];
+                            filename = reader.adtfile.objects.m2Names.filenames[doodad.mmidEntry];
                             if (!Listfile.TryGetFileDataID(filename, out filedataid))
                             {
                                 Logger.WriteLine("Error! Could not find filedataid for " + filename + "!");

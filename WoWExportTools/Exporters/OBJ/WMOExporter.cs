@@ -48,7 +48,7 @@ namespace WoWExportTools.Exporters.OBJ
             exportworker.ReportProgress(5, "Reading WMO..");
 
             var outdir = ConfigurationManager.AppSettings["outdir"];
-            var wmo = new WMOReader().LoadWMO(filedataid);
+            var wmo = new WMOReader().LoadWMO(filedataid, 0, filename);
 
             var customCulture = (System.Globalization.CultureInfo)System.Threading.Thread.CurrentThread.CurrentCulture.Clone();
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
