@@ -83,6 +83,7 @@ namespace WoWExportTools.Loaders
             for (var i = 0; i < model.textures.Count(); i++)
             {
                 uint textureFileDataID = 528732;
+                
                 ddBatch.mats[i].flags = model.textures[i].flags;
 
                 switch (model.textures[i].type)
@@ -109,6 +110,11 @@ namespace WoWExportTools.Loaders
                 if(textureFileDataID == 0)
                 {
                     textureFileDataID = 528732;
+                }
+
+                if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
+                {
+                    textureFileDataID = 186184;
                 }
 
                 ddBatch.mats[i].textureID = BLPLoader.LoadTexture(textureFileDataID, cache);
@@ -139,7 +145,10 @@ namespace WoWExportTools.Loaders
                         ddBatch.submeshes[i].blendType = model.renderflags[model.skins[0].textureunit[tu].renderFlags].blendingMode;
 
                         uint textureFileDataID = 528732;
-
+                        if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
+                        {
+                            textureFileDataID = 186184;
+                        }
                         if (model.textureFileDataIDs != null && model.textureFileDataIDs.Length > 0 && model.textureFileDataIDs[model.texlookup[model.skins[0].textureunit[tu].texture].textureID] != 0)
                         {
                             textureFileDataID = model.textureFileDataIDs[model.texlookup[model.skins[0].textureunit[tu].texture].textureID];
@@ -153,7 +162,16 @@ namespace WoWExportTools.Loaders
                             else
                             {
                                 textureFileDataID = 528732;
+                                if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
+                                {
+                                    textureFileDataID = 186184;
+                                }
                             }
+                        }
+
+                        if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
+                        {
+                            textureFileDataID = 186184;
                         }
 
                         if (!cache.materials.ContainsKey(textureFileDataID))

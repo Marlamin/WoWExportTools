@@ -192,6 +192,10 @@ namespace WoWExportTools.Exporters.OBJ
             for (var i = 0; i < reader.model.textures.Count(); i++)
             {
                 uint textureFileDataID = 840426;
+                if (!CASC.FileExists(840426))
+                {
+                    textureFileDataID = 186184;
+                }
                 materials[i].flags = reader.model.textures[i].flags;
                 switch (reader.model.textures[i].type)
                 {

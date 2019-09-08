@@ -34,7 +34,7 @@ namespace WoWExportTools.Loaders
                 //Load WMO from file
                 if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
                 {
-                    var wmofile = new WMOReader().LoadWMO(fileDataID);
+                    var wmofile = new WMOReader().LoadWMO(fileDataID, 0, filename);
                     cache.worldModels.Add(filename, wmofile);
                     wmo = cache.worldModels[filename];
                 }
