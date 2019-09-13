@@ -441,7 +441,7 @@ namespace WoWExportTools
                 Listfile.Load();
             }
 
-            worker.ReportProgress(70, "Filtering listfile..");
+            worker.ReportProgress(60, "Filtering listfile..");
 
             var linelist = new List<string>();
 
@@ -476,6 +476,32 @@ namespace WoWExportTools
                 }
             }
 
+            worker.ReportProgress(70, "Adding unknown M2s to file list..");
+
+            try
+            {
+                var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new DBCD.Providers.GithubDBDProvider());
+                var storage = dbcd.Load("ModelFileData");
+
+                if (!storage.AvailableColumns.Contains("FileDataID"))
+                {
+                    throw new Exception("Unable to find FileDataID column in ModelFileData! Likely using a version without up to date definition.");
+                }
+
+                foreach (dynamic entry in storage.Values)
+                {
+                    uint fileDataID = (uint)entry.FileDataID;
+                    if (!Listfile.FDIDToFilename.ContainsKey(fileDataID))
+                    {
+                        models.Add("unknown_" + entry.FileDataID + ".m2");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteLine("ListfileWorker: Critical error " + ex.Message + " when trying to add M2s from DBC to file list!");
+            }
+            
             worker.ReportProgress(80, "Sorting listfile..");
 
             models.Sort();
@@ -512,10 +538,21 @@ namespace WoWExportTools
 
             foreach (string selectedFile in selectedFiles)
             {
-                if (!Listfile.TryGetFileDataID(selectedFile, out var fileDataID))
+                var fdidExport = false;
+                uint fileDataID = 0;
+
+                if (selectedFile.StartsWith("unknown_"))
                 {
-                    Logger.WriteLine("ExportWorker: File {0} does not exist in listfile, skipping export!", selectedFile);
-                    continue;
+                    fileDataID = uint.Parse(selectedFile.Replace("unknown_", string.Empty).Replace(".m2", string.Empty));
+                    fdidExport = true;
+                }
+                else
+                {
+                    if (!Listfile.TryGetFileDataID(selectedFile, out fileDataID))
+                    {
+                        Logger.WriteLine("ExportWorker: File {0} does not exist in listfile, skipping export!", selectedFile);
+                        continue;
+                    }
                 }
 
                 if (!CASC.FileExists(fileDataID))
@@ -542,7 +579,14 @@ namespace WoWExportTools
                     {
                         if (exportFormat == "OBJ")
                         {
-                            Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker);
+                            if (fdidExport)
+                            {
+                                Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker);
+                            }
+                            else
+                            {
+                                Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker);
+                            }
                         }
                         else if (exportFormat == "glTF")
                         {
