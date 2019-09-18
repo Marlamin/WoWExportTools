@@ -623,30 +623,28 @@ namespace WoWExportTools
                         var outdir = ConfigurationManager.AppSettings["outdir"];
                         try
                         {
-                            if(!Listfile.FilenameToFDID.TryGetValue(selectedFile, out uint blpFileDataID))
-                            {
-                                throw new Exception("Unable to find filedata for filename " + selectedFile);
-                            }
-
                             var blp = new WoWFormatLib.FileReaders.BLPReader();
-                            blp.LoadBLP(blpFileDataID);
+                            blp.LoadBLP(fileDataID);
 
                             var bmp = blp.bmp;
-
-                            if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(selectedFile))))
-                            {
-                                Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
-                            }
-
                             if (ignoreTextureAlpha)
                             {
-                                bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.PixelFormat.Format32bppRgb).Save(Path.Combine(outdir, Path.GetDirectoryName(selectedFile), Path.GetFileNameWithoutExtension(selectedFile)) + ".png");
+                                bmp = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                            }
+
+                            if (!fdidExport)
+                            {
+                                if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(selectedFile))))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
+                                }
+
+                                bmp.Save(Path.Combine(outdir, Path.GetDirectoryName(selectedFile), Path.GetFileNameWithoutExtension(selectedFile)) + ".png");
                             }
                             else
                             {
-                                bmp.Save(Path.Combine(outdir, Path.GetDirectoryName(selectedFile), Path.GetFileNameWithoutExtension(selectedFile)) + ".png");
+                                bmp.Save(Path.Combine(outdir, fileDataID + ".png"));
                             }
-
                         }
                         catch (Exception blpException)
                         {
@@ -711,23 +709,36 @@ namespace WoWExportTools
         private void TextureListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var file = (string)textureListBox.SelectedItem;
-
             if (file == null)
                 return;
+
+            uint fileDataID = 0;
+
+            if (file.StartsWith("unknown_"))
+            {
+                fileDataID = uint.Parse(file.Replace("unknown_", string.Empty).Replace(".blp", string.Empty));
+            }
+            else
+            {
+                if (!Listfile.TryGetFileDataID(file, out fileDataID))
+                {
+                    Logger.WriteLine("BLP preview: File {0} does not exist in listfile, skipping preview!", file);
+                    return;
+                }
+            }
+
+            if (!CASC.FileExists(fileDataID))
+            {
+                Logger.WriteLine("BLP preview: File {0} does not exist, skipping preview!", file);
+                return;
+            }
 
             try
             {
                 using (var memory = new MemoryStream())
                 {
                     var blp = new WoWFormatLib.FileReaders.BLPReader();
-                    if (Listfile.TryGetFileDataID(file, out var filedataid))
-                    {
-                        blp.LoadBLP(filedataid);
-                    }
-                    else
-                    {
-                        return;
-                    }
+                    blp.LoadBLP(fileDataID);
 
                     var bmp = blp.bmp;
 
