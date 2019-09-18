@@ -476,11 +476,13 @@ namespace WoWExportTools
                 }
             }
 
-            worker.ReportProgress(70, "Adding unknown M2s to file list..");
+            worker.ReportProgress(70, "Adding unknown files to file list..");
 
             try
             {
                 var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new DBCD.Providers.GithubDBDProvider());
+
+                // M2s
                 var storage = dbcd.Load("ModelFileData");
 
                 if (!storage.AvailableColumns.Contains("FileDataID"))
@@ -493,13 +495,30 @@ namespace WoWExportTools
                     uint fileDataID = (uint)entry.FileDataID;
                     if (!Listfile.FDIDToFilename.ContainsKey(fileDataID))
                     {
-                        models.Add("unknown_" + entry.FileDataID + ".m2");
+                        models.Add("unknown_" + fileDataID + ".m2");
+                    }
+                }
+
+                // BLPs
+                var tfdStorage = dbcd.Load("TextureFileData");
+
+                if (!tfdStorage.AvailableColumns.Contains("FileDataID"))
+                {
+                    throw new Exception("Unable to find FileDataID column in ModelFileData! Likely using a version without up to date definition.");
+                }
+
+                foreach (dynamic entry in tfdStorage.Values)
+                {
+                    uint fileDataID = (uint)entry.FileDataID;
+                    if (!Listfile.FDIDToFilename.ContainsKey(fileDataID))
+                    {
+                        textures.Add("unknown_" + fileDataID + ".blp");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.WriteLine("ListfileWorker: Critical error " + ex.Message + " when trying to add M2s from DBC to file list!");
+                Logger.WriteLine("ListfileWorker: Critical error " + ex.Message + " when trying to add unknown files from DBC to file list!");
             }
             
             worker.ReportProgress(80, "Sorting listfile..");
@@ -543,7 +562,7 @@ namespace WoWExportTools
 
                 if (selectedFile.StartsWith("unknown_"))
                 {
-                    fileDataID = uint.Parse(selectedFile.Replace("unknown_", string.Empty).Replace(".m2", string.Empty));
+                    fileDataID = uint.Parse(selectedFile.Replace("unknown_", string.Empty).Replace(".m2", string.Empty).Replace(".blp", string.Empty));
                     fdidExport = true;
                 }
                 else
