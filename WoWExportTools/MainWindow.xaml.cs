@@ -50,6 +50,8 @@ namespace WoWExportTools
         private PreviewControl previewControl;
         private Splash splash;
 
+        public static bool shuttingDown = false;
+
         public MainWindow(Splash splash)
         {
             try
@@ -68,6 +70,9 @@ namespace WoWExportTools
             tileBox = tileListBox;
 
             Title = "WoW Export Tools " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+            if (shuttingDown)
+                return;
 
             previewControl = new PreviewControl(renderCanvas);
             CompositionTarget.Rendering += previewControl.CompositionTarget_Rendering;

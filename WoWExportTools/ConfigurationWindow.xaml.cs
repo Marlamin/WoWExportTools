@@ -259,6 +259,7 @@ namespace WoWExportTools
                 if (needsRestart)
                 {
                     System.Diagnostics.Process.Start(Application.ResourceAssembly.Location);
+                    MainWindow.shuttingDown = true;
                     Application.Current.Shutdown();
                 }
                 else
