@@ -46,11 +46,6 @@ namespace WoWExportTools.Renderer
                 Directory.CreateDirectory(Path.GetDirectoryName(outName));
             }
 
-            if (!splitFiles && File.Exists(outName))
-            {
-                return;
-            }
-
             // Force terrain cache to empty after having 1 ADT cached and run GC
             if(cache.terrain.Count > 1)
             {
@@ -110,11 +105,6 @@ namespace WoWExportTools.Renderer
 
                 for (var i = 0; i < cachedFile.renderBatches.Length; i++)
                 {
-                    if(File.Exists(outName.Replace(".png", "_" + i + ".png")))
-                    {
-                        continue;
-                    }
-
                     var x = i / 16;
                     var y = i % 16;
 
@@ -216,11 +206,6 @@ namespace WoWExportTools.Renderer
             }
             else
             {
-                if (File.Exists(outName))
-                {
-                    return;
-                }
-
                 var frameBuffer = GL.GenFramebuffer();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
 
