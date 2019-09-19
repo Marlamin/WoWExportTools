@@ -226,7 +226,7 @@ namespace WoWExportTools.Exporters.OBJ
             objWriter.Close();
 
             // Only export phys when exporting a single M2, causes issues for some users when combined with WMO/ADT
-            if (destinationOverride == null)
+            if (destinationOverride == null && ConfigurationManager.AppSettings["exportCollision"] == "True")
             {
                 exportworker.ReportProgress(90, "Exporting collision..");
 
