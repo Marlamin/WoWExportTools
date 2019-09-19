@@ -106,6 +106,7 @@ namespace WoWExportTools
             exportWMO.IsChecked = ConfigurationManager.AppSettings["exportWMO"] == "True";
             exportM2.IsChecked = ConfigurationManager.AppSettings["exportM2"] == "True";
             exportFoliage.IsChecked = ConfigurationManager.AppSettings["exportFoliage"] == "True";
+            exportCollision.IsChecked = ConfigurationManager.AppSettings["exportCollision"] == "True";
 
             // Set-up conversion dialogs.
             dialogM2Open = new System.Windows.Forms.OpenFileDialog()
@@ -248,6 +249,7 @@ namespace WoWExportTools
                 m2CheckBox.IsEnabled = false;
                 exportButton.IsEnabled = false;
                 modelListBox.IsEnabled = false;
+                exportCollision.IsEnabled = false;
 
                 exportworker.RunWorkerAsync(modelListBox.SelectedItems);
             }
@@ -367,6 +369,7 @@ namespace WoWExportTools
             exportButton.Visibility = Visibility.Visible;
             wmoCheckBox.Visibility = Visibility.Visible;
             m2CheckBox.Visibility = Visibility.Visible;
+            exportCollision.Visibility = Visibility.Visible;
 
             splash.Visibility = Visibility.Hidden;
             Visibility = Visibility.Collapsed;
@@ -540,6 +543,7 @@ namespace WoWExportTools
             wmoCheckBox.IsEnabled = true;
             m2CheckBox.IsEnabled = true;
             modelListBox.IsEnabled = true;
+            exportCollision.IsEnabled = true;
 
             /* ADT specific UI */
             exportTileButton.IsEnabled = true;
@@ -657,8 +661,8 @@ namespace WoWExportTools
             if (exportButton == null) { return; }
             if (m2CheckBox == null) { return; }
 
-            if ((bool)m2CheckBox.IsChecked) { showM2 = true; } else { showM2 = false; }
-            if ((bool)wmoCheckBox.IsChecked) { showWMO = true; } else { showWMO = false; }
+            showM2 = (bool)m2CheckBox.IsChecked;
+            showWMO = (bool)wmoCheckBox.IsChecked;
 
             progressBar.Visibility = Visibility.Visible;
             loadingLabel.Visibility = Visibility.Visible;
@@ -668,6 +672,7 @@ namespace WoWExportTools
             filterTextLabel.Visibility = Visibility.Hidden;
             wmoCheckBox.Visibility = Visibility.Hidden;
             m2CheckBox.Visibility = Visibility.Hidden;
+            exportCollision.Visibility = Visibility.Hidden;
 
             models = new List<string>();
             textures = new List<string>();
@@ -1251,33 +1256,36 @@ namespace WoWExportTools
             previewsEnabled = (bool)previewCheckbox.IsChecked;
         }
 
+        private void CollisionCheckbox_Checked(object sender, RoutedEventArgs e)
+        {
+            SetConfigValue("exportCollision", exportCollision.IsChecked.ToString());
+        }
+
         private void ExportWMO_Click(object sender, RoutedEventArgs e)
         {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings["exportWMO"].Value = exportWMO.IsChecked.ToString();
-            config.Save(ConfigurationSaveMode.Full);
+            SetConfigValue("exportWMO", exportWMO.IsChecked.ToString());
         }
         private void ExportM2_Click(object sender, RoutedEventArgs e)
         {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings["exportM2"].Value = exportM2.IsChecked.ToString();
-            config.Save(ConfigurationSaveMode.Full);
+            SetConfigValue("exportM2", exportM2.IsChecked.ToString());
         }
 
         private void ExportFoliage_Click(object sender, RoutedEventArgs e)
         {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings["exportFoliage"].Value = exportFoliage.IsChecked.ToString();
-            config.Save(ConfigurationSaveMode.Full);
+            SetConfigValue("exportFoliage", exportFoliage.IsChecked.ToString());
         }
 
         private void BakeSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            config.AppSettings.Settings["bakeQuality"].Value = ((ComboBoxItem)bakeSize.SelectedItem).Name;
-            config.Save(ConfigurationSaveMode.Full);
-
+            SetConfigValue("bakeQuality", ((ComboBoxItem)bakeSize.SelectedItem).Name);
             e.Handled = true;
+        }
+
+        private void SetConfigValue(string key, string value)
+        {
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings[key].Value = value;
+            config.Save(ConfigurationSaveMode.Full);
         }
 
         private void MenuConvertM2_Click(object sender, RoutedEventArgs e)

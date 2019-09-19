@@ -42,12 +42,13 @@
         <Image Grid.Column="0" x:Name="loadingImage" Source="Resources/icon.png" Margin="0,0,0,0" Width="100" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <TextBox Grid.Column="0" x:Name="filterTextBox" Visibility="Hidden" HorizontalAlignment="Stretch" Height="23" Margin="234,55,0,0" TextWrapping="Wrap" ToolTip="Type something here to filter.." VerticalAlignment="Top" TextChanged="FilterBox_TextChanged" Panel.ZIndex="2"/>
         <Label Grid.Column="0" Content="Filter" Name="filterTextLabel" Visibility="Hidden" HorizontalAlignment="Stretch" Margin="198,55,366,0" VerticalAlignment="Top" Height="23" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        <TabControl SelectionChanged="TabControl_SelectionChanged" Grid.Column="0" x:Name="tabs" Margin="0,60,0,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="Auto" Height="Auto" Visibility="Hidden" KeyboardNavigation.DirectionalNavigation="None">
+        <TabControl SelectionChanged="TabControl_SelectionChanged" Grid.Column="0" x:Name="tabs" Margin="0,60,0,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="Auto" Height="Auto" Visibility="Visible" KeyboardNavigation.DirectionalNavigation="None">
             <TabItem x:Name="ModelsTab" Header="Models">
                 <Grid>
                     <CheckBox Checked="ModelCheckBoxChanged" Unchecked="ModelCheckBoxChanged" IsChecked="True" x:Name="wmoCheckBox" Content="WMOs" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                     <CheckBox Checked="ModelCheckBoxChanged" Unchecked="ModelCheckBoxChanged" IsChecked="True" x:Name="m2CheckBox" Content="M2s" HorizontalAlignment="Left" Margin="71,10,0,0" VerticalAlignment="Top"/>
                     <CheckBox Checked="PreviewCheckbox_Checked" Unchecked="PreviewCheckbox_Checked" IsChecked="True" x:Name="previewCheckbox" Content="Enable preview" HorizontalAlignment="Left" Margin="485,10,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Checked="CollisionCheckbox_Checked" Unchecked="CollisionCheckbox_Checked" IsChecked="False" x:Name="exportCollision" Content="Export Collision" HorizontalAlignment="Left" Margin="368,10,0,0" VerticalAlignment="Top" Width="112"/>
                     <ListBox x:Name="modelListBox" SelectionMode="Extended" SelectionChanged="ModelListBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="10,30,10,40" VerticalAlignment="Stretch" ItemsSource="{Binding}"></ListBox>
                     <Button x:Name="exportButton" Height="25" Content="Export model to OBJ!" HorizontalAlignment="Stretch" Margin="10,0,10.4,10" VerticalAlignment="Bottom" Click="ExportButton_Click"/>
                 </Grid>
