@@ -95,9 +95,11 @@ namespace WoWExportTools.Exporters.OBJ
                 else
                     outDir = Path.Combine(outDir, destinationOverride);
             }
+            else
+            {
+                outDir = Path.Combine(outDir, Path.GetDirectoryName(fileName));
+            }
 
-
-            outDir = Path.Combine(outDir, Path.GetDirectoryName(fileName));
             if (!Directory.Exists(outDir))
                 Directory.CreateDirectory(outDir);
 
