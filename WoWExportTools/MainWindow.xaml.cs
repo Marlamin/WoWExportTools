@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WoWFormatLib.Utils;
+using WoWFormatLib.FileReaders;
 
 namespace WoWExportTools
 {
@@ -51,6 +52,9 @@ namespace WoWExportTools
         private Splash splash;
 
         public static bool shuttingDown = false;
+
+        private System.Windows.Forms.OpenFileDialog dialogM2Open;
+        private System.Windows.Forms.OpenFileDialog dialogBLPOpen;
 
         public MainWindow(Splash splash)
         {
@@ -105,6 +109,21 @@ namespace WoWExportTools
             exportWMO.IsChecked = ConfigurationManager.AppSettings["exportWMO"] == "True";
             exportM2.IsChecked = ConfigurationManager.AppSettings["exportM2"] == "True";
             exportFoliage.IsChecked = ConfigurationManager.AppSettings["exportFoliage"] == "True";
+
+            // Set-up conversion dialogs.
+            dialogM2Open = new System.Windows.Forms.OpenFileDialog()
+            {
+                FileName = "Select an M2 file",
+                Filter = "M2 Files (*.m2)|*.m2",
+                Title = "Open M2 File"
+            };
+
+            dialogBLPOpen = new System.Windows.Forms.OpenFileDialog()
+            {
+                FileName = "Select a BLP file",
+                Filter = "BLP Files (*.blp)|*.blp",
+                Title = "Open BLP File"
+            };
         }
 
         private void Adtexporterworker_DoWork(object sender, DoWorkEventArgs e)
@@ -1310,6 +1329,54 @@ namespace WoWExportTools
             config.Save(ConfigurationSaveMode.Full);
 
             e.Handled = true;
+        }
+
+        private void MenuConvertM2_Click(object sender, RoutedEventArgs e)
+        {
+            if (dialogM2Open.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                try
+                {
+                    var filePath = dialogM2Open.FileName;
+                    using (Stream dataStream = dialogM2Open.OpenFile())
+                    {
+                        var reader = new M2Reader();
+                        reader.LoadM2(dataStream);
+
+                        Exporters.OBJ.M2Exporter.ExportM2(reader, filePath, null, Path.GetDirectoryName(filePath), true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception reading local M2: " + ex.Message);
+                }
+            }
+        }
+
+        private void MenuConvertBLP_Click(object sender, RoutedEventArgs e)
+        {
+            if (dialogBLPOpen.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                try
+                {
+                    var filePath = dialogBLPOpen.FileName;
+                    using (Stream dataStream = dialogBLPOpen.OpenFile())
+                    {
+                        BLPReader reader = new BLPReader();
+                        reader.LoadBLP(dataStream);
+
+                        Bitmap bmp = reader.bmp;
+                        if (ignoreTextureAlpha)
+                            bmp = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+
+                        bmp.Save(Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".png"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception reading local BLP: " + ex.Message);
+                }
+            }
         }
     }
 }
