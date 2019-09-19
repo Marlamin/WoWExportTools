@@ -84,6 +84,7 @@ namespace WoWExportTools
 
             adtexportworker.DoWork += Adtexporterworker_DoWork; ;
             adtexportworker.RunWorkerCompleted += Exportworker_RunWorkerCompleted;
+            adtexportworker.ProgressChanged += Worker_ProgressChanged;
             adtexportworker.WorkerReportsProgress = true;
 
             exportworker.DoWork += Exportworker_DoWork;

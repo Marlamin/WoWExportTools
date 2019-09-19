@@ -233,7 +233,7 @@ namespace WoWExportTools.Exporters.OBJ
 
             if (exportFoliage)
             {
-                exportworker.ReportProgress(65, "Exporting foliage");
+                exportworker.ReportProgress(65, "Exporting ADT foliage");
 
                 try
                 {
@@ -251,7 +251,6 @@ namespace WoWExportTools.Exporters.OBJ
 
                             if (!groundEffectTextureDB.ContainsKey(effectID))
                             {
-                                Console.WriteLine("Could not find groundEffectTexture entry " + reader.adtfile.texChunks[c].layers[l].effectId);
                                 continue;
                             }
 
@@ -260,7 +259,6 @@ namespace WoWExportTools.Exporters.OBJ
                             {
                                 if (!groundEffectDoodadDB.ContainsKey(doodad))
                                 {
-                                    Console.WriteLine("Could not find groundEffectDoodad entry " + doodad);
                                     continue;
                                 }
 
@@ -300,7 +298,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                 if (exportWMO)
                 {
-                    exportworker.ReportProgress(25, "Exporting WMOs");
+                    exportworker.ReportProgress(25, "Exporting ADT worldmodels");
 
                     for (var mi = 0; mi < reader.adtfile.objects.worldModels.entries.Count(); mi++)
                     {
@@ -358,7 +356,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                 if (exportM2)
                 {
-                    exportworker.ReportProgress(50, "Exporting M2s");
+                    exportworker.ReportProgress(50, "Exporting ADT doodads");
 
                     for (var mi = 0; mi < reader.adtfile.objects.models.entries.Count(); mi++)
                     {

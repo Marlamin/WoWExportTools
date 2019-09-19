@@ -158,7 +158,7 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
 
-            exportworker.ReportProgress(55, "Exporting doodads..");
+            exportworker.ReportProgress(55, "Exporting WMO doodads..");
 
             doodadSW.WriteLine("ModelFile;PositionX;PositionY;PositionZ;RotationW;RotationX;RotationY;RotationZ;ScaleFactor;DoodadSet");
 
@@ -176,8 +176,6 @@ namespace WoWExportTools.Exporters.OBJ
                         continue;
                     }
                 }
-
-                Console.WriteLine("At doodadset " + i + " (" + currentDoodadSetName + ")");
 
                 for (var j = doodadSet.firstInstanceIndex; j < (doodadSet.firstInstanceIndex + doodadSet.numDoodads); j++)
                 {
@@ -276,7 +274,7 @@ namespace WoWExportTools.Exporters.OBJ
 
             doodadSW.Close();
 
-            exportworker.ReportProgress(65, "Exporting textures..");
+            exportworker.ReportProgress(65, "Exporting WMO textures..");
 
             var mtlsb = new StringBuilder();
             var textureID = 0;
@@ -563,7 +561,7 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
 
-            exportworker.ReportProgress(75, "Exporting model..");
+            exportworker.ReportProgress(75, "Exporting WMO model..");
 
             var numRenderbatches = 0;
             //Get total amount of render batches
@@ -609,7 +607,7 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
 
-            exportworker.ReportProgress(95, "Writing files..");
+            exportworker.ReportProgress(95, "Writing WMO files..");
 
             StreamWriter objsw;
             if (!string.IsNullOrEmpty(filename))
@@ -675,7 +673,6 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
             objsw.Close();
-            Console.WriteLine("Done loading WMO file!");
         }
     }
 }
