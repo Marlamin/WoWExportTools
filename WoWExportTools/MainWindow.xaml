@@ -27,6 +27,7 @@
                 <MenuItem Header="Tools">
                     <MenuItem Name="MenuListfile" Header="Update Listfile" Click="MenuListfile_Click" IsEnabled="False"></MenuItem>
                     <MenuItem Name="MenuMapNames" Header="Update Map list" Click="MenuMapNames_Click" IsEnabled="True"></MenuItem>
+                    <MenuItem Name="MenuConvertM2" Header="Convert local M2 to OBJ" Click="MenuConvertM2_Click" IsEnabled="True"></MenuItem>
                 </MenuItem>
                 <MenuItem Header="About">
                     <MenuItem Name="MenuVersion" Header="Version" Click="MenuVersion_Click"></MenuItem>
