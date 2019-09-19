@@ -40,10 +40,6 @@
                     <Label Content="Pick a file format to export to. &#xD;&#xA;&#xD;&#xA;Currently supported formats:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" />
                     <RadioButton Checked="ExportMode_Checked" x:Name="OBJCheckbox" GroupName="ExportFormat" Content="OBJ" HorizontalAlignment="Left" Margin="229,87,0,0" IsChecked="True" VerticalAlignment="Top"/>
                     <Label x:Name="OBJLabel" Visibility="Visible" Content="The OBJ format is widely supported by a wide range of applications. &#xD;&#xA;In combination with the included Blender plugin, it allows importing of terrain, &#xD;&#xA;with world models and doodads into Blender at proper positions. " HorizontalAlignment="Left" Margin="65,107,0,0" VerticalAlignment="Top" Width="368" FontSize="10" Height="59"/>
-                    <!--
-                    <RadioButton Checked="ExportMode_Checked" x:Name="glTFCheckbox" GroupName="ExportFormat" Content="glTF" HorizontalAlignment="Left" Margin="283,80,0,0" VerticalAlignment="Top"/>
-                    <Label x:Name="glTFLabel" Visibility="Hidden" Content="The glTF format is a new file format with support for more features than OBJ.&#xA;Plugins to import glTF are available for Blender, but will NOT import terrain,&#xA;world models and doodads at their proper positions like the OBJ plugin would. &#xA;&#xD;&#xA;Support for this file format is experimental and still being worked on. " HorizontalAlignment="Left" Margin="65,107,0,0" VerticalAlignment="Top" Width="368" FontSize="10" Height="80"/>
-                    -->
                     <Separator HorizontalAlignment="Stretch" Height="5" Margin="0,200,0,0" VerticalAlignment="Top"/>
                     <CheckBox Content="Texture Metadata (Experimental)" x:Name="textureMetadata" HorizontalAlignment="Left" Margin="10,210,0,0" VerticalAlignment="Top"/>
                 </Grid>

@@ -13,8 +13,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using WoWFormatLib.Utils;
 using WoWFormatLib.FileReaders;
+using WoWFormatLib.Utils;
 
 namespace WoWExportTools
 {
@@ -101,10 +101,7 @@ namespace WoWExportTools
             fileworker.ProgressChanged += Fileworker_ProgressChanged;
             fileworker.WorkerReportsProgress = true;
 
-            if (ConfigurationManager.AppSettings["exportFormat"] == "glTF")
-                exportButton.Content = "Export model to glTF!";
-            else
-                exportButton.Content = "Export model to OBJ!";
+            exportButton.Content = "Export model to OBJ!";
 
             exportWMO.IsChecked = ConfigurationManager.AppSettings["exportWMO"] == "True";
             exportM2.IsChecked = ConfigurationManager.AppSettings["exportM2"] == "True";
@@ -130,30 +127,14 @@ namespace WoWExportTools
         {
             var selectedFiles = (System.Collections.IList)e.Argument;
 
-            var exportFormat = "OBJ";
-
             ConfigurationManager.RefreshSection("appSettings");
-            if (ConfigurationManager.AppSettings["exportFormat"] != null && ConfigurationManager.AppSettings["exportFormat"] == "glTF")
-            {
-                exportFormat = "glTF";
-            }
-
-            Logger.WriteLine("ExportWorker: Export format is {0}", exportFormat);
 
             foreach (Structs.MapTile selectedFile in selectedFiles)
             {
                 Logger.WriteLine("ExportWorker: Exporting {0}..", selectedFile);
                 try
                 {
-                    if (exportFormat == "OBJ")
-                    {
-                        Exporters.OBJ.ADTExporter.ExportADT(selectedFile.wdtFileDataID, selectedFile.tileX, selectedFile.tileY, adtexportworker);
-                    }
-                    else if (exportFormat == "glTF")
-                    {
-                        Logger.WriteLine("ExportWorker: Export format glTF not supported right now, sorry!");
-                        //Exporters.glTF.ADTExporter.ExportADT(selectedFile, exportworker);
-                    }
+                    Exporters.OBJ.ADTExporter.ExportADT(selectedFile.wdtFileDataID, selectedFile.tileX, selectedFile.tileY, adtexportworker);
                 }
                 catch (Exception ex)
                 {
@@ -403,7 +384,7 @@ namespace WoWExportTools
 
             ConfigurationManager.RefreshSection("appSettings");
 
-            if(ConfigurationManager.AppSettings["program"] == "wow_classic" || ConfigurationManager.AppSettings["program"] == "wow_classic_beta")
+            if (ConfigurationManager.AppSettings["program"] == "wow_classic" || ConfigurationManager.AppSettings["program"] == "wow_classic_beta")
             {
                 previewControl.LoadModel("world/arttest/boxtest/xyz.m2");
             }
@@ -544,7 +525,7 @@ namespace WoWExportTools
             {
                 Logger.WriteLine("ListfileWorker: Critical error " + ex.Message + " when trying to add unknown files from DBC to file list!");
             }
-            
+
             worker.ReportProgress(80, "Sorting listfile..");
 
             models.Sort();
@@ -569,15 +550,7 @@ namespace WoWExportTools
         {
             var selectedFiles = (System.Collections.IList)e.Argument;
 
-            var exportFormat = "OBJ";
-
             ConfigurationManager.RefreshSection("appSettings");
-            if (ConfigurationManager.AppSettings["exportFormat"] != null && ConfigurationManager.AppSettings["exportFormat"] == "glTF")
-            {
-                exportFormat = "glTF";
-            }
-
-            Logger.WriteLine("ExportWorker: Export format is {0}", exportFormat);
 
             foreach (string selectedFile in selectedFiles)
             {
@@ -609,31 +582,17 @@ namespace WoWExportTools
                 {
                     if (selectedFile.EndsWith(".wmo"))
                     {
-                        if (exportFormat == "OBJ")
-                        {
-                            Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker);
-                        }
-                        else if (exportFormat == "glTF")
-                        {
-                            Exporters.glTF.WMOExporter.ExportWMO(selectedFile, exportworker);
-                        }
+                        Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker);
                     }
                     else if (selectedFile.EndsWith(".m2"))
                     {
-                        if (exportFormat == "OBJ")
+                        if (fdidExport)
                         {
-                            if (fdidExport)
-                            {
-                                Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker);
-                            }
-                            else
-                            {
-                                Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker);
-                            }
+                            Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker);
                         }
-                        else if (exportFormat == "glTF")
+                        else
                         {
-                            Exporters.glTF.M2Exporter.ExportM2(selectedFile, exportworker);
+                            Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker);
                         }
                     }
                     else if (selectedFile.EndsWith(".blp"))
@@ -1082,17 +1041,7 @@ namespace WoWExportTools
         {
             var cfgWindow = new ConfigurationWindow(true);
             cfgWindow.ShowDialog();
-
-            ConfigurationManager.RefreshSection("appSettings");
-
-            if (ConfigurationManager.AppSettings["exportFormat"] == "glTF")
-            {
-                exportButton.Content = "Export model to glTF!";
-            }
-            else
-            {
-                exportButton.Content = "Export model to OBJ!";
-            }
+            exportButton.Content = "Export model to OBJ!";
         }
 
         private void MenuListfile_Click(object sender, RoutedEventArgs e)

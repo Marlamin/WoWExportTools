@@ -113,10 +113,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DBC\CASCDBCProvider.cs" />
-    <Compile Include="Exporters\glTF\ADTExporter.cs" />
-    <Compile Include="Exporters\glTF\glTF.cs" />
-    <Compile Include="Exporters\glTF\M2Exporter.cs" />
-    <Compile Include="Exporters\glTF\WMOExporter.cs" />
     <Compile Include="Loaders\ADTLoader.cs" />
     <Compile Include="Renderer\CacheStorage.cs" />
     <Compile Include="Exporters\OBJ\ADTExporter.cs" />
@@ -317,7 +313,6 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Exporters\FBX\" />
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\description\" />
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\dialogs\" />
     <Folder Include="Utils\Cinema 4D plugin %28by Remo Pini%29\res\strings_us\description\" />

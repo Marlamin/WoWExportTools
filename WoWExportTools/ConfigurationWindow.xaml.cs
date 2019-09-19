@@ -30,14 +30,7 @@ namespace WoWExportTools
                 basedirLabel.Content = config.AppSettings.Settings["basedir"].Value;
                 outdirLabel.Content = config.AppSettings.Settings["outdir"].Value;
 
-                if(config.AppSettings.Settings["exportFormat"].Value == "glTF")
-                {
-                    //glTFCheckbox.IsChecked = true;
-                }
-                else
-                {
-                    OBJCheckbox.IsChecked = true;
-                }
+                OBJCheckbox.IsChecked = true;
 
                 if (string.IsNullOrWhiteSpace(config.AppSettings.Settings["basedir"].Value))
                 {
@@ -166,16 +159,13 @@ namespace WoWExportTools
 
         private void ExportMode_Checked(object sender, RoutedEventArgs e)
         {
-            //if (OBJLabel == null || glTFLabel == null){ return; }
             if (OBJLabel == null) { return; }
             if ((bool)OBJCheckbox.IsChecked)
             {
-                //glTFLabel.Visibility = Visibility.Hidden;
                 OBJLabel.Visibility = Visibility.Visible;
             }
             else
             {
-                //glTFLabel.Visibility = Visibility.Visible;
                 OBJLabel.Visibility = Visibility.Hidden;
             }
         }
@@ -233,15 +223,6 @@ namespace WoWExportTools
                 {
                     error = true;
                 }
-            }
-
-            if ((bool)OBJCheckbox.IsChecked)
-            {
-                config.AppSettings.Settings["exportFormat"].Value = "OBJ";
-            }
-            else
-            {
-                config.AppSettings.Settings["exportFormat"].Value = "glTF";
             }
 
             if ((bool)textureMetadata.IsChecked)
