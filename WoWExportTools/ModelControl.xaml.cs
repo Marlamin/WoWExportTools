@@ -3,6 +3,7 @@ using System.Windows;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Controls;
 
 namespace WoWExportTools
 {
@@ -111,11 +112,6 @@ namespace WoWExportTools
             }
         }
 
-        public static void SetActiveModel(Renderer.Structs.DoodadBatch model)
-        {
-            instance.ActiveModel = model;
-        }
-
         public static void ShowModelControl(string fileName)
         {
             instance.GeosetNameMap = null;
@@ -144,7 +140,6 @@ namespace WoWExportTools
 
         public Dictionary<uint, string> GeosetNameMap = null;
         public ObservableCollection<ModelGeoset> activeModelGeosets;
-        private Renderer.Structs.DoodadBatch _activeModel;
 
         public ModelControl()
         {
@@ -155,24 +150,19 @@ namespace WoWExportTools
             geosetList.DataContext = activeModelGeosets;
         }
 
-        public Renderer.Structs.DoodadBatch ActiveModel
+        public void SetActiveModel(Renderer.Structs.DoodadBatch model)
         {
-            get { return _activeModel; }
-            set
+            activeModelGeosets.Clear();
+
+            for (uint i = 0; i < model.submeshes.Length; i++)
             {
-                _activeModel = value;
-                activeModelGeosets.Clear();
+                var mesh = model.submeshes[i];
+                string name = "Unknown";
 
-                for (uint i = 0; i < _activeModel.submeshes.Length; i++)
-                {
-                    var mesh = _activeModel.submeshes[i];
-                    string name = "Unknown";
+                if (GeosetNameMap != null && GeosetNameMap.ContainsKey(i))
+                    name = GeosetNameMap[i];
 
-                    if (GeosetNameMap != null && GeosetNameMap.ContainsKey(i))
-                        name = GeosetNameMap[i];
-
-                    activeModelGeosets.Add(new ModelGeoset() { Model = _activeModel, Name = name, Index = i });
-                }
+                activeModelGeosets.Add(new ModelGeoset() { Model = model, Name = name, Index = i });
             }
         }
 

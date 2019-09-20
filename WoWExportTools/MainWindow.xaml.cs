@@ -646,9 +646,9 @@ namespace WoWExportTools
                     // Even if we don't show the model control, provide it the model so that
                     // it can provide geoset information to the exporter.
                     if (previewsEnabled)
-                        ModelControl.SetActiveModel(previewControl.activeM2);
+                        ModelControl.instance.SetActiveModel(previewControl.activeM2);
                     else
-                        ModelControl.SetActiveModel(previewControl.LoadM2(selectedFile));
+                        ModelControl.instance.SetActiveModel(previewControl.LoadM2(selectedFile));
 
                     // Only update the model control if it's already shown.
                     if (ModelControl.IsModelControlActive())
