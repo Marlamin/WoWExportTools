@@ -623,6 +623,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                 objsw.WriteLine("# Written by Marlamin's WoW Export Tools. Original file: " + filename);
                 objsw.WriteLine("mtllib " + Path.GetFileNameWithoutExtension(filename) + ".mtl");
+                objsw.WriteLine("o " + Path.GetFileName(filename));
             }
             else
             {
@@ -637,6 +638,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                 objsw.WriteLine("# Written by Marlamin's WoW Export Tools. Original file id: " + filedataid);
                 objsw.WriteLine("mtllib " + filedataid + ".mtl");
+                objsw.WriteLine("o " + filedataid);
             }
 
             foreach (var group in groups)
@@ -645,8 +647,8 @@ namespace WoWExportTools.Exporters.OBJ
                 {
                     continue;
                 }
+
                 Console.WriteLine("Writing " + group.name);
-                objsw.WriteLine("g " + group.name);
 
                 foreach (var vertex in group.vertices)
                 {
@@ -662,6 +664,7 @@ namespace WoWExportTools.Exporters.OBJ
                     var i = renderbatch.firstFace;
                     if (renderbatch.numFaces > 0)
                     {
+                        objsw.WriteLine("g " + group.name);
                         objsw.WriteLine("usemtl " + materials[renderbatch.materialID].filename);
                         objsw.WriteLine("s 1");
                         while (i < (renderbatch.firstFace + renderbatch.numFaces))
