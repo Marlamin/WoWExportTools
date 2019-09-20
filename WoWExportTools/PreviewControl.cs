@@ -4,7 +4,6 @@ using OpenTK.Graphics.OpenGL;
 using WoWExportTools.Loaders;
 using System.Drawing;
 using OpenTK.Input;
-using System.Collections.Generic;
 using static WoWExportTools.Structs;
 using CASCLib;
 
@@ -18,6 +17,9 @@ namespace WoWExportTools
         public string ModelType = "none";
 
         private NewCamera ActiveCamera;
+
+        private Renderer.Structs.DoodadBatch activeM2;
+        private Renderer.Structs.WorldModel activeWMO;
 
         public string SelectedFileName;
 
@@ -66,20 +68,21 @@ namespace WoWExportTools
             GL.ActiveTexture(TextureUnit.Texture0);
 
             SelectedFileName = fileName;
+
             try
             {
                 if (fileName.EndsWith(".m2"))
                 {
-                    var doodadBatch = LoadM2(fileName);
+                    activeM2 = LoadM2(fileName);
 
-                    ActiveCamera.Pos = new Vector3((doodadBatch.boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
+                    ActiveCamera.Pos = new Vector3((activeM2.boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
                     ModelType = "m2";
 
                     IsModelActive = true;
                 }
                 else if (fileName.EndsWith(".wmo"))
                 {
-                    var worldModel = WMOLoader.LoadWMO(fileName, wmoShaderProgram);
+                    activeWMO = WMOLoader.LoadWMO(fileName, wmoShaderProgram);
 
                     ModelType = "wmo";
                     IsModelActive = true;
@@ -135,18 +138,17 @@ namespace WoWExportTools
 
             if (ModelType == "m2")
             {
-                var doodadBatch = M2Loader.LoadM2(SelectedFileName, m2ShaderProgram);
                 GL.UseProgram(m2ShaderProgram);
 
                 ActiveCamera.setupGLRenderMatrix(m2ShaderProgram);
                 ActiveCamera.flyMode = false;
 
                 var alphaRefLoc = GL.GetUniformLocation(m2ShaderProgram, "alphaRef");
-                GL.BindVertexArray(doodadBatch.vao);
+                GL.BindVertexArray(activeM2.vao);
 
-                for (var i = 0; i < doodadBatch.submeshes.Length; i++)
+                for (var i = 0; i < activeM2.submeshes.Length; i++)
                 {
-                    var submesh = doodadBatch.submeshes[i];
+                    var submesh = activeM2.submeshes[i];
                     if (!submesh.enabled)
                         continue;
 
@@ -177,8 +179,6 @@ namespace WoWExportTools
             }
             else if (ModelType == "wmo")
             {
-                var worldModel = WMOLoader.LoadWMO(SelectedFileName, wmoShaderProgram);
-
                 GL.UseProgram(wmoShaderProgram);
 
                 ActiveCamera.setupGLRenderMatrix(wmoShaderProgram);
@@ -186,11 +186,11 @@ namespace WoWExportTools
 
                 var alphaRefLoc = GL.GetUniformLocation(wmoShaderProgram, "alphaRef");
 
-                for (var j = 0; j < worldModel.wmoRenderBatch.Length; j++)
+                for (var j = 0; j < activeWMO.wmoRenderBatch.Length; j++)
                 {
-                    GL.BindVertexArray(worldModel.groupBatches[worldModel.wmoRenderBatch[j].groupID].vao);
+                    GL.BindVertexArray(activeWMO.groupBatches[activeWMO.wmoRenderBatch[j].groupID].vao);
 
-                    switch(worldModel.wmoRenderBatch[j].blendType)
+                    switch(activeWMO.wmoRenderBatch[j].blendType)
                     {
                         case 0:
                             GL.Disable(EnableCap.Blend);
@@ -211,8 +211,8 @@ namespace WoWExportTools
                             break;
                     }
 
-                    GL.BindTexture(TextureTarget.Texture2D, worldModel.wmoRenderBatch[j].materialID[0]);
-                    GL.DrawElements(PrimitiveType.Triangles, (int)worldModel.wmoRenderBatch[j].numFaces, DrawElementsType.UnsignedInt, (int)worldModel.wmoRenderBatch[j].firstFace * 4);
+                    GL.BindTexture(TextureTarget.Texture2D, activeWMO.wmoRenderBatch[j].materialID[0]);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)activeWMO.wmoRenderBatch[j].numFaces, DrawElementsType.UnsignedInt, (int)activeWMO.wmoRenderBatch[j].firstFace * 4);
                 }
             }
 
