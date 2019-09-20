@@ -119,7 +119,6 @@ namespace WoWExportTools
         public static void ShowModelControl(string fileName)
         {
             instance.GeosetNameMap = null;
-            instance.activeFileName = fileName;
             if (geosetMaps.ContainsKey(fileName))
                 instance.GeosetNameMap = geosetMaps[fileName];
 
@@ -146,7 +145,6 @@ namespace WoWExportTools
         public Dictionary<uint, string> GeosetNameMap = null;
         public ObservableCollection<ModelGeoset> activeModelGeosets;
         private Renderer.Structs.DoodadBatch _activeModel;
-        public string activeFileName;
 
         public ModelControl()
         {
