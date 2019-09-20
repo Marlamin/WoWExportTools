@@ -117,7 +117,6 @@
     <Compile Include="ModelControl.xaml.cs">
       <DependentUpon>ModelControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Renderer\CacheStorage.cs" />
     <Compile Include="Exporters\OBJ\ADTExporter.cs" />
     <Compile Include="Exporters\OBJ\M2Exporter.cs" />
     <Compile Include="Exporters\OBJ\WMOExporter.cs" />
