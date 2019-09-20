@@ -11,27 +11,8 @@ namespace WoWExportTools.Loaders
 {
     class ADTLoader
     {
-        private static Dictionary<string, Terrain> tileCache = new Dictionary<string, Terrain>();
-
-        /* ToDo: Implement this clean-up for the tile caching.
-         * // Force terrain cache to empty after having 1 ADT cached and run GC
-            if (cache.terrain.Count > 1)
-            {
-                // Make sure to delete lingering alpha textures from GPU
-                foreach (var adt in cache.terrain)
-                    foreach (var batch in adt.Value.renderBatches)
-                        GL.DeleteTextures(batch.alphaMaterialID.Length, batch.alphaMaterialID);
-
-                cache.terrain = new System.Collections.Generic.Dictionary<string, Terrain>();
-                GC.Collect();
-            }*/
-
         public static Terrain LoadADT(Structs.MapTile mapTile, int shaderProgram, bool loadModels = false)
         {
-            string mapTileKey = mapTile.wdtFileDataID + "_" + mapTile.tileX + "_" + mapTile.tileY;
-            if (tileCache.ContainsKey(mapTileKey))
-                return tileCache[mapTileKey];
-
             ADT adt = new ADT();
             Terrain result = new Terrain();
             ADTReader adtReader = new ADTReader();
@@ -328,7 +309,12 @@ namespace WoWExportTools.Loaders
             result.doodads = doodads.ToArray();
             result.worldModelBatches = worldModelBatches.ToArray();
 
-            tileCache.Add(mapTileKey, result);
+            // Clean-up.
+            foreach (var batch in renderBatches)
+                GL.DeleteTextures(batch.alphaMaterialID.Length, batch.alphaMaterialID);
+
+            GC.Collect();
+
             return result;
         }
     }

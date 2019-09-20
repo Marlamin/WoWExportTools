@@ -10,35 +10,15 @@ namespace WoWExportTools.Loaders
 {
     class WMOLoader
     {
-        private static Dictionary<string, Renderer.Structs.WorldModel> wmoBatchCache = new Dictionary<string, Renderer.Structs.WorldModel>();
-        private static Dictionary<string, WMO> wmoModelCache = new Dictionary<string, WMO>();
-
         public static Renderer.Structs.WorldModel LoadWMO(string fileName, int shaderProgram)
         {
-            if (wmoBatchCache.ContainsKey(fileName))
-                return wmoBatchCache[fileName];
+            if (!Listfile.TryGetFileDataID(fileName, out uint fileDataID))
+                CASCLib.Logger.WriteLine("Could not get filedataid for " + fileName);
 
-            var wmo = new WMO();
-            if (wmoModelCache.ContainsKey(fileName))
-            {
-                wmo = wmoModelCache[fileName];
-            }
-            else
-            {
-                if (!Listfile.TryGetFileDataID(fileName, out uint fileDataID))
-                    CASCLib.Logger.WriteLine("Could not get filedataid for " + fileName);
+            if (!WoWFormatLib.Utils.CASC.FileExists(fileDataID))
+                throw new Exception("WMO " + fileName + " does not exist!");
 
-                //Load WMO from file
-                if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
-                {
-                    wmo = new WMOReader().LoadWMO(fileDataID, 0, fileName);
-                    wmoModelCache.Add(fileName, wmo);
-                }
-                else
-                {
-                    throw new Exception("WMO " + fileName + " does not exist!");
-                }
-            }
+            WMO wmo = new WMOReader().LoadWMO(fileDataID, 0, fileName);
 
             if (wmo.group.Count() == 0)
             {
@@ -222,7 +202,6 @@ namespace WoWExportTools.Loaders
                 }
             }
 
-            wmoBatchCache.Add(fileName, wmoBatch);
             return wmoBatch;
         }
     }

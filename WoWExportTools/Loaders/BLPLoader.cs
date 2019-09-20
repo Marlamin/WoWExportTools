@@ -8,8 +8,6 @@ namespace WoWExportTools.Loaders
 {
     class BLPLoader
     {
-        private static Dictionary<uint, int> textureCache = new Dictionary<uint, int>();
-
         public static int LoadTexture(string fileName)
         {
             if(Listfile.TryGetFileDataID(fileName, out var fileDataID))
@@ -22,9 +20,6 @@ namespace WoWExportTools.Loaders
         {
             GL.ActiveTexture(TextureUnit.Texture0);
 
-            if (textureCache.ContainsKey(fileDataID))
-                return textureCache[fileDataID];
-
             int textureID = GL.GenTexture();
             using (var blp = new BlpFile(CASC.OpenFile(fileDataID)))
             {
@@ -33,7 +28,6 @@ namespace WoWExportTools.Loaders
                     throw new Exception("BMP is null!");
 
                 GL.BindTexture(TextureTarget.Texture2D, textureID);
-                textureCache.Add(fileDataID, textureID);
 
                 var bmp_data = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bmp_data.Width, bmp_data.Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, bmp_data.Scan0);

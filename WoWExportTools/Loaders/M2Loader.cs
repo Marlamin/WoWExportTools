@@ -13,42 +13,28 @@ namespace WoWExportTools.Loaders
         private static uint DEFAULT_TEXTURE_ID = 528732; // dungeons/textures/testing/color_01.blp
         private static uint MISSING_TEXTURE_ID = 186184; // textures/shanecube.blp
 
-        private static Dictionary<string, M2Model> modelCache = new Dictionary<string, M2Model>();
-        private static Dictionary<string, Renderer.Structs.DoodadBatch> doodadBatchCache = new Dictionary<string, Renderer.Structs.DoodadBatch>();
-
         public static Renderer.Structs.DoodadBatch LoadM2(string fileName, int shaderProgram)
         {
             fileName = fileName.ToLower().Replace(".mdx", ".m2");
             fileName = fileName.ToLower().Replace(".mdl", ".m2");
 
-            if (doodadBatchCache.ContainsKey(fileName))
-                return doodadBatchCache[fileName];
-
             M2Model model = new M2Model();
-            if (modelCache.ContainsKey(fileName))
+            if (Listfile.TryGetFileDataID(fileName, out var fileDataID))
             {
-                model = modelCache[fileName];
-            }
-            else
-            {
-                if (Listfile.TryGetFileDataID(fileName, out var fileDataID))
+                if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
                 {
-                    if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
-                    {
-                        var modelReader = new M2Reader();
-                        modelReader.LoadM2(fileDataID);
-                        modelCache.Add(fileName, modelReader.model);
-                        model = modelReader.model;
-                    }
-                    else
-                    {
-                        throw new Exception("Model " + fileName + " does not exist!");
-                    }
+                    var modelReader = new M2Reader();
+                    modelReader.LoadM2(fileDataID);
+                    model = modelReader.model;
                 }
                 else
                 {
-                    throw new Exception("Filename " + fileName + " does not exist in listfile!");
+                    throw new Exception("Model " + fileName + " does not exist!");
                 }
+            }
+            else
+            {
+                throw new Exception("Filename " + fileName + " does not exist in listfile!");
             }
 
             if (model.boundingbox == null)
@@ -193,7 +179,6 @@ namespace WoWExportTools.Loaders
             GL.EnableVertexAttribArray(posAttrib);
             GL.VertexAttribPointer(posAttrib, 3, VertexAttribPointerType.Float, false, sizeof(float) * 8, sizeof(float) * 5);
 
-            doodadBatchCache.Add(fileName, doodadBatch);
             return doodadBatch;
         }
     }
