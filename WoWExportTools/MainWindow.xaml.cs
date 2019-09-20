@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Input;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
 
@@ -1333,6 +1334,23 @@ namespace WoWExportTools
                 catch (Exception ex)
                 {
                     Console.WriteLine("Exception reading local BLP: " + ex.Message);
+                }
+            }
+        }
+
+        private void ListBoxKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            {
+                ListBox box = (ListBox)sender;
+
+                if (box.SelectedItems.Count > 0)
+                {
+                    List<string> items = new List<string>(box.SelectedItems.Count);
+                    foreach (string item in box.SelectedItems)
+                        items.Add(item);
+
+                    Clipboard.SetText(string.Join("\n", items));
                 }
             }
         }
