@@ -3,7 +3,6 @@ using System.Windows;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.IO;
-using System;
 
 namespace WoWExportTools
 {
@@ -72,7 +71,7 @@ namespace WoWExportTools
     public partial class ModelControl : Window
     {
         private static string MAPPING_FILE = "geosets.txt";
-        private static ModelControl instance;
+        public static ModelControl instance = new ModelControl();
         private static Dictionary<string, Dictionary<uint, string>> geosetMaps = new Dictionary<string, Dictionary<uint, string>>();
 
         public static void LoadGeosetMapping()
@@ -112,16 +111,18 @@ namespace WoWExportTools
             }
         }
 
-        public static void ShowModelControl(Renderer.Structs.DoodadBatch model, string fileName)
+        public static void SetActiveModel(Renderer.Structs.DoodadBatch model)
         {
-            if (instance == null)
-                instance = new ModelControl();
+            instance.ActiveModel = model;
+        }
 
+        public static void ShowModelControl(string fileName)
+        {
             instance.GeosetNameMap = null;
+            instance.activeFileName = fileName;
             if (geosetMaps.ContainsKey(fileName))
                 instance.GeosetNameMap = geosetMaps[fileName];
 
-            instance.ActiveModel = model;
             instance.Show();
         }
 
@@ -145,6 +146,7 @@ namespace WoWExportTools
         public Dictionary<uint, string> GeosetNameMap = null;
         public ObservableCollection<ModelGeoset> activeModelGeosets;
         private Renderer.Structs.DoodadBatch _activeModel;
+        public string activeFileName;
 
         public ModelControl()
         {

@@ -580,13 +580,9 @@ namespace WoWExportTools
                     else if (selectedFile.EndsWith(".m2"))
                     {
                         if (fdidExport)
-                        {
                             Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker);
-                        }
                         else
-                        {
                             Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker);
-                        }
                     }
                     else if (selectedFile.EndsWith(".blp"))
                     {
@@ -594,21 +590,17 @@ namespace WoWExportTools
                         var outdir = ConfigurationManager.AppSettings["outdir"];
                         try
                         {
-                            var blp = new WoWFormatLib.FileReaders.BLPReader();
+                            var blp = new BLPReader();
                             blp.LoadBLP(fileDataID);
 
                             var bmp = blp.bmp;
                             if (ignoreTextureAlpha)
-                            {
                                 bmp = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-                            }
 
                             if (!fdidExport)
                             {
                                 if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(selectedFile))))
-                                {
                                     Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
-                                }
 
                                 bmp.Save(Path.Combine(outdir, Path.GetDirectoryName(selectedFile), Path.GetFileNameWithoutExtension(selectedFile)) + ".png");
                             }
@@ -649,12 +641,22 @@ namespace WoWExportTools
                     previewControl.LoadModel(selectedFile);
 
                 // Currently only provide controls for M2 objects, so hide otherwise.
-                if (ModelControl.IsModelControlActive())
+                if (selectedFile.EndsWith(".m2"))
                 {
-                    if (selectedFile.EndsWith(".m2"))
-                        ModelControl.ShowModelControl(previewControl.LoadM2(selectedFile), selectedFile);
+                    // Even if we don't show the model control, provide it the model so that
+                    // it can provide geoset information to the exporter.
+                    if (previewsEnabled)
+                        ModelControl.SetActiveModel(previewControl.activeM2);
                     else
-                        ModelControl.HideModelControl();
+                        ModelControl.SetActiveModel(previewControl.LoadM2(selectedFile));
+
+                    // Only update the model control if it's already shown.
+                    if (ModelControl.IsModelControlActive())
+                        ModelControl.ShowModelControl(selectedFile);
+                }
+                else
+                {
+                    ModelControl.HideModelControl();
                 }
             }
             else
@@ -1366,7 +1368,7 @@ namespace WoWExportTools
         private void ShowModelControlButton_Click(object sender, RoutedEventArgs e)
         {
             if (previewControl.IsModelActive && previewControl.ModelType == "m2")
-                ModelControl.ShowModelControl(previewControl.LoadM2(previewControl.SelectedFileName), previewControl.SelectedFileName);
+                ModelControl.ShowModelControl(previewControl.SelectedFileName);
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)

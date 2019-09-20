@@ -136,6 +136,9 @@ namespace WoWExportTools.Exporters.OBJ
             var renderbatches = new Structs.RenderBatch[reader.model.skins[0].submeshes.Count()];
             for (var i = 0; i < reader.model.skins[0].submeshes.Count(); i++)
             {
+                if (!ModelControl.instance.activeModelGeosets[i].IsEnabled)
+                    continue;
+
                 renderbatches[i].firstFace = reader.model.skins[0].submeshes[i].startTriangle;
                 renderbatches[i].numFaces = reader.model.skins[0].submeshes[i].nTriangles;
                 renderbatches[i].groupID = (uint)i;

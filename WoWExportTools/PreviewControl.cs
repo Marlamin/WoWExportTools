@@ -18,8 +18,8 @@ namespace WoWExportTools
 
         private NewCamera ActiveCamera;
 
-        private Renderer.Structs.DoodadBatch activeM2;
-        private Renderer.Structs.WorldModel activeWMO;
+        public Renderer.Structs.DoodadBatch activeM2;
+        public Renderer.Structs.WorldModel activeWMO;
 
         public string SelectedFileName;
 
