@@ -443,7 +443,9 @@ namespace WoWExportTools
             }
 
             worker.ReportProgress(50, "Loading geoset mapping from disk..");
-            ModelControl.LoadGeosetMapping();
+            Application.Current.Dispatcher.Invoke(delegate {
+                ModelControl.LoadGeosetMapping();
+            });
 
             worker.ReportProgress(55, "Loading listfile from disk..");
 
