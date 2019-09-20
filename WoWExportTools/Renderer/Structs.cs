@@ -124,6 +124,7 @@ namespace WoWExportTools.Renderer
             public uint material;
             public uint blendType;
             public uint groupID;
+            public bool enabled;
         }
 
         public struct WorldModel

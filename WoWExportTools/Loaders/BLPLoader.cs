@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using WoWFormatLib.SereniaBLPLib;
 using WoWFormatLib.Utils;
@@ -7,40 +8,33 @@ namespace WoWExportTools.Loaders
 {
     class BLPLoader
     {
-        public static int LoadTexture(string filename, CacheStorage cache)
+        private static Dictionary<uint, int> textureCache = new Dictionary<uint, int>();
+
+        public static int LoadTexture(string fileName)
         {
-            if(Listfile.TryGetFileDataID(filename, out var filedataid))
-            {
-                return LoadTexture(filedataid, cache);
-            }
+            if(Listfile.TryGetFileDataID(fileName, out var fileDataID))
+                return LoadTexture(fileDataID);
             else
-            {
-                throw new Exception("Couldn't find filedataid for file " + filename + " in listfile!");
-            }
+                throw new Exception("Couldn't find filedataid for file " + fileName + " in listfile!");
         }
 
-        public static int LoadTexture(uint filedataid, CacheStorage cache)
+        public static int LoadTexture(uint fileDataID)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
 
-            if (cache.materials.ContainsKey(filedataid))
-            {
-                return cache.materials[filedataid];
-            }
+            if (textureCache.ContainsKey(fileDataID))
+                return textureCache[fileDataID];
 
-            int textureId = GL.GenTexture();
-
-            using (var blp = new BlpFile(CASC.OpenFile(filedataid)))
+            int textureID = GL.GenTexture();
+            using (var blp = new BlpFile(CASC.OpenFile(fileDataID)))
             {
                 var bmp = blp.GetBitmap(0);
-
                 if (bmp == null)
-                {
                     throw new Exception("BMP is null!");
-                }
 
-                GL.BindTexture(TextureTarget.Texture2D, textureId);
-                cache.materials.Add(filedataid, textureId);
+                GL.BindTexture(TextureTarget.Texture2D, textureID);
+                textureCache.Add(fileDataID, textureID);
+
                 var bmp_data = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bmp_data.Width, bmp_data.Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, bmp_data.Scan0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
@@ -50,7 +44,7 @@ namespace WoWExportTools.Loaders
                 bmp.UnlockBits(bmp_data);
             }
 
-            return textureId;
+            return textureID;
         }
 
         public static int GenerateAlphaTexture(byte[] values, bool saveToFile = false)

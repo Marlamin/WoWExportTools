@@ -9,7 +9,8 @@
         Icon="Resources/icon32.png"
         ContentRendered="Window_ContentRendered"
         KeyboardNavigation.DirectionalNavigation="None"
-        Title="OBJ Exporter" MinHeight="650" Height="650" MinWidth="615" Width="1230">
+        Title="OBJ Exporter" MinHeight="650" Height="650" MinWidth="615" Width="1230"
+        Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="600" />
@@ -50,7 +51,8 @@
                     <CheckBox Checked="PreviewCheckbox_Checked" Unchecked="PreviewCheckbox_Checked" IsChecked="True" x:Name="previewCheckbox" Content="Enable preview" HorizontalAlignment="Left" Margin="485,10,0,0" VerticalAlignment="Top"/>
                     <CheckBox Checked="CollisionCheckbox_Checked" Unchecked="CollisionCheckbox_Checked" IsChecked="False" x:Name="exportCollision" Content="Export Collision" HorizontalAlignment="Left" Margin="368,10,0,0" VerticalAlignment="Top" Width="112"/>
                     <ListBox x:Name="modelListBox" SelectionMode="Extended" SelectionChanged="ModelListBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="10,30,10,40" VerticalAlignment="Stretch" ItemsSource="{Binding}" KeyDown="ListBoxKeyDown"></ListBox>
-                    <Button x:Name="exportButton" Height="25" Content="Export model to OBJ!" HorizontalAlignment="Stretch" Margin="10,0,10.4,10" VerticalAlignment="Bottom" Click="ExportButton_Click"/>
+                    <Button x:Name="exportButton" Height="25" Content="Export model to OBJ!" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="ExportButton_Click" Width="155"/>
+                    <Button x:Name="modelControlButton" Height="25" Content="Model Control" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Click="ShowModelControlButton_Click" Width="109"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="TexturesTab" Header="Textures" GotFocus="TexturesTab_GotFocus">

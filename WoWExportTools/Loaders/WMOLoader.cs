@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WoWFormatLib.FileReaders;
+using WoWFormatLib.Structs.WMO;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -11,46 +10,43 @@ namespace WoWExportTools.Loaders
 {
     class WMOLoader
     {
-        public static Renderer.Structs.WorldModel LoadWMO(string filename, CacheStorage cache, int shaderProgram)
+        private static Dictionary<string, Renderer.Structs.WorldModel> wmoBatchCache = new Dictionary<string, Renderer.Structs.WorldModel>();
+        private static Dictionary<string, WMO> wmoModelCache = new Dictionary<string, WMO>();
+
+        public static Renderer.Structs.WorldModel LoadWMO(string fileName, int shaderProgram)
         {
-            if (cache.worldModelBatches.ContainsKey(filename))
-            {
-                return cache.worldModelBatches[filename];
-            }
+            if (wmoBatchCache.ContainsKey(fileName))
+                return wmoBatchCache[fileName];
 
-            var wmo = new WoWFormatLib.Structs.WMO.WMO();
-
-            if (cache.worldModels.ContainsKey(filename))
+            var wmo = new WMO();
+            if (wmoModelCache.ContainsKey(fileName))
             {
-                wmo = cache.worldModels[filename];
+                wmo = wmoModelCache[fileName];
             }
             else
             {
-                if (!Listfile.TryGetFileDataID(filename, out uint fileDataID))
-                {
-                    CASCLib.Logger.WriteLine("Could not get filedataid for " + filename);
-                }
+                if (!Listfile.TryGetFileDataID(fileName, out uint fileDataID))
+                    CASCLib.Logger.WriteLine("Could not get filedataid for " + fileName);
 
                 //Load WMO from file
                 if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
                 {
-                    var wmofile = new WMOReader().LoadWMO(fileDataID, 0, filename);
-                    cache.worldModels.Add(filename, wmofile);
-                    wmo = cache.worldModels[filename];
+                    wmo = new WMOReader().LoadWMO(fileDataID, 0, fileName);
+                    wmoModelCache.Add(fileName, wmo);
                 }
                 else
                 {
-                    throw new Exception("WMO " + filename + " does not exist!");
+                    throw new Exception("WMO " + fileName + " does not exist!");
                 }
             }
 
-            if(wmo.group.Count() == 0)
+            if (wmo.group.Count() == 0)
             {
-                CASCLib.Logger.WriteLine("WMO has no groups: ", filename);
-                throw new Exception("Broken WMO! Report to developer (mail marlamin@marlamin.com) with this filename: " + filename);
+                CASCLib.Logger.WriteLine("WMO has no groups: ", fileName);
+                throw new Exception("Broken WMO! Report to developer (mail marlamin@marlamin.com) with this filename: " + fileName);
             }
 
-            var wmobatch = new Renderer.Structs.WorldModel()
+            var wmoBatch = new Renderer.Structs.WorldModel()
             {
                 groupBatches = new Renderer.Structs.WorldModelGroupBatches[wmo.group.Count()]
             };
@@ -61,23 +57,19 @@ namespace WoWExportTools.Loaders
             {
                 if (wmo.group[g].mogp.vertices == null) { continue; }
 
-                wmobatch.groupBatches[g].vao = GL.GenVertexArray();
-                wmobatch.groupBatches[g].vertexBuffer = GL.GenBuffer();
-                wmobatch.groupBatches[g].indiceBuffer = GL.GenBuffer();
+                wmoBatch.groupBatches[g].vao = GL.GenVertexArray();
+                wmoBatch.groupBatches[g].vertexBuffer = GL.GenBuffer();
+                wmoBatch.groupBatches[g].indiceBuffer = GL.GenBuffer();
 
-                GL.BindVertexArray(wmobatch.groupBatches[g].vao);
+                GL.BindVertexArray(wmoBatch.groupBatches[g].vao);
 
-                GL.BindBuffer(BufferTarget.ArrayBuffer, wmobatch.groupBatches[g].vertexBuffer);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, wmoBatch.groupBatches[g].vertexBuffer);
 
                 var wmovertices = new Renderer.Structs.M2Vertex[wmo.group[g].mogp.vertices.Count()];
 
                 for (var i = 0; i < wmo.groupNames.Count(); i++)
-                {
                     if (wmo.group[g].mogp.nameOffset == wmo.groupNames[i].offset)
-                    {
                         groupNames[g] = wmo.groupNames[i].name.Replace(" ", "_");
-                    }
-                }
 
                 if (groupNames[g] == "antiportal") { continue; }
 
@@ -86,13 +78,9 @@ namespace WoWExportTools.Loaders
                     wmovertices[i].Position = new Vector3(wmo.group[g].mogp.vertices[i].vector.X, wmo.group[g].mogp.vertices[i].vector.Y, wmo.group[g].mogp.vertices[i].vector.Z);
                     wmovertices[i].Normal = new Vector3(wmo.group[g].mogp.normals[i].normal.X, wmo.group[g].mogp.normals[i].normal.Y, wmo.group[g].mogp.normals[i].normal.Z);
                     if (wmo.group[g].mogp.textureCoords[0] == null)
-                    {
                         wmovertices[i].TexCoord = new Vector2(0.0f, 0.0f);
-                    }
                     else
-                    {
                         wmovertices[i].TexCoord = new Vector2(wmo.group[g].mogp.textureCoords[0][i].X, wmo.group[g].mogp.textureCoords[0][i].Y);
-                    }
                 }
 
                 //Push to buffer
@@ -112,68 +100,54 @@ namespace WoWExportTools.Loaders
                 GL.VertexAttribPointer(posAttrib, 3, VertexAttribPointerType.Float, false, sizeof(float) * 8, sizeof(float) * 5);
 
                 //Switch to Index buffer
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, wmobatch.groupBatches[g].indiceBuffer);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, wmoBatch.groupBatches[g].indiceBuffer);
 
                 var wmoindicelist = new List<uint>();
                 for (var i = 0; i < wmo.group[g].mogp.indices.Count(); i++)
-                {
                     wmoindicelist.Add(wmo.group[g].mogp.indices[i].indice);
-                }
 
-                wmobatch.groupBatches[g].indices = wmoindicelist.ToArray();
+                wmoBatch.groupBatches[g].indices = wmoindicelist.ToArray();
 
-                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(wmobatch.groupBatches[g].indices.Length * sizeof(uint)), wmobatch.groupBatches[g].indices, BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(wmoBatch.groupBatches[g].indices.Length * sizeof(uint)), wmoBatch.groupBatches[g].indices, BufferUsageHint.StaticDraw);
             }
 
             GL.Enable(EnableCap.Texture2D);
 
-            wmobatch.mats = new Renderer.Structs.Material[wmo.materials.Count()];
+            wmoBatch.mats = new Renderer.Structs.Material[wmo.materials.Count()];
             for (var i = 0; i < wmo.materials.Count(); i++)
             {
-                wmobatch.mats[i].texture1 = wmo.materials[i].texture1;
-                wmobatch.mats[i].texture2 = wmo.materials[i].texture2;
-                wmobatch.mats[i].texture3 = wmo.materials[i].texture3;
+                wmoBatch.mats[i].texture1 = wmo.materials[i].texture1;
+                wmoBatch.mats[i].texture2 = wmo.materials[i].texture2;
+                wmoBatch.mats[i].texture3 = wmo.materials[i].texture3;
 
                 if (wmo.textures == null)
                 {
                     if (WoWFormatLib.Utils.CASC.FileExists(wmo.materials[i].texture1))
-                    {
-                        wmobatch.mats[i].textureID1 = BLPLoader.LoadTexture(wmo.materials[i].texture1, cache);
-                    }
+                        wmoBatch.mats[i].textureID1 = BLPLoader.LoadTexture(wmo.materials[i].texture1);
 
                     if (WoWFormatLib.Utils.CASC.FileExists(wmo.materials[i].texture2))
-                    {
-                        wmobatch.mats[i].textureID2 = BLPLoader.LoadTexture(wmo.materials[i].texture2, cache);
-                    }
+                        wmoBatch.mats[i].textureID2 = BLPLoader.LoadTexture(wmo.materials[i].texture2);
 
                     if (WoWFormatLib.Utils.CASC.FileExists(wmo.materials[i].texture3))
-                    {
-                        wmobatch.mats[i].textureID3 = BLPLoader.LoadTexture(wmo.materials[i].texture3, cache);
-                    }
+                        wmoBatch.mats[i].textureID3 = BLPLoader.LoadTexture(wmo.materials[i].texture3);
                 }
                 else
                 {
                     for (var ti = 0; ti < wmo.textures.Count(); ti++)
                     {
                         if (wmo.textures[ti].startOffset == wmo.materials[i].texture1)
-                        {
-                            wmobatch.mats[i].textureID1 = BLPLoader.LoadTexture(wmo.textures[ti].filename, cache);
-                        }
+                            wmoBatch.mats[i].textureID1 = BLPLoader.LoadTexture(wmo.textures[ti].filename);
 
                         if (wmo.textures[ti].startOffset == wmo.materials[i].texture2)
-                        {
-                            wmobatch.mats[i].textureID2 = BLPLoader.LoadTexture(wmo.textures[ti].filename, cache);
-                        }
+                            wmoBatch.mats[i].textureID2 = BLPLoader.LoadTexture(wmo.textures[ti].filename);
 
                         if (wmo.textures[ti].startOffset == wmo.materials[i].texture3)
-                        {
-                            wmobatch.mats[i].textureID3 = BLPLoader.LoadTexture(wmo.textures[ti].filename, cache);
-                        }
+                            wmoBatch.mats[i].textureID3 = BLPLoader.LoadTexture(wmo.textures[ti].filename);
                     }
                 }
             }
 
-            wmobatch.doodads = new Renderer.Structs.WMODoodad[wmo.doodadDefinitions.Count()];
+            wmoBatch.doodads = new Renderer.Structs.WMODoodad[wmo.doodadDefinitions.Count()];
 
             for(var i = 0; i < wmo.doodadDefinitions.Count(); i++)
             {
@@ -183,20 +157,20 @@ namespace WoWExportTools.Loaders
                     {
                         if (wmo.doodadDefinitions[i].offset == wmo.doodadNames[j].startOffset)
                         {
-                            wmobatch.doodads[i].filename = wmo.doodadNames[j].filename;
+                            wmoBatch.doodads[i].filename = wmo.doodadNames[j].filename;
                         }
                     }
                 }
                 else
                 {
-                    wmobatch.doodads[i].filedataid = wmo.doodadDefinitions[i].offset;
+                    wmoBatch.doodads[i].filedataid = wmo.doodadDefinitions[i].offset;
                 }
 
-                wmobatch.doodads[i].flags = wmo.doodadDefinitions[i].flags;
-                wmobatch.doodads[i].position = new Vector3(wmo.doodadDefinitions[i].position.X, wmo.doodadDefinitions[i].position.Y, wmo.doodadDefinitions[i].position.Z);
-                wmobatch.doodads[i].rotation = new Quaternion(wmo.doodadDefinitions[i].rotation.X, wmo.doodadDefinitions[i].rotation.Y, wmo.doodadDefinitions[i].rotation.Z, wmo.doodadDefinitions[i].rotation.W);
-                wmobatch.doodads[i].scale = wmo.doodadDefinitions[i].scale;
-                wmobatch.doodads[i].color = new Vector4(wmo.doodadDefinitions[i].color[0], wmo.doodadDefinitions[i].color[1], wmo.doodadDefinitions[i].color[2], wmo.doodadDefinitions[i].color[3]);
+                wmoBatch.doodads[i].flags = wmo.doodadDefinitions[i].flags;
+                wmoBatch.doodads[i].position = new Vector3(wmo.doodadDefinitions[i].position.X, wmo.doodadDefinitions[i].position.Y, wmo.doodadDefinitions[i].position.Z);
+                wmoBatch.doodads[i].rotation = new Quaternion(wmo.doodadDefinitions[i].rotation.X, wmo.doodadDefinitions[i].rotation.Y, wmo.doodadDefinitions[i].rotation.Z, wmo.doodadDefinitions[i].rotation.W);
+                wmoBatch.doodads[i].scale = wmo.doodadDefinitions[i].scale;
+                wmoBatch.doodads[i].color = new Vector4(wmo.doodadDefinitions[i].color[0], wmo.doodadDefinitions[i].color[1], wmo.doodadDefinitions[i].color[2], wmo.doodadDefinitions[i].color[3]);
             }
 
             var numRenderbatches = 0;
@@ -207,7 +181,7 @@ namespace WoWExportTools.Loaders
                 numRenderbatches = numRenderbatches + wmo.group[i].mogp.renderBatches.Count();
             }
 
-            wmobatch.wmoRenderBatch = new Renderer.Structs.RenderBatch[numRenderbatches];
+            wmoBatch.wmoRenderBatch = new Renderer.Structs.RenderBatch[numRenderbatches];
 
             var rb = 0;
             for (var g = 0; g < wmo.group.Count(); g++)
@@ -216,8 +190,8 @@ namespace WoWExportTools.Loaders
                 if (group.mogp.renderBatches == null) { continue; }
                 for (var i = 0; i < group.mogp.renderBatches.Count(); i++)
                 {
-                    wmobatch.wmoRenderBatch[rb].firstFace = group.mogp.renderBatches[i].firstFace;
-                    wmobatch.wmoRenderBatch[rb].numFaces = group.mogp.renderBatches[i].numFaces;
+                    wmoBatch.wmoRenderBatch[rb].firstFace = group.mogp.renderBatches[i].firstFace;
+                    wmoBatch.wmoRenderBatch[rb].numFaces = group.mogp.renderBatches[i].numFaces;
                     uint matID = 0;
 
                     if (group.mogp.renderBatches[i].flags == 2)
@@ -229,33 +203,27 @@ namespace WoWExportTools.Loaders
                         matID = group.mogp.renderBatches[i].materialID;
                     }
 
-                    wmobatch.wmoRenderBatch[rb].materialID = new uint[3];
-                    for (var ti = 0; ti < wmobatch.mats.Count(); ti++)
+                    wmoBatch.wmoRenderBatch[rb].materialID = new uint[3];
+                    for (var ti = 0; ti < wmoBatch.mats.Count(); ti++)
                     {
-                        if (wmo.materials[matID].texture1 == wmobatch.mats[ti].texture1)
-                        {
-                            wmobatch.wmoRenderBatch[rb].materialID[0] = (uint)wmobatch.mats[ti].textureID1;
-                        }
+                        if (wmo.materials[matID].texture1 == wmoBatch.mats[ti].texture1)
+                            wmoBatch.wmoRenderBatch[rb].materialID[0] = (uint)wmoBatch.mats[ti].textureID1;
 
-                        if (wmo.materials[matID].texture2 == wmobatch.mats[ti].texture2)
-                        {
-                            wmobatch.wmoRenderBatch[rb].materialID[1] = (uint)wmobatch.mats[ti].textureID2;
-                        }
+                        if (wmo.materials[matID].texture2 == wmoBatch.mats[ti].texture2)
+                            wmoBatch.wmoRenderBatch[rb].materialID[1] = (uint)wmoBatch.mats[ti].textureID2;
 
-                        if (wmo.materials[matID].texture3 == wmobatch.mats[ti].texture3)
-                        {
-                            wmobatch.wmoRenderBatch[rb].materialID[2] = (uint)wmobatch.mats[ti].textureID3;
-                        }
+                        if (wmo.materials[matID].texture3 == wmoBatch.mats[ti].texture3)
+                            wmoBatch.wmoRenderBatch[rb].materialID[2] = (uint)wmoBatch.mats[ti].textureID3;
                     }
 
-                    wmobatch.wmoRenderBatch[rb].blendType = wmo.materials[matID].blendMode;
-                    wmobatch.wmoRenderBatch[rb].groupID = (uint)g;
+                    wmoBatch.wmoRenderBatch[rb].blendType = wmo.materials[matID].blendMode;
+                    wmoBatch.wmoRenderBatch[rb].groupID = (uint)g;
                     rb++;
                 }
             }
-            cache.worldModelBatches.Add(filename, wmobatch);
 
-            return wmobatch;
+            wmoBatchCache.Add(fileName, wmoBatch);
+            return wmoBatch;
         }
     }
 }
