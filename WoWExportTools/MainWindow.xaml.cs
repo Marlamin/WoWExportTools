@@ -1360,6 +1360,7 @@ namespace WoWExportTools
         private void ShowModelControlButton_Click(object sender, RoutedEventArgs e)
         {
             modelControlWindow.Show();
+            modelControlWindow.Focus();
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
