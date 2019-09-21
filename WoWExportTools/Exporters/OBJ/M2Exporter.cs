@@ -166,7 +166,6 @@ namespace WoWExportTools.Exporters.OBJ
                 uint textureFileDataID = defaultTexID;
 
                 materials[i].flags = reader.model.textures[i].flags;
-
                 if (reader.model.textures[i].type == 0)
                 {
                     if (reader.model.textureFileDataIDs != null && reader.model.textureFileDataIDs.Length > 0 && reader.model.textureFileDataIDs[i] != 0)
@@ -184,7 +183,7 @@ namespace WoWExportTools.Exporters.OBJ
                 if (!Listfile.TryGetFilename(textureFileDataID, out var textureFilename))
                     textureFilename = textureFileDataID.ToString();
 
-                materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename);
+                materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
 
                 try
                 {
@@ -204,8 +203,17 @@ namespace WoWExportTools.Exporters.OBJ
             {
                 mtlWriter.WriteLine("newmtl " + material.filename);
                 mtlWriter.WriteLine("illum 1");
-                //mtlsb.WriteLine("map_Ka " + material.filename + ".png");
                 mtlWriter.WriteLine("map_Kd " + material.filename + ".png");
+                if (ConfigurationManager.AppSettings["textureMetadata"] == "True")
+                {
+                    foreach(var renderbatch in renderbatches)
+                    {
+                        if(materials[renderbatch.materialID].filename == material.filename)
+                        {
+                            mtlWriter.WriteLine("blend " + material.blendMode);
+                        }
+                    }
+                }
             }
 
             mtlWriter.Close();

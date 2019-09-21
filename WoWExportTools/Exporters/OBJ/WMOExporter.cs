@@ -296,7 +296,7 @@ namespace WoWExportTools.Exporters.OBJ
                 {
                     if (Listfile.TryGetFilename(wmo.materials[i].texture1, out var textureFilename))
                     {
-                        materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename);
+                        materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
                     }
                     else
                     {
@@ -311,7 +311,7 @@ namespace WoWExportTools.Exporters.OBJ
                     {
                         if (wmo.textures[ti].startOffset == wmo.materials[i].texture1)
                         {
-                            materials[i].filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename);
+                            materials[i].filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
                             blpreader.LoadBLP(wmo.textures[ti].filename);
                         }
                     }
@@ -332,7 +332,7 @@ namespace WoWExportTools.Exporters.OBJ
                 materials[i].shaderID = wmo.materials[i].shader;
                 materials[i].terrainType = wmo.materials[i].groundType;
 
-                var saveLocation = "";
+                string saveLocation;
 
                 if (destinationOverride == null)
                 {
@@ -380,7 +380,7 @@ namespace WoWExportTools.Exporters.OBJ
                     {
                         if (Listfile.TryGetFilename(wmo.materials[i].texture2, out var textureFilename))
                         {
-                            tex2mat.filename = Path.GetFileNameWithoutExtension(textureFilename);
+                            tex2mat.filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
                         }
                         else
                         {
@@ -395,7 +395,7 @@ namespace WoWExportTools.Exporters.OBJ
                         {
                             if (wmo.textures[ti].startOffset == wmo.materials[i].texture2)
                             {
-                                tex2mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename);
+                                tex2mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
                                 blpreader.LoadBLP(wmo.textures[ti].filename);
                             }
                         }
@@ -440,7 +440,7 @@ namespace WoWExportTools.Exporters.OBJ
                     {
                         if (Listfile.TryGetFilename(wmo.materials[i].texture3, out var textureFilename))
                         {
-                            tex3mat.filename = Path.GetFileNameWithoutExtension(textureFilename);
+                            tex3mat.filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
                         }
                         else
                         {
@@ -455,7 +455,7 @@ namespace WoWExportTools.Exporters.OBJ
                         {
                             if (wmo.textures[ti].startOffset == wmo.materials[i].texture3)
                             {
-                                tex3mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename);
+                                tex3mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
                                 blpreader.LoadBLP(wmo.textures[ti].filename);
                             }
                         }
@@ -493,6 +493,19 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
 
+            var numRenderbatches = 0;
+            //Get total amount of render batches
+            for (var i = 0; i < wmo.group.Count(); i++)
+            {
+                if (wmo.group[i].mogp.renderBatches == null)
+                {
+                    continue;
+                }
+                numRenderbatches = numRenderbatches + wmo.group[i].mogp.renderBatches.Count();
+            }
+
+            exportworker.ReportProgress(75, "Exporting WMO model..");
+
             //No idea how MTL files really work yet. Needs more investigation.
             foreach (var material in materials)
             {
@@ -513,9 +526,25 @@ namespace WoWExportTools.Exporters.OBJ
 
                 if (ConfigurationManager.AppSettings["textureMetadata"] == "True")
                 {
-                    mtlsb.Append("blend " + material.blendMode + "\n");
-                    mtlsb.Append("shader " + material.shaderID + "\n");
-                    mtlsb.Append("terrain " + material.terrainType + "\n");
+                    for (var g = 0; g < wmo.group.Count(); g++)
+                    {
+                        groups[g].renderBatches = new Structs.RenderBatch[numRenderbatches];
+
+                        var group = wmo.group[g];
+                        if (group.mogp.renderBatches == null)
+                        {
+                            continue;
+                        }
+
+                        for (var i = 0; i < group.mogp.renderBatches.Count(); i++)
+                        {
+                            var batch = group.mogp.renderBatches[i];
+                            if (materials[batch.materialID].filename == material.filename)
+                            {
+                                mtlsb.Append("blend " + material.blendMode + "\n");
+                            }
+                        }
+                    }
                 }
             }
 
@@ -536,7 +565,6 @@ namespace WoWExportTools.Exporters.OBJ
                     mtlsb.Append("map_d " + material.filename + ".png\n");
                 }
             }
-
 
             if (!string.IsNullOrEmpty(filename))
             {
@@ -560,20 +588,6 @@ namespace WoWExportTools.Exporters.OBJ
                     File.WriteAllText(Path.Combine(outdir, destinationOverride, filedataid + ".mtl"), mtlsb.ToString());
                 }
             }
-
-            exportworker.ReportProgress(75, "Exporting WMO model..");
-
-            var numRenderbatches = 0;
-            //Get total amount of render batches
-            for (var i = 0; i < wmo.group.Count(); i++)
-            {
-                if (wmo.group[i].mogp.renderBatches == null)
-                {
-                    continue;
-                }
-                numRenderbatches = numRenderbatches + wmo.group[i].mogp.renderBatches.Count();
-            }
-
 
             var rb = 0;
             for (var g = 0; g < wmo.group.Count(); g++)
