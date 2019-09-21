@@ -5,7 +5,7 @@
         public Renderer.Structs.WorldModel WorldModel { get; }
         public WMOContainer(Renderer.Structs.WorldModel wmo, string fileName) : base(fileName)
         {
-
+            WorldModel = wmo;
         }
     }
 }
