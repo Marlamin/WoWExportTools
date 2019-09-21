@@ -53,7 +53,7 @@ character/human/female/humanfemale_hd_sdr.m2
 50=WaistFrillLong
 51=UpperLegsPlate
 52=TabardBoth
-53=TabardFront
+53=TabardBack
 54=UpperLegs
 55=Robes
 56=RobeInsets
@@ -122,7 +122,7 @@ character/human/male/humanmale_hd_sdr.m2
 42=WaistFrillLong
 43=UpperLegsPlate
 44=TabardBoth
-45=TabardFront
+45=TabardBack
 46=UpperLegs
 47=Robes
 48=CloakLong
@@ -197,7 +197,7 @@ character/darkirondwarf/female/darkirondwarffemale_sdr.m2
 49=WaistFrillLong
 50=UpperLegsPlate
 51=TabardBoth
-52=TabardFront
+52=TabardBack
 53=UpperLegs
 54=Robes
 55=RobeInsets
@@ -274,7 +274,7 @@ character/darkirondwarf/male/darkirondwarfmale_sdr.m2
 50=WaistFrillLong
 51=UpperLegsPlate
 52=TabardBoth
-53=TabardFront
+53=TabardBack
 54=UpperLegs
 55=Robes
 56=RobeInsets
@@ -354,7 +354,7 @@ character/bloodelf/female/bloodelffemale_hd_sdr.m2
 54=WaistFrillLong
 55=UpperLegsPlate
 56=TabardBoth
-57=TabardFront
+57=TabardBack
 58=UpperLegs
 59=Robes
 60=RobeInsets
@@ -431,7 +431,7 @@ character/draenei/female/draeneifemale_hd_sdr.m2
 46=UpperLegsPlate
 47=LegsPlate
 48=TabardBoth
-49=TabardFront
+49=TabardBack
 50=UpperLegs
 51=Legs
 52=Robes
@@ -524,7 +524,7 @@ character/draenei/male/draeneimale_hd_sdr.m2
 67=WaistFrillLong
 68=UpperLegsPlate
 69=TabardBoth
-70=TabardFront
+70=TabardBack
 71=UpperLegs
 72=Robes
 73=RobeInsets
@@ -596,7 +596,7 @@ character/dwarf/female/dwarffemale_hd_sdr.m2
 47=WaistFrillLong
 48=UpperLegsPlate
 49=TabardBoth
-50=TabardFront
+50=TabardBack
 51=UpperLegs
 52=Robes
 53=RobeInsets
@@ -699,7 +699,7 @@ character/dwarf/male/dwarfmale_hd_sdr.m2
 76=WaistFrillLong
 77=UpperLegsPlate
 78=TabardBoth
-79=TabardFront
+79=TabardBack
 80=UpperLegs
 81=Robes
 82=RobeInsets
@@ -779,7 +779,7 @@ character/bloodelf/male/bloodelfmale_hd_sdr.m2
 53=WaistFrillLong
 54=UpperLegsPlate
 55=TabardBoth
-56=TabardFront
+56=TabardBack
 57=UpperLegs
 58=Robes
 59=RobeInsets
@@ -854,7 +854,7 @@ character/voidelf/female/voidelffemale_sdr.m2
 43=WaistFrillLong
 44=UpperLegsPlate
 45=TabardBoth
-46=TabardFront
+46=TabardBack
 47=UpperLegs
 48=Robes
 49=RobeInsets
@@ -929,7 +929,7 @@ character/nightelf/female/nightelffemale_hd_sdr.m2
 45=WaistFrillLong
 46=UpperLegsPlate
 47=TabardBoth
-48=TabardFront
+48=TabardBack
 49=UpperLegs
 50=Robes
 51=RobeInsets
@@ -999,7 +999,7 @@ character/gnome/female/gnomefemale_hd_sdr.m2
 40=WaistFrillLong
 41=UpperLegsPlate
 42=TabardBoth
-43=TabardFront
+43=TabardBack
 44=UpperLegs
 45=RobeInsets
 46=Robes
@@ -1069,7 +1069,7 @@ character/gnome/male/gnomemale_hd_sdr.m2
 43=WaistFrillLong
 44=UpperLegsPlate
 45=TabardBoth
-46=TabardFront
+46=TabardBack
 47=UpperLegs
 48=RobeInsets
 49=Robes
@@ -1143,7 +1143,7 @@ character/highmountaintauren/female/hightmountaintaurenfemale_sdr.m2
 39=Legs
 40=LegsPlate
 41=TabardBoth
-42=TabardFront
+42=TabardBack
 43=Knees
 44=Legs
 45=LowerLegs
@@ -1212,7 +1212,7 @@ character/lightforgeddraenei/female/lightforgeddraeneifemale_sdr.m2
 42=UpperLegsPlate
 43=LegsPlate
 44=TabardBoth
-45=TabardFront
+45=TabardBack
 46=UpperLegs
 47=Legs
 48=Robes
