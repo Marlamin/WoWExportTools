@@ -133,34 +133,12 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
 
-            StreamWriter doodadSW;
 
-            if (destinationOverride == null)
-            {
-                if (!string.IsNullOrEmpty(filename))
-                {
-                    doodadSW = new StreamWriter(Path.Combine(outdir, Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename.Replace(" ", "")) + "_ModelPlacementInformation.csv"));
-                }
-                else
-                {
-                    doodadSW = new StreamWriter(Path.Combine(outdir, Path.GetDirectoryName(filename), filedataid + "_ModelPlacementInformation.csv"));
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(filename))
-                {
-                    doodadSW = new StreamWriter(Path.Combine(outdir, destinationOverride, Path.GetFileNameWithoutExtension(filename).Replace(" ", "") + "_ModelPlacementInformation.csv"));
-                }
-                else
-                {
-                    doodadSW = new StreamWriter(Path.Combine(outdir, destinationOverride, filedataid + "_ModelPlacementInformation.csv"));
-                }
-            }
 
             exportworker.ReportProgress(55, "Exporting WMO doodads..");
 
-            doodadSW.WriteLine("ModelFile;PositionX;PositionY;PositionZ;RotationW;RotationX;RotationY;RotationZ;ScaleFactor;DoodadSet");
+            var doodadSB = new StringBuilder();
+            doodadSB.AppendLine("ModelFile;PositionX;PositionY;PositionZ;RotationW;RotationX;RotationY;RotationZ;ScaleFactor;DoodadSet");
 
             for (var i = 0; i < wmo.doodadSets.Count(); i++)
             {
@@ -225,7 +203,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                                 if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(doodadFilename) + ".obj")))
                                 {
-                                    doodadSW.WriteLine(Path.GetFileNameWithoutExtension(doodadFilename) + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
+                                    doodadSB.AppendLine(Path.GetFileNameWithoutExtension(doodadFilename) + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
                                 }
                             }
                             else
@@ -237,7 +215,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                                 if (File.Exists(Path.Combine(outdir, doodadFileDataID + ".obj")))
                                 {
-                                    doodadSW.WriteLine(doodadFileDataID + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
+                                    doodadSB.AppendLine(doodadFileDataID + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
                                 }
                             }
                         }
@@ -252,7 +230,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                                 if (File.Exists(Path.Combine(destinationOverride, Path.GetFileNameWithoutExtension(doodadFilename) + ".obj")))
                                 {
-                                    doodadSW.WriteLine(Path.GetFileNameWithoutExtension(doodadFilename) + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
+                                    doodadSB.AppendLine(Path.GetFileNameWithoutExtension(doodadFilename) + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
                                 }
                             }
                             else
@@ -264,7 +242,7 @@ namespace WoWExportTools.Exporters.OBJ
 
                                 if (File.Exists(Path.Combine(destinationOverride, doodadFileDataID + ".obj")))
                                 {
-                                    doodadSW.WriteLine(doodadFileDataID + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
+                                    doodadSB.AppendLine(doodadFileDataID + ".obj;" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
                                 }
                             }
                         }
@@ -272,7 +250,31 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
 
-            doodadSW.Close();
+            if(doodadSB.ToString().Split('\n').Length > 2)
+            {
+                if (destinationOverride == null)
+                {
+                    if (!string.IsNullOrEmpty(filename))
+                    {
+                        File.WriteAllText(Path.Combine(outdir, Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename.Replace(" ", "")) + "_ModelPlacementInformation.csv"), doodadSB.ToString());
+                    }
+                    else
+                    {
+                        File.WriteAllText(Path.Combine(outdir, Path.GetDirectoryName(filename), filedataid + "_ModelPlacementInformation.csv"), doodadSB.ToString());
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(filename))
+                    {
+                        File.WriteAllText(Path.Combine(outdir, destinationOverride, Path.GetFileNameWithoutExtension(filename).Replace(" ", "") + "_ModelPlacementInformation.csv"), doodadSB.ToString());
+                    }
+                    else
+                    {
+                        File.WriteAllText(Path.Combine(outdir, destinationOverride, filedataid + "_ModelPlacementInformation.csv"), doodadSB.ToString());
+                    }
+                }
+            }
 
             exportworker.ReportProgress(65, "Exporting WMO textures..");
 
