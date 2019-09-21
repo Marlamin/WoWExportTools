@@ -56,6 +56,7 @@ character/human/female/humanfemale_hd_sdr.m2
 53=TabardFront
 54=UpperLegs
 55=Robes
+56=RobeInsets
 57=CloakLong
 58=CloakMedium
 59=CloakShortParted
@@ -199,6 +200,7 @@ character/darkirondwarf/female/darkirondwarffemale_sdr.m2
 52=TabardFront
 53=UpperLegs
 54=Robes
+55=RobeInsets
 56=CloakLong
 57=CloakMedium
 58=CloakShortParted
@@ -275,6 +277,7 @@ character/darkirondwarf/male/darkirondwarfmale_sdr.m2
 53=TabardFront
 54=UpperLegs
 55=Robes
+56=RobeInsets
 57=CloakLong
 58=CloakMedium
 59=CloakShortParted
@@ -354,6 +357,7 @@ character/bloodelf/female/bloodelffemale_hd_sdr.m2
 57=TabardFront
 58=UpperLegs
 59=Robes
+60=RobeInsets
 61=CloakLong
 62=CloakMedium
 63=CloakShortParted
@@ -431,6 +435,7 @@ character/draenei/female/draeneifemale_hd_sdr.m2
 50=UpperLegs
 51=Legs
 52=Robes
+53=RobeInsets
 54=CloakLong
 55=CloakMedium
 56=CloakShortParted
@@ -501,7 +506,6 @@ character/draenei/male/draeneimale_hd_sdr.m2
 49=FacialMustachioed
 50=FacialSoulPatch
 51=FacialGoatee
-
 52=ArmsFlat
 53=ArmsThin
 54=ArmsFolded
@@ -601,6 +605,7 @@ character/bloodelf/male/bloodelfmale_hd_sdr.m2
 56=TabardFront
 57=UpperLegs
 58=Robes
+59=RobeInsets
 60=CloakLong
 61=CloakMedium
 62=CloakShortParted
@@ -675,6 +680,7 @@ character/voidelf/female/voidelffemale_sdr.m2
 46=TabardFront
 47=UpperLegs
 48=Robes
+49=RobeInsets
 50=CloakLong
 51=CloakMedium
 52=CloakShortParted
@@ -749,6 +755,7 @@ character/nightelf/female/nightelffemale_hd_sdr.m2
 48=TabardFront
 49=UpperLegs
 50=Robes
+51=RobeInsets
 52=CloakLong
 53=CloakMedium
 54=CloakShortParted
@@ -817,6 +824,7 @@ character/gnome/female/gnomefemale_hd_sdr.m2
 42=TabardBoth
 43=TabardFront
 44=UpperLegs
+45=RobeInsets
 46=Robes
 47=CloakLong
 48=CloakMedium
@@ -887,6 +895,7 @@ character/lightforgeddraenei/female/lightforgeddraeneifemale_sdr.m2
 46=UpperLegs
 47=Legs
 48=Robes
+49=RobeInsets
 50=CloakLong
 51=CloakMedium
 52=CloakShortParted
