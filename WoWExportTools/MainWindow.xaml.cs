@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Input;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
+using WoWExportTools.Objects;
 
 namespace WoWExportTools
 {
@@ -36,13 +37,12 @@ namespace WoWExportTools
 
         private bool mapsLoaded = false;
         private bool texturesLoaded = false;
-        private bool previewsEnabled = true;
 
         private List<string> models;
         private List<string> textures;
 
         private Dictionary<int, MapListItem> mapNames = new Dictionary<int, MapListItem>();
-        private Dictionary<uint, WoWFormatLib.FileReaders.WDTReader> wdtCache = new Dictionary<uint, WoWFormatLib.FileReaders.WDTReader>();
+        private Dictionary<uint, WDTReader> wdtCache = new Dictionary<uint, WoWFormatLib.FileReaders.WDTReader>();
 
         private List<string> mapFilters = new List<string>();
 
@@ -53,6 +53,8 @@ namespace WoWExportTools
         private Splash splash;
 
         public static bool shuttingDown = false;
+
+        private ModelControl modelControlWindow;
 
         private System.Windows.Forms.OpenFileDialog dialogM2Open;
         private System.Windows.Forms.OpenFileDialog dialogBLPOpen;
@@ -80,6 +82,9 @@ namespace WoWExportTools
                 return;
 
             previewControl = new PreviewControl(renderCanvas);
+            previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
+            modelControlWindow = new ModelControl(previewControl);
+
             CompositionTarget.Rendering += previewControl.CompositionTarget_Rendering;
             wfHost.Initialized += previewControl.WindowsFormsHost_Initialized;
 
@@ -444,7 +449,7 @@ namespace WoWExportTools
 
             worker.ReportProgress(50, "Loading geoset mapping from disk..");
             Application.Current.Dispatcher.Invoke(delegate {
-                ModelControl.LoadGeosetMapping();
+                modelControlWindow.LoadGeosetMapping();
             });
 
             worker.ReportProgress(55, "Loading listfile from disk..");
@@ -579,10 +584,17 @@ namespace WoWExportTools
                     }
                     else if (selectedFile.EndsWith(".m2"))
                     {
+                        bool[] enabledGeosets = null;
+                        Container3D activeObject = previewControl.activeObject;
+                        
+                        if (activeObject is M2Container m2Object)
+                            if (m2Object.FileName == selectedFile)
+                                enabledGeosets = m2Object.EnabledGeosets;
+
                         if (fdidExport)
-                            Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker);
+                            Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker, null, null, enabledGeosets);
                         else
-                            Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker);
+                            Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker, null, enabledGeosets);
                     }
                     else if (selectedFile.EndsWith(".blp"))
                     {
@@ -637,33 +649,11 @@ namespace WoWExportTools
                 modelControlButton.IsEnabled = true;
                 string selectedFile = (string) modelListBox.SelectedItem;
 
-                if (previewsEnabled)
-                    previewControl.LoadModel(selectedFile);
+                // Even if we're not rendering the model, we want to load it so that
+                // we have geoset data and the likes available.
+                previewControl.LoadModel(selectedFile);
 
-                // Currently only provide controls for M2 objects, so hide otherwise.
-                if (selectedFile.EndsWith(".m2"))
-                {
-                    // Even if we don't show the model control, provide it the model so that
-                    // it can provide geoset information to the exporter.
-                    if (previewsEnabled)
-                        ModelControl.instance.SetActiveModel(previewControl.activeM2);
-                    else
-                        ModelControl.instance.SetActiveModel(previewControl.LoadM2(selectedFile));
-
-                    // Only update the model control if it's already shown.
-                    if (ModelControl.IsModelControlActive())
-                        ModelControl.ShowModelControl(selectedFile);
-                }
-                else
-                {
-                    ModelControl.HideModelControl();
-                }
-            }
-            else
-            {
-                // Nothing is selected, hide the model control window.
-                ModelControl.HideModelControl();
-                modelControlButton.IsEnabled = false;
+                modelControlWindow.UpdateModelControl();
             }
 
             e.Handled = true;
@@ -1263,9 +1253,11 @@ namespace WoWExportTools
                     return 1;
             }
         }
+
         private void PreviewCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            previewsEnabled = (bool)previewCheckbox.IsChecked;
+            if (previewControl != null)
+                previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
         }
 
         private void CollisionCheckbox_Checked(object sender, RoutedEventArgs e)
@@ -1367,14 +1359,15 @@ namespace WoWExportTools
 
         private void ShowModelControlButton_Click(object sender, RoutedEventArgs e)
         {
-            if (previewControl.IsModelActive && previewControl.ModelType == "m2")
-                ModelControl.ShowModelControl(previewControl.SelectedFileName);
+            modelControlWindow.Show();
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             shuttingDown = true;
-            ModelControl.CloseModelControl();
+
+            if (modelControlWindow != null)
+                modelControlWindow.Close();
         }
     }
 }

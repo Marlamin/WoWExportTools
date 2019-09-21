@@ -91,7 +91,6 @@ namespace WoWExportTools.Loaders
             doodadBatch.submeshes = new Renderer.Structs.Submesh[model.skins[0].submeshes.Count()];
             for (var i = 0; i < model.skins[0].submeshes.Count(); i++)
             {
-                doodadBatch.submeshes[i].enabled = true;
                 doodadBatch.submeshes[i].firstFace = model.skins[0].submeshes[i].startTriangle;
                 doodadBatch.submeshes[i].numFaces = model.skins[0].submeshes[i].nTriangles;
                 for (var tu = 0; tu < model.skins[0].textureunit.Count(); tu++)

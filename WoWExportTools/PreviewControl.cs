@@ -6,6 +6,7 @@ using System.Drawing;
 using OpenTK.Input;
 using static WoWExportTools.Structs;
 using CASCLib;
+using WoWExportTools.Objects;
 
 namespace WoWExportTools
 {
@@ -13,15 +14,10 @@ namespace WoWExportTools
     {
         public GLControl renderCanvas;
 
-        public bool IsModelActive = false;
-        public string ModelType = "none";
-
         private NewCamera ActiveCamera;
 
-        public Renderer.Structs.DoodadBatch activeM2;
-        public Renderer.Structs.WorldModel activeWMO;
-
-        public string SelectedFileName;
+        public Container3D activeObject = null;
+        public bool IsPreviewEnabled = false;
 
         private int adtShaderProgram;
         private int wmoShaderProgram;
@@ -57,35 +53,21 @@ namespace WoWExportTools
             new Renderer.RenderMinimap().Generate(mapTile, outName, minimap ? bakeFullMinimapShaderProgram : bakeShaderProgram);
         }
 
-        public Renderer.Structs.DoodadBatch LoadM2(string fileName)
-        {
-            return M2Loader.LoadM2(fileName, m2ShaderProgram);
-        }
-
         public void LoadModel(string fileName)
         {
-            IsModelActive = false;
             GL.ActiveTexture(TextureUnit.Texture0);
-
-            SelectedFileName = fileName;
 
             try
             {
                 if (fileName.EndsWith(".m2"))
                 {
-                    activeM2 = LoadM2(fileName);
-
-                    ActiveCamera.Pos = new Vector3((activeM2.boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
-                    ModelType = "m2";
-
-                    IsModelActive = true;
+                    var m2 = M2Loader.LoadM2(fileName, m2ShaderProgram);
+                    activeObject = new M2Container(m2, fileName);
+                    ActiveCamera.Pos = new Vector3((m2.boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
                 }
                 else if (fileName.EndsWith(".wmo"))
                 {
-                    activeWMO = WMOLoader.LoadWMO(fileName, wmoShaderProgram);
-
-                    ModelType = "wmo";
-                    IsModelActive = true;
+                    activeObject = new WMOContainer(WMOLoader.LoadWMO(fileName, wmoShaderProgram), fileName);
                 }
             }
             catch (Exception e)
@@ -131,25 +113,28 @@ namespace WoWExportTools
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            if (!IsModelActive) return;
+            if (!IsPreviewEnabled)
+                return;
 
             GL.Viewport(0, 0, renderCanvas.Width, renderCanvas.Height);
             GL.Enable(EnableCap.Texture2D);
 
-            if (ModelType == "m2")
+            if (activeObject is M2Container activeM2)
             {
+                var m2 = activeM2.DoodadBatch;
+
                 GL.UseProgram(m2ShaderProgram);
 
                 ActiveCamera.setupGLRenderMatrix(m2ShaderProgram);
                 ActiveCamera.flyMode = false;
 
                 var alphaRefLoc = GL.GetUniformLocation(m2ShaderProgram, "alphaRef");
-                GL.BindVertexArray(activeM2.vao);
+                GL.BindVertexArray(m2.vao);
 
-                for (var i = 0; i < activeM2.submeshes.Length; i++)
+                for (var i = 0; i < m2.submeshes.Length; i++)
                 {
-                    var submesh = activeM2.submeshes[i];
-                    if (!submesh.enabled)
+                    var submesh = m2.submeshes[i];
+                    if (!activeM2.EnabledGeosets[i])
                         continue;
 
                     switch (submesh.blendType)
@@ -177,8 +162,10 @@ namespace WoWExportTools
                     GL.DrawElements(PrimitiveType.Triangles, (int)submesh.numFaces, DrawElementsType.UnsignedInt, (int)submesh.firstFace * 4);
                 }
             }
-            else if (ModelType == "wmo")
+            else if (activeObject is WMOContainer activeWMO)
             {
+                var wmo = activeWMO.WorldModel;
+
                 GL.UseProgram(wmoShaderProgram);
 
                 ActiveCamera.setupGLRenderMatrix(wmoShaderProgram);
@@ -186,11 +173,11 @@ namespace WoWExportTools
 
                 var alphaRefLoc = GL.GetUniformLocation(wmoShaderProgram, "alphaRef");
 
-                for (var j = 0; j < activeWMO.wmoRenderBatch.Length; j++)
+                for (var j = 0; j < wmo.wmoRenderBatch.Length; j++)
                 {
-                    GL.BindVertexArray(activeWMO.groupBatches[activeWMO.wmoRenderBatch[j].groupID].vao);
+                    GL.BindVertexArray(wmo.groupBatches[wmo.wmoRenderBatch[j].groupID].vao);
 
-                    switch(activeWMO.wmoRenderBatch[j].blendType)
+                    switch (wmo.wmoRenderBatch[j].blendType)
                     {
                         case 0:
                             GL.Disable(EnableCap.Blend);
@@ -211,8 +198,8 @@ namespace WoWExportTools
                             break;
                     }
 
-                    GL.BindTexture(TextureTarget.Texture2D, activeWMO.wmoRenderBatch[j].materialID[0]);
-                    GL.DrawElements(PrimitiveType.Triangles, (int)activeWMO.wmoRenderBatch[j].numFaces, DrawElementsType.UnsignedInt, (int)activeWMO.wmoRenderBatch[j].firstFace * 4);
+                    GL.BindTexture(TextureTarget.Texture2D, wmo.wmoRenderBatch[j].materialID[0]);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)wmo.wmoRenderBatch[j].numFaces, DrawElementsType.UnsignedInt, (int)wmo.wmoRenderBatch[j].firstFace * 4);
                 }
             }
 

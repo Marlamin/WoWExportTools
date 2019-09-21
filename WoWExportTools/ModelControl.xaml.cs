@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Controls;
+using WoWExportTools.Objects;
 
 namespace WoWExportTools
 {
@@ -14,7 +15,7 @@ namespace WoWExportTools
         private uint _index;
         private string _name;
 
-        public Renderer.Structs.DoodadBatch Model;
+        public M2Container Object;
 
         public uint Index
         {
@@ -44,10 +45,10 @@ namespace WoWExportTools
 
         public bool IsEnabled
         {
-            get { return Model.submeshes[_index].enabled; }
+            get { return Object.EnabledGeosets[_index]; }
             set
             {
-                Model.submeshes[_index].enabled = value;
+                Object.EnabledGeosets[_index] = value;
                 Notify("IsEnabled");
             }
         }
@@ -72,10 +73,55 @@ namespace WoWExportTools
     public partial class ModelControl : Window
     {
         private static string MAPPING_FILE = "geosets.txt";
-        public static ModelControl instance = new ModelControl();
-        private static Dictionary<string, Dictionary<uint, string>> geosetMaps = new Dictionary<string, Dictionary<uint, string>>();
+        private Dictionary<string, Dictionary<uint, string>> geosetMaps = new Dictionary<string, Dictionary<uint, string>>();
 
-        public static void LoadGeosetMapping()
+        public Dictionary<uint, string> GeosetNameMap = null;
+        public ObservableCollection<ModelGeoset> activeModelGeosets;
+
+        private PreviewControl previewControl;
+
+        public ModelControl(PreviewControl previewControl)
+        {
+            InitializeComponent();
+
+            this.previewControl = previewControl;
+
+            // Link the list control to automatically update using activeModelGeosets.
+            activeModelGeosets = new ObservableCollection<ModelGeoset>();
+            geosetList.DataContext = activeModelGeosets;
+        }
+
+        public void UpdateModelControl()
+        {
+            Container3D activeObject = previewControl.activeObject;
+
+            if (activeObject != null && activeObject is M2Container m2Object)
+            {
+                activeModelGeosets.Clear();
+
+                var model = m2Object.DoodadBatch;
+                for (uint i = 0; i < model.submeshes.Length; i++)
+                {
+                    var mesh = model.submeshes[i];
+                    string name = "Unknown";
+
+                    if (geosetMaps.ContainsKey(m2Object.FileName))
+                    {
+                        var map = geosetMaps[m2Object.FileName];
+                        if (map.ContainsKey(i))
+                            name = map[i];
+                    }
+
+                    activeModelGeosets.Add(new ModelGeoset() { Object = m2Object, Name = name, Index = i });
+                }
+            }
+            else
+            {
+                Hide();
+            }
+        }
+
+        public void LoadGeosetMapping()
         {
             if (!File.Exists(MAPPING_FILE))
                 return;
@@ -109,60 +155,6 @@ namespace WoWExportTools
                         geosetMaps.Add(line.ToLower(), currentMap);
                     }
                 }
-            }
-        }
-
-        public static void ShowModelControl(string fileName)
-        {
-            instance.GeosetNameMap = null;
-            if (geosetMaps.ContainsKey(fileName))
-                instance.GeosetNameMap = geosetMaps[fileName];
-
-            instance.Show();
-        }
-
-        public static void HideModelControl()
-        {
-            if (instance != null)
-                instance.Hide();
-        }
-
-        public static void CloseModelControl()
-        {
-            if (instance != null)
-                instance.Close();
-        }
-
-        public static bool IsModelControlActive()
-        {
-            return instance != null && instance.IsVisible;
-        }
-
-        public Dictionary<uint, string> GeosetNameMap = null;
-        public ObservableCollection<ModelGeoset> activeModelGeosets;
-
-        public ModelControl()
-        {
-            InitializeComponent();
-
-            // Link the list control to automatically update using activeModelGeosets.
-            activeModelGeosets = new ObservableCollection<ModelGeoset>();
-            geosetList.DataContext = activeModelGeosets;
-        }
-
-        public void SetActiveModel(Renderer.Structs.DoodadBatch model)
-        {
-            activeModelGeosets.Clear();
-
-            for (uint i = 0; i < model.submeshes.Length; i++)
-            {
-                var mesh = model.submeshes[i];
-                string name = "Unknown";
-
-                if (GeosetNameMap != null && GeosetNameMap.ContainsKey(i))
-                    name = GeosetNameMap[i];
-
-                activeModelGeosets.Add(new ModelGeoset() { Model = model, Name = name, Index = i });
             }
         }
 

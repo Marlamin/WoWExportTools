@@ -123,6 +123,9 @@
     <Compile Include="Loaders\BLPLoader.cs" />
     <Compile Include="Loaders\M2Loader.cs" />
     <Compile Include="Loaders\WMOLoader.cs" />
+    <Compile Include="Objects\Container3D.cs" />
+    <Compile Include="Objects\M2Container.cs" />
+    <Compile Include="Objects\WMOContainer.cs" />
     <Compile Include="Renderer\NewCamera.cs" />
     <Compile Include="PreviewControl.cs" />
     <Compile Include="Renderer\RenderMinimap.cs" />
