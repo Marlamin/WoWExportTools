@@ -432,12 +432,11 @@ namespace WoWExportTools.Exporters.OBJ
                 objsw.WriteLine("mtllib " + Path.GetFileNameWithoutExtension(file).Replace(" ", "") + ".mtl");
             }
 
-            objsw.WriteLine("g " + adtname.Replace(" ", ""));
             var verticeCounter = 1;
             var chunkCounter = 1;
             foreach (var vertex in verticelist)
             {
-                objsw.WriteLine("# C" + chunkCounter + ".V" + verticeCounter);
+                //objsw.WriteLine("# C" + chunkCounter + ".V" + verticeCounter);
                 objsw.WriteLine("v " + vertex.Position.X.ToString("R") + " " + vertex.Position.Y.ToString("R") + " " + vertex.Position.Z.ToString("R"));
                 objsw.WriteLine("vt " + vertex.TexCoord.X + " " + vertex.TexCoord.Y);
                 objsw.WriteLine("vn " + vertex.Normal.X.ToString("R") + " " + vertex.Normal.Y.ToString("R") + " " + vertex.Normal.Z.ToString("R"));
@@ -451,14 +450,19 @@ namespace WoWExportTools.Exporters.OBJ
 
             if (bakeQuality != "high")
             {
+                objsw.WriteLine("g " + adtname.Replace(" ", ""));
                 objsw.WriteLine("usemtl " + materials[1]);
                 objsw.WriteLine("s 1");
             }
 
-            foreach (var renderBatch in renderBatches)
+            for (int rbi = 0; rbi < renderBatches.Count(); rbi++)
             {
+                var renderBatch = renderBatches[rbi];
                 var i = renderBatch.firstFace;
-                if (bakeQuality == "high" && materials.ContainsKey((int)renderBatch.materialID)) { objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]); }
+                if (bakeQuality == "high" && materials.ContainsKey((int)renderBatch.materialID)) {
+                    objsw.WriteLine("g " + adtname.Replace(" ", "") + "_" + rbi);
+                    objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]);
+                }
                 while (i < (renderBatch.firstFace + renderBatch.numFaces))
                 {
                     objsw.WriteLine("f " +

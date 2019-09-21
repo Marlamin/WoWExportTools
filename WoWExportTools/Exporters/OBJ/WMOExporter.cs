@@ -659,12 +659,13 @@ namespace WoWExportTools.Exporters.OBJ
 
                 var indices = group.indices;
 
-                foreach (var renderbatch in group.renderBatches)
+                for (int rbi = 0; rbi < group.renderBatches.Count(); rbi++)
                 {
+                    var renderbatch = group.renderBatches[rbi];
                     var i = renderbatch.firstFace;
                     if (renderbatch.numFaces > 0)
                     {
-                        objsw.WriteLine("g " + group.name);
+                        objsw.WriteLine("g " + group.name + rbi);
                         objsw.WriteLine("usemtl " + materials[renderbatch.materialID].filename);
                         objsw.WriteLine("s 1");
                         while (i < (renderbatch.firstFace + renderbatch.numFaces))
