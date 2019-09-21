@@ -309,12 +309,6 @@ namespace WoWExportTools.Loaders
             result.doodads = doodads.ToArray();
             result.worldModelBatches = worldModelBatches.ToArray();
 
-            // Clean-up.
-            foreach (var batch in renderBatches)
-                GL.DeleteTextures(batch.alphaMaterialID.Length, batch.alphaMaterialID);
-
-            GC.Collect();
-
             return result;
         }
     }

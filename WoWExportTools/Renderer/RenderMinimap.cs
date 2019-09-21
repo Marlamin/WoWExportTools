@@ -274,6 +274,12 @@ namespace WoWExportTools.Renderer
                     GL.UseProgram(0);
                 }
             }
+
+            // Clean-up.
+            foreach (var batch in terrain.renderBatches)
+                GL.DeleteTextures(batch.alphaMaterialID.Length, batch.alphaMaterialID);
+
+            GC.Collect();
         }
     }
 }
