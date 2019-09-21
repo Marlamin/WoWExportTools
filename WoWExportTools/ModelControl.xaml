@@ -1,0 +1,30 @@
+﻿<Window x:Class="WoWExportTools.ModelControl"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WoWExportTools"
+        mc:Ignorable="d"
+        Title="Model" Height="455.515" Width="238.603"
+        Closing="Window_Closing">
+    <Grid>
+        <Label x:Name="geosetLabel" Content="Model Geosets" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="geosetList" ItemsSource="{Binding}" HorizontalAlignment="Stretch" Margin="10,36,10,35" VerticalAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsEnabled}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Grid Margin="10,0,10,10" Height="20" VerticalAlignment="Bottom">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button x:Name="geosetEnableButton" Content="Enable All" Width="100" Click="GeosetEnableButton_Click" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="geosetDisableButton" Content="Disable All" Width="100" Click="GeosetDisableButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

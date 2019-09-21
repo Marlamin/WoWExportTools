@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Input;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
+using WoWExportTools.Objects;
 
 namespace WoWExportTools
 {
@@ -36,13 +37,12 @@ namespace WoWExportTools
 
         private bool mapsLoaded = false;
         private bool texturesLoaded = false;
-        private bool previewsEnabled = true;
 
         private List<string> models;
         private List<string> textures;
 
         private Dictionary<int, MapListItem> mapNames = new Dictionary<int, MapListItem>();
-        private Dictionary<uint, WoWFormatLib.FileReaders.WDTReader> wdtCache = new Dictionary<uint, WoWFormatLib.FileReaders.WDTReader>();
+        private Dictionary<uint, WDTReader> wdtCache = new Dictionary<uint, WoWFormatLib.FileReaders.WDTReader>();
 
         private List<string> mapFilters = new List<string>();
 
@@ -53,6 +53,8 @@ namespace WoWExportTools
         private Splash splash;
 
         public static bool shuttingDown = false;
+
+        private ModelControl modelControlWindow;
 
         private System.Windows.Forms.OpenFileDialog dialogM2Open;
         private System.Windows.Forms.OpenFileDialog dialogBLPOpen;
@@ -80,6 +82,9 @@ namespace WoWExportTools
                 return;
 
             previewControl = new PreviewControl(renderCanvas);
+            previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
+            modelControlWindow = new ModelControl(previewControl);
+
             CompositionTarget.Rendering += previewControl.CompositionTarget_Rendering;
             wfHost.Initialized += previewControl.WindowsFormsHost_Initialized;
 
@@ -407,9 +412,7 @@ namespace WoWExportTools
             var state = (string)e.UserState;
 
             if (!string.IsNullOrEmpty(state))
-            {
                 loadingLabel.Content = state;
-            }
 
             progressBar.Value = e.ProgressPercentage;
         }
@@ -444,46 +447,37 @@ namespace WoWExportTools
                 Listfile.Update();
             }
 
-            worker.ReportProgress(50, "Loading listfile from disk..");
+            worker.ReportProgress(50, "Loading geoset mapping from disk..");
+            Application.Current.Dispatcher.Invoke(delegate {
+                modelControlWindow.LoadGeosetMapping();
+            });
+
+            worker.ReportProgress(55, "Loading listfile from disk..");
 
             if (Listfile.FDIDToFilename.Count == 0)
-            {
                 Listfile.Load();
-            }
 
             worker.ReportProgress(60, "Filtering listfile..");
 
             var linelist = new List<string>();
 
             foreach (var line in Listfile.FDIDToFilename)
-            {
                 if (CASC.FileExists(line.Key))
-                {
                     linelist.Add(line.Value);
-                }
-            }
 
             var regex = new System.Text.RegularExpressions.Regex(@"(_\d\d\d_)|(_\d\d\d.wmo$)|(lod\d.wmo$)");
 
             foreach (var line in linelist)
             {
                 if (showWMO && line.EndsWith("wmo"))
-                {
                     if (!regex.Match(line).Success)
-                    {
                         models.Add(line);
-                    }
-                }
 
                 if (showM2 && line.EndsWith("m2"))
-                {
                     models.Add(line);
-                }
 
                 if (line.EndsWith("blp"))
-                {
                     textures.Add(line);
-                }
             }
 
             worker.ReportProgress(70, "Adding unknown files to file list..");
@@ -496,9 +490,7 @@ namespace WoWExportTools
                 var storage = dbcd.Load("ModelFileData");
 
                 if (!storage.AvailableColumns.Contains("FileDataID"))
-                {
                     throw new Exception("Unable to find FileDataID column in ModelFileData! Likely using a version without up to date definition.");
-                }
 
                 foreach (dynamic entry in storage.Values)
                 {
@@ -592,14 +584,17 @@ namespace WoWExportTools
                     }
                     else if (selectedFile.EndsWith(".m2"))
                     {
+                        bool[] enabledGeosets = null;
+                        Container3D activeObject = previewControl.activeObject;
+                        
+                        if (activeObject is M2Container m2Object)
+                            if (m2Object.FileName == selectedFile)
+                                enabledGeosets = m2Object.EnabledGeosets;
+
                         if (fdidExport)
-                        {
-                            Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker);
-                        }
+                            Exporters.OBJ.M2Exporter.ExportM2(fileDataID, exportworker, null, null, enabledGeosets);
                         else
-                        {
-                            Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker);
-                        }
+                            Exporters.OBJ.M2Exporter.ExportM2(selectedFile, exportworker, null, enabledGeosets);
                     }
                     else if (selectedFile.EndsWith(".blp"))
                     {
@@ -607,21 +602,17 @@ namespace WoWExportTools
                         var outdir = ConfigurationManager.AppSettings["outdir"];
                         try
                         {
-                            var blp = new WoWFormatLib.FileReaders.BLPReader();
+                            var blp = new BLPReader();
                             blp.LoadBLP(fileDataID);
 
                             var bmp = blp.bmp;
                             if (ignoreTextureAlpha)
-                            {
                                 bmp = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-                            }
 
                             if (!fdidExport)
                             {
                                 if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(selectedFile))))
-                                {
                                     Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
-                                }
 
                                 bmp.Save(Path.Combine(outdir, Path.GetDirectoryName(selectedFile), Path.GetFileNameWithoutExtension(selectedFile)) + ".png");
                             }
@@ -651,9 +642,18 @@ namespace WoWExportTools
         /* Model tab */
         private void ModelListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (previewsEnabled && modelListBox.SelectedItems.Count == 1)
+            // Just use the first selected item in the case of multi-selections.
+            // It makes sense to preview something, rather than nothing.
+            if (modelListBox.SelectedItem != null)
             {
-                previewControl.LoadModel((string)modelListBox.SelectedItem);
+                modelControlButton.IsEnabled = true;
+                string selectedFile = (string) modelListBox.SelectedItem;
+
+                // Even if we're not rendering the model, we want to load it so that
+                // we have geoset data and the likes available.
+                previewControl.LoadModel(selectedFile);
+
+                modelControlWindow.UpdateModelControl();
             }
 
             e.Handled = true;
@@ -1253,9 +1253,11 @@ namespace WoWExportTools
                     return 1;
             }
         }
+
         private void PreviewCheckbox_Checked(object sender, RoutedEventArgs e)
         {
-            previewsEnabled = (bool)previewCheckbox.IsChecked;
+            if (previewControl != null)
+                previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
         }
 
         private void CollisionCheckbox_Checked(object sender, RoutedEventArgs e)
@@ -1338,7 +1340,7 @@ namespace WoWExportTools
             }
         }
 
-        private void ListBoxKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void ListBoxKeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
             {
@@ -1353,6 +1355,19 @@ namespace WoWExportTools
                     Clipboard.SetText(string.Join("\n", items));
                 }
             }
+        }
+
+        private void ShowModelControlButton_Click(object sender, RoutedEventArgs e)
+        {
+            modelControlWindow.Show();
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            shuttingDown = true;
+
+            if (modelControlWindow != null)
+                modelControlWindow.Close();
         }
     }
 }

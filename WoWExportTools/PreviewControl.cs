@@ -4,9 +4,9 @@ using OpenTK.Graphics.OpenGL;
 using WoWExportTools.Loaders;
 using System.Drawing;
 using OpenTK.Input;
-using System.Collections.Generic;
 using static WoWExportTools.Structs;
 using CASCLib;
+using WoWExportTools.Objects;
 
 namespace WoWExportTools
 {
@@ -14,22 +14,16 @@ namespace WoWExportTools
     {
         public GLControl renderCanvas;
 
-        private bool ready = false;
-        private string modelType;
-
-        private CacheStorage cache = new CacheStorage();
-
         private NewCamera ActiveCamera;
 
-        private string filename;
+        public Container3D activeObject = null;
+        public bool IsPreviewEnabled = false;
 
         private int adtShaderProgram;
         private int wmoShaderProgram;
         private int m2ShaderProgram;
         private int bakeShaderProgram;
         private int bakeFullMinimapShaderProgram;
-
-        private List<string> adtList;
 
         public PreviewControl(GLControl renderCanvas)
         {
@@ -50,63 +44,35 @@ namespace WoWExportTools
         private void RenderCanvas_Resize(object sender, EventArgs e)
         {
             GL.Viewport(0, 0, renderCanvas.Width, renderCanvas.Height);
-            if(renderCanvas.Width > 0 && renderCanvas.Height > 0)
-            {
+            if (renderCanvas.Width > 0 && renderCanvas.Height > 0)
                 ActiveCamera.viewportSize(renderCanvas.Width, renderCanvas.Height);
-            }
         }
 
-        public void BakeTexture(MapTile mapTile, string outname, bool minimap = false)
+        public void BakeTexture(MapTile mapTile, string outName, bool minimap = false)
         {
-            var minimapRenderer = new Renderer.RenderMinimap();
-            if (minimap)
-            {
-                minimapRenderer.Generate(mapTile, outname, cache, bakeFullMinimapShaderProgram);
-            }
-            else
-            {
-                minimapRenderer.Generate(mapTile, outname, cache, bakeShaderProgram);
-            }
+            new Renderer.RenderMinimap().Generate(mapTile, outName, minimap ? bakeFullMinimapShaderProgram : bakeShaderProgram);
         }
 
-        public void LoadModel(string filename)
+        public void LoadModel(string fileName)
         {
-            ready = false;
             GL.ActiveTexture(TextureUnit.Texture0);
 
-            this.filename = filename;
             try
             {
-                if (filename.EndsWith(".m2"))
+                if (fileName.EndsWith(".m2"))
                 {
-                    if (!cache.doodadBatches.ContainsKey(filename))
-                    {
-                        M2Loader.LoadM2(filename, cache, m2ShaderProgram);
-                    }
-
-                    if (!cache.doodadBatches.ContainsKey(filename))
-                    {
-                        return;
-                    }
-
-                    ActiveCamera.Pos = new Vector3((cache.doodadBatches[filename].boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
-                    modelType = "m2";
-
-                    ready = true;
+                    var m2 = M2Loader.LoadM2(fileName, m2ShaderProgram);
+                    activeObject = new M2Container(m2, fileName);
+                    ActiveCamera.Pos = new Vector3((m2.boundingBox.max.Z) + 11.0f, 0.0f, 4.0f);
                 }
-                else if (filename.EndsWith(".wmo"))
+                else if (fileName.EndsWith(".wmo"))
                 {
-                    if (!cache.worldModels.ContainsKey(filename))
-                    {
-                        WMOLoader.LoadWMO(filename, cache, wmoShaderProgram);
-                    }
-                    modelType = "wmo";
-
-                    ready = true;
+                    activeObject = new WMOContainer(WMOLoader.LoadWMO(fileName, wmoShaderProgram), fileName);
                 }
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
-                Logger.WriteLine("Error occured when loading model " + filename + ": " + e.StackTrace);
+                Logger.WriteLine("Error occured when loading model " + fileName + ": " + e.StackTrace);
             }
            
             ActiveCamera.ResetCamera();
@@ -147,25 +113,31 @@ namespace WoWExportTools
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            if (!ready) return;
+            if (!IsPreviewEnabled)
+                return;
 
             GL.Viewport(0, 0, renderCanvas.Width, renderCanvas.Height);
             GL.Enable(EnableCap.Texture2D);
 
-            if (modelType == "m2")
+            if (activeObject is M2Container activeM2)
             {
+                var m2 = activeM2.DoodadBatch;
+
                 GL.UseProgram(m2ShaderProgram);
 
                 ActiveCamera.setupGLRenderMatrix(m2ShaderProgram);
                 ActiveCamera.flyMode = false;
 
                 var alphaRefLoc = GL.GetUniformLocation(m2ShaderProgram, "alphaRef");
+                GL.BindVertexArray(m2.vao);
 
-                GL.BindVertexArray(cache.doodadBatches[filename].vao);
-
-                for (var i = 0; i < cache.doodadBatches[filename].submeshes.Length; i++)
+                for (var i = 0; i < m2.submeshes.Length; i++)
                 {
-                    switch (cache.doodadBatches[filename].submeshes[i].blendType)
+                    var submesh = m2.submeshes[i];
+                    if (!activeM2.EnabledGeosets[i])
+                        continue;
+
+                    switch (submesh.blendType)
                     {
                         case 0:
                             GL.Disable(EnableCap.Blend);
@@ -186,12 +158,14 @@ namespace WoWExportTools
                             break;
                     }
 
-                    GL.BindTexture(TextureTarget.Texture2D, cache.doodadBatches[filename].submeshes[i].material);
-                    GL.DrawElements(PrimitiveType.Triangles, (int)cache.doodadBatches[filename].submeshes[i].numFaces, DrawElementsType.UnsignedInt, (int)cache.doodadBatches[filename].submeshes[i].firstFace * 4);
+                    GL.BindTexture(TextureTarget.Texture2D, submesh.material);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)submesh.numFaces, DrawElementsType.UnsignedInt, (int)submesh.firstFace * 4);
                 }
             }
-            else if (modelType == "wmo")
+            else if (activeObject is WMOContainer activeWMO)
             {
+                var wmo = activeWMO.WorldModel;
+
                 GL.UseProgram(wmoShaderProgram);
 
                 ActiveCamera.setupGLRenderMatrix(wmoShaderProgram);
@@ -199,11 +173,11 @@ namespace WoWExportTools
 
                 var alphaRefLoc = GL.GetUniformLocation(wmoShaderProgram, "alphaRef");
 
-                for (var j = 0; j < cache.worldModelBatches[filename].wmoRenderBatch.Length; j++)
+                for (var j = 0; j < wmo.wmoRenderBatch.Length; j++)
                 {
-                    GL.BindVertexArray(cache.worldModelBatches[filename].groupBatches[cache.worldModelBatches[filename].wmoRenderBatch[j].groupID].vao);
+                    GL.BindVertexArray(wmo.groupBatches[wmo.wmoRenderBatch[j].groupID].vao);
 
-                    switch(cache.worldModelBatches[filename].wmoRenderBatch[j].blendType)
+                    switch (wmo.wmoRenderBatch[j].blendType)
                     {
                         case 0:
                             GL.Disable(EnableCap.Blend);
@@ -224,78 +198,14 @@ namespace WoWExportTools
                             break;
                     }
 
-                    GL.BindTexture(TextureTarget.Texture2D, cache.worldModelBatches[filename].wmoRenderBatch[j].materialID[0]);
-                    GL.DrawElements(PrimitiveType.Triangles, (int)cache.worldModelBatches[filename].wmoRenderBatch[j].numFaces, DrawElementsType.UnsignedInt, (int)cache.worldModelBatches[filename].wmoRenderBatch[j].firstFace * 4);
-                }
-            }
-            else if(modelType == "adt")
-            {
-                GL.UseProgram(adtShaderProgram);
-
-                ActiveCamera.setupGLRenderMatrix(adtShaderProgram);
-                ActiveCamera.flyMode = true;
-
-                var heightScaleLoc = GL.GetUniformLocation(adtShaderProgram, "pc_heightScale");
-                var heightOffsetLoc = GL.GetUniformLocation(adtShaderProgram, "pc_heightOffset");
-
-                foreach(var filename in adtList)
-                {
-                    GL.BindVertexArray(cache.terrain[filename].vao);
-
-                    for (var i = 0; i < cache.terrain[filename].renderBatches.Length; i++)
-                    {
-                        GL.Uniform4(heightScaleLoc, cache.terrain[filename].renderBatches[i].heightScales);
-                        GL.Uniform4(heightOffsetLoc, cache.terrain[filename].renderBatches[i].heightOffsets);
-
-                        for (var j = 0; j < cache.terrain[filename].renderBatches[i].materialID.Length; j++)
-                        {
-                            var textureLoc = GL.GetUniformLocation(adtShaderProgram, "pt_layer" + j);
-                            GL.Uniform1(textureLoc, j);
-
-                            var scaleLoc = GL.GetUniformLocation(adtShaderProgram, "layer" + j + "scale");
-                            GL.Uniform1(scaleLoc, cache.terrain[filename].renderBatches[i].scales[j]);
-
-                            GL.ActiveTexture(TextureUnit.Texture0 + j);
-                            GL.BindTexture(TextureTarget.Texture2D, (int)cache.terrain[filename].renderBatches[i].materialID[j]);
-                        }
-
-                        for (var j = 1; j < cache.terrain[filename].renderBatches[i].alphaMaterialID.Length; j++)
-                        {
-                            var textureLoc = GL.GetUniformLocation(adtShaderProgram, "pt_blend" + j);
-                            GL.Uniform1(textureLoc, 3 + j);
-
-                            GL.ActiveTexture(TextureUnit.Texture3 + j);
-                            GL.BindTexture(TextureTarget.Texture2D, cache.terrain[filename].renderBatches[i].alphaMaterialID[j]);
-                        }
-
-                        for (var j = 0; j < cache.terrain[filename].renderBatches[i].heightMaterialIDs.Length; j++)
-                        {
-                            var textureLoc = GL.GetUniformLocation(adtShaderProgram, "pt_height" + j);
-                            GL.Uniform1(textureLoc, 7 + j);
-
-                            GL.ActiveTexture(TextureUnit.Texture7 + j);
-                            GL.BindTexture(TextureTarget.Texture2D, cache.terrain[filename].renderBatches[i].heightMaterialIDs[j]);
-                        }
-
-                        GL.DrawElements(PrimitiveType.Triangles, (int)cache.terrain[filename].renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)cache.terrain[filename].renderBatches[i].firstFace * 4);
-
-                        for (var j = 0; j < 11; j++)
-                        {
-                            GL.ActiveTexture(TextureUnit.Texture0 + j);
-                            GL.BindTexture(TextureTarget.Texture2D, 0);
-                        }
-
-                        GL.DrawRangeElements(PrimitiveType.Triangles, (int)cache.terrain[filename].renderBatches[i].firstFace, (int)cache.terrain[filename].renderBatches[i].firstFace + (int)cache.terrain[filename].renderBatches[i].numFaces, (int)cache.terrain[filename].renderBatches[i].numFaces, DrawElementsType.UnsignedInt, new IntPtr(cache.terrain[filename].renderBatches[i].firstFace * 4));
-                    }
+                    GL.BindTexture(TextureTarget.Texture2D, wmo.wmoRenderBatch[j].materialID[0]);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)wmo.wmoRenderBatch[j].numFaces, DrawElementsType.UnsignedInt, (int)wmo.wmoRenderBatch[j].firstFace * 4);
                 }
             }
 
             var error = GL.GetError().ToString();
-
             if (error != "NoError")
-            {
                 Console.WriteLine(error);
-            }
 
             GL.BindVertexArray(0);
             renderCanvas.SwapBuffers();

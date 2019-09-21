@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using WoWFormatLib.FileReaders;
+using WoWFormatLib.Structs.ADT;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using static WoWExportTools.Renderer.Structs;
@@ -10,17 +11,16 @@ namespace WoWExportTools.Loaders
 {
     class ADTLoader
     {
-        public static Terrain LoadADT(Structs.MapTile mapTile, CacheStorage cache, int shaderProgram, bool loadModels = false)
+        public static Terrain LoadADT(Structs.MapTile mapTile, int shaderProgram, bool loadModels = false)
         {
-            var adt = new WoWFormatLib.Structs.ADT.ADT();
-
-            var result = new Terrain();
-            var adtreader = new ADTReader();
+            ADT adt = new ADT();
+            Terrain result = new Terrain();
+            ADTReader adtReader = new ADTReader();
 
             Listfile.FDIDToFilename.TryGetValue(mapTile.wdtFileDataID, out string wdtFilename);
 
-            adtreader.LoadADT(mapTile.wdtFileDataID, mapTile.tileX, mapTile.tileY, true, wdtFilename);
-            adt = adtreader.adtfile;
+            adtReader.LoadADT(mapTile.wdtFileDataID, mapTile.tileX, mapTile.tileY, true, wdtFilename);
+            adt = adtReader.adtfile;
 
             var TileSize = 1600.0f / 3.0f; //533.333
             var ChunkSize = TileSize / 16.0f; //33.333
@@ -44,7 +44,7 @@ namespace WoWExportTools.Loaders
                 {
                     var material = new Material();
                     material.filename = adt.diffuseTextureFileDataIDs[ti].ToString();
-                    material.textureID = BLPLoader.LoadTexture(adt.diffuseTextureFileDataIDs[ti], cache);
+                    material.textureID = BLPLoader.LoadTexture(adt.diffuseTextureFileDataIDs[ti]);
 
                     if (adt.texParams != null && adt.texParams.Count() >= ti)
                     {
@@ -57,11 +57,11 @@ namespace WoWExportTools.Loaders
                             if (!WoWFormatLib.Utils.CASC.FileExists(adt.heightTextureFileDataIDs[ti]))
                             {
                                 Console.WriteLine("Height texture: " + adt.heightTextureFileDataIDs[ti] + " does not exist! Falling back to original texture (hack)..");
-                                material.heightTexture = BLPLoader.LoadTexture(adt.diffuseTextureFileDataIDs[ti], cache);
+                                material.heightTexture = BLPLoader.LoadTexture(adt.diffuseTextureFileDataIDs[ti]);
                             }
                             else
                             {
-                                material.heightTexture = BLPLoader.LoadTexture(adt.heightTextureFileDataIDs[ti], cache);
+                                material.heightTexture = BLPLoader.LoadTexture(adt.heightTextureFileDataIDs[ti]);
                             }
                         }
                         else
@@ -85,7 +85,7 @@ namespace WoWExportTools.Loaders
                 {
                     var material = new Material();
                     material.filename = adt.textures.filenames[ti];
-                    material.textureID = BLPLoader.LoadTexture(adt.textures.filenames[ti], cache);
+                    material.textureID = BLPLoader.LoadTexture(adt.textures.filenames[ti]);
 
                     if (adt.texParams != null && adt.texParams.Count() >= ti)
                     {
@@ -99,11 +99,11 @@ namespace WoWExportTools.Loaders
                             if (!WoWFormatLib.Utils.CASC.FileExists(heightName))
                             {
                                 Console.WriteLine("Height texture: " + heightName + " does not exist! Falling back to original texture (hack)..");
-                                material.heightTexture = BLPLoader.LoadTexture(adt.textures.filenames[ti], cache);
+                                material.heightTexture = BLPLoader.LoadTexture(adt.textures.filenames[ti]);
                             }
                             else
                             {
-                                material.heightTexture = BLPLoader.LoadTexture(heightName, cache);
+                                material.heightTexture = BLPLoader.LoadTexture(heightName);
                             }
                         }
                         else
@@ -145,19 +145,15 @@ namespace WoWExportTools.Loaders
                         var v = new Vertex();
                         v.Normal = new Vector3(chunk.normals.normal_0[idx], chunk.normals.normal_1[idx], chunk.normals.normal_2[idx]);
                         if (chunk.vertexShading.red != null)
-                        {
                             v.Color = new Vector4(chunk.vertexShading.blue[idx] / 255.0f, chunk.vertexShading.green[idx] / 255.0f, chunk.vertexShading.red[idx] / 255.0f, chunk.vertexShading.alpha[idx] / 255.0f);
-                        }
                         else
-                        {
                             v.Color = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
-                        }
 
                         v.TexCoord = new Vector2((j + (((i % 2) != 0) ? 0.5f : 0f)) / 8f, (i * 0.5f) / 8f);
-
                         v.Position = new Vector3(chunk.header.position.X - (i * UnitSize * 0.5f), chunk.header.position.Y - (j * UnitSize), chunk.vertices.vertices[idx++] + chunk.header.position.Z);
 
-                        if ((i % 2) != 0) v.Position.Y -= 0.5f * UnitSize;
+                        if ((i % 2) != 0)
+                            v.Position.Y -= 0.5f * UnitSize;
 
                         verticelist.Add(v);
                     }
@@ -176,7 +172,7 @@ namespace WoWExportTools.Loaders
                 }
                 batch.numFaces = (uint)(indicelist.Count()) - batch.firstFace;
 
-                var layermats = new List<uint>();
+                var layerMaterials = new List<uint>();
                 var alphalayermats = new List<int>();
                 var layerscales = new List<float>();
                 var layerheights = new List<int>();
@@ -186,27 +182,24 @@ namespace WoWExportTools.Loaders
 
                 for (var li = 0; li < adt.texChunks[c].layers.Count(); li++)
                 {
-                    if(adt.texChunks[c].alphaLayer != null){
+                    if (adt.texChunks[c].alphaLayer != null)
                         alphalayermats.Add(BLPLoader.GenerateAlphaTexture(adt.texChunks[c].alphaLayer[li].layer));
-                    }
 
                     Material curMat;
 
-                    if(adt.diffuseTextureFileDataIDs == null)
+                    if (adt.diffuseTextureFileDataIDs == null)
                     {
-                        if(adt.textures.filenames == null)
-                        {
+                        if (adt.textures.filenames == null)
                             throw new Exception("ADT has no textures?");
-                        }
 
                         var texFileDataID = WoWFormatLib.Utils.CASC.getFileDataIdByName(adt.textures.filenames[adt.texChunks[c].layers[li].textureId]);
 
-                        layermats.Add((uint)cache.materials[texFileDataID]);
+                        layerMaterials.Add((uint)BLPLoader.LoadTexture(texFileDataID));
                         curMat = materials.Where(material => material.filename == adt.textures.filenames[adt.texChunks[c].layers[li].textureId]).Single();
                     }
                     else
                     {
-                        layermats.Add((uint)cache.materials[adt.diffuseTextureFileDataIDs[adt.texChunks[c].layers[li].textureId]]);
+                        layerMaterials.Add((uint)BLPLoader.LoadTexture(adt.diffuseTextureFileDataIDs[adt.texChunks[c].layers[li].textureId]));
                         curMat = materials.Where(material => material.filename == adt.diffuseTextureFileDataIDs[adt.texChunks[c].layers[li].textureId].ToString()).Single();
                     }
 
@@ -218,7 +211,7 @@ namespace WoWExportTools.Loaders
 
                 }
 
-                batch.materialID = layermats.ToArray();
+                batch.materialID = layerMaterials.ToArray();
                 batch.alphaMaterialID = alphalayermats.ToArray();
                 batch.scales = layerscales.ToArray();
                 batch.heightMaterialIDs = layerheights.ToArray();
@@ -263,33 +256,30 @@ namespace WoWExportTools.Loaders
                     var modelentry = adt.objects.models.entries[mi];
                     var mmid = adt.objects.m2NameOffsets.offsets[modelentry.mmidEntry];
 
-                    var modelfilename = "";
+                    var modelFileName = "";
                     for (var mmi = 0; mmi < adt.objects.m2Names.offsets.Count(); mmi++)
                     {
                         if (adt.objects.m2Names.offsets[mmi] == mmid)
                         {
-                            modelfilename = adt.objects.m2Names.filenames[mmi].ToLower();
+                            modelFileName = adt.objects.m2Names.filenames[mmi].ToLower();
                             break;
                         }
                     }
 
                     doodads.Add(new Doodad
                     {
-                        filename = modelfilename,
+                        filename = modelFileName,
                         position = new Vector3(-(modelentry.position.X - 17066), modelentry.position.Y, -(modelentry.position.Z - 17066)),
                         rotation = new Vector3(modelentry.rotation.X, modelentry.rotation.Y, modelentry.rotation.Z),
                         scale = modelentry.scale
                     });
 
-                    if (!cache.doodadBatches.ContainsKey(modelfilename))
-                    {
-                        M2Loader.LoadM2(modelfilename, cache, shaderProgram);
-                    }
+                    M2Loader.LoadM2(modelFileName, shaderProgram);
                 }
 
                 for (var wmi = 0; wmi < adt.objects.worldModels.entries.Count(); wmi++)
                 {
-                    var wmofilename = "";
+                    var wmoFileName = "";
 
                     var wmodelentry = adt.objects.worldModels.entries[wmi];
                     var mwid = adt.objects.wmoNameOffsets.offsets[wmodelentry.mwidEntry];
@@ -298,26 +288,19 @@ namespace WoWExportTools.Loaders
                     {
                         if (adt.objects.wmoNames.offsets[wmfi] == mwid)
                         {
-                            wmofilename = adt.objects.wmoNames.filenames[wmfi].ToLower();
+                            wmoFileName = adt.objects.wmoNames.filenames[wmfi].ToLower();
                             break;
                         }
                     }
 
-                    if (wmofilename.Length == 0)
-                    {
+                    if (wmoFileName.Length == 0)
                         throw new Exception("Unable to find filename for WMO!");
-                    }
-
-                    if (!cache.worldModelBatches.ContainsKey(wmofilename))
-                    {
-                        WMOLoader.LoadWMO(wmofilename, cache, shaderProgram);
-                    }
 
                     worldModelBatches.Add(new WorldModelBatch
                     {
                         position = new Vector3(-(wmodelentry.position.X - 17066.666f), wmodelentry.position.Y, -(wmodelentry.position.Z - 17066.666f)),
                         rotation = new Vector3(wmodelentry.rotation.X, wmodelentry.rotation.Y, wmodelentry.rotation.Z),
-                        worldModel = cache.worldModelBatches[wmofilename]
+                        worldModel = WMOLoader.LoadWMO(wmoFileName, shaderProgram)
                     });
                 }
             }
@@ -326,7 +309,12 @@ namespace WoWExportTools.Loaders
             result.doodads = doodads.ToArray();
             result.worldModelBatches = worldModelBatches.ToArray();
 
-            cache.terrain.Add(mapTile.wdtFileDataID + "_" + mapTile.tileX + "_" + mapTile.tileY, result);
+            // Clean-up.
+            foreach (var batch in renderBatches)
+                GL.DeleteTextures(batch.alphaMaterialID.Length, batch.alphaMaterialID);
+
+            GC.Collect();
+
             return result;
         }
     }

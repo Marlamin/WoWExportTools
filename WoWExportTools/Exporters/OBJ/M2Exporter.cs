@@ -14,7 +14,7 @@ namespace WoWExportTools.Exporters.OBJ
         private static uint DEFAULT_TEXTURE = 840426; // dungeons/textures/testing/color_13.blp
         private static uint DEFAULT_TEXTURE_SUB = 186184; // textures/shanecube.blp
 
-        public static void ExportM2(string file, BackgroundWorker exportworker = null, string destinationOverride = null)
+        public static void ExportM2(string file, BackgroundWorker exportworker = null, string destinationOverride = null, bool[] enabledGeosets = null)
         {
             if (!Listfile.TryGetFileDataID(file, out var filedataid))
             {
@@ -23,11 +23,11 @@ namespace WoWExportTools.Exporters.OBJ
             }
             else
             {
-                ExportM2(filedataid, exportworker, destinationOverride, file);
+                ExportM2(filedataid, exportworker, destinationOverride, file, enabledGeosets);
             }
         }
 
-        public static void ExportM2(uint fileDataID, BackgroundWorker exportworker = null, string destinationOverride = null, string filename = "")
+        public static void ExportM2(uint fileDataID, BackgroundWorker exportWorker = null, string destinationOverride = null, string fileName = "", bool[] enabledGeosets = null)
         {
             if (!CASC.FileExists(fileDataID))
                 throw new Exception("404 M2 Not Found!");
@@ -36,13 +36,13 @@ namespace WoWExportTools.Exporters.OBJ
             reader.LoadM2(fileDataID);
 
             // Default to using fileDataID as a name if nothing is provided.
-            if (string.IsNullOrEmpty(filename))
-                filename = fileDataID.ToString();
+            if (string.IsNullOrEmpty(fileName))
+                fileName = fileDataID.ToString();
 
-            ExportM2(reader, filename, exportworker, destinationOverride);
+            ExportM2(reader, fileName, exportWorker, destinationOverride, false, enabledGeosets);
         }
 
-        public static void ExportM2(M2Reader reader, string fileName, BackgroundWorker exportworker = null, string destinationOverride = null, bool externalOverride = false)
+        public static void ExportM2(M2Reader reader, string fileName, BackgroundWorker exportworker = null, string destinationOverride = null, bool externalOverride = false, bool[] enabledGeosets = null)
         {
             if (exportworker == null)
             {
@@ -136,6 +136,9 @@ namespace WoWExportTools.Exporters.OBJ
             var renderbatches = new Structs.RenderBatch[reader.model.skins[0].submeshes.Count()];
             for (var i = 0; i < reader.model.skins[0].submeshes.Count(); i++)
             {
+                if (enabledGeosets != null && !enabledGeosets[i])
+                    continue;
+
                 renderbatches[i].firstFace = reader.model.skins[0].submeshes[i].startTriangle;
                 renderbatches[i].numFaces = reader.model.skins[0].submeshes[i].nTriangles;
                 renderbatches[i].groupID = (uint)i;

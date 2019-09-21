@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WoWExportTools.Loaders;
 using WoWFormatLib.FileReaders;
+using WoWFormatLib.Structs.M2;
 using OpenTK.Graphics.OpenGL;
 using OpenTK;
 
@@ -12,51 +10,37 @@ namespace WoWExportTools.Loaders
 {
     class M2Loader
     {
-        public static void LoadM2(string filename, CacheStorage cache, int shaderProgram)
+        private static uint DEFAULT_TEXTURE_ID = 528732; // dungeons/textures/testing/color_01.blp
+        private static uint MISSING_TEXTURE_ID = 186184; // textures/shanecube.blp
+
+        public static Renderer.Structs.DoodadBatch LoadM2(string fileName, int shaderProgram)
         {
-            filename = filename.ToLower().Replace(".mdx", ".m2");
-            filename = filename.ToLower().Replace(".mdl", ".m2");
+            fileName = fileName.ToLower().Replace(".mdx", ".m2");
+            fileName = fileName.ToLower().Replace(".mdl", ".m2");
 
-            if (cache.doodadBatches.ContainsKey(filename))
+            M2Model model = new M2Model();
+            if (Listfile.TryGetFileDataID(fileName, out var fileDataID))
             {
-                return;
-            }
-
-            var model = new WoWFormatLib.Structs.M2.M2Model();
-
-            if (cache.models.ContainsKey(filename))
-            {
-                model = cache.models[filename];
-            }
-            else
-            {
-                if (Listfile.TryGetFileDataID(filename, out var filedataid))
+                if (WoWFormatLib.Utils.CASC.FileExists(fileDataID))
                 {
-                    if (WoWFormatLib.Utils.CASC.FileExists(filedataid))
-                    {
-                        var modelreader = new M2Reader();
-                        modelreader.LoadM2(filedataid);
-                        cache.models.Add(filename, modelreader.model);
-                        model = modelreader.model;
-                    }
-                    else
-                    {
-                        throw new Exception("Model " + filename + " does not exist!");
-                    }
+                    var modelReader = new M2Reader();
+                    modelReader.LoadM2(fileDataID);
+                    model = modelReader.model;
                 }
                 else
                 {
-                    throw new Exception("Filename " + filename + " does not exist in listfile!");
+                    throw new Exception("Model " + fileName + " does not exist!");
                 }
+            }
+            else
+            {
+                throw new Exception("Filename " + fileName + " does not exist in listfile!");
             }
 
             if (model.boundingbox == null)
-            {
-                CASCLib.Logger.WriteLine("Error during loading file: {0}, bounding box is not defined", filename);
-                return;
-            }
+                throw new Exception("Model does not contain bounding box: " + fileName);
 
-            var ddBatch = new Renderer.Structs.DoodadBatch()
+            var doodadBatch = new Renderer.Structs.DoodadBatch()
             {
                 boundingBox = new Renderer.Structs.BoundingBox()
                 {
@@ -66,133 +50,94 @@ namespace WoWExportTools.Loaders
             };
 
             if (model.textures == null)
-            {
-                CASCLib.Logger.WriteLine("Error during loading file: {0}, model has no textures", filename);
-                return;
-            }
+                throw new Exception("Model does not contain textures: " + fileName);
 
             if (model.skins == null)
-            {
-                CASCLib.Logger.WriteLine("Error during loading file: {0}, model has no skins", filename);
-                return;
-            }
+                throw new Exception("Model does not contain skins: " + fileName);
 
             // Textures
-            ddBatch.mats = new Renderer.Structs.Material[model.textures.Count()];
-
+            doodadBatch.mats = new Renderer.Structs.Material[model.textures.Count()];
             for (var i = 0; i < model.textures.Count(); i++)
             {
-                uint textureFileDataID = 528732;
-                
-                ddBatch.mats[i].flags = model.textures[i].flags;
+                uint textureFileDataID = DEFAULT_TEXTURE_ID;
+                doodadBatch.mats[i].flags = model.textures[i].flags;
 
                 switch (model.textures[i].type)
                 {
-                    case 0:
-                        if(model.textureFileDataIDs != null && model.textureFileDataIDs.Length > 0 && model.textureFileDataIDs[i] != 0)
-                        {
+                    case 0: // NONE
+                        if (model.textureFileDataIDs != null && model.textureFileDataIDs.Length > 0 && model.textureFileDataIDs[i] != 0)
                             textureFileDataID = model.textureFileDataIDs[i];
-                        }
                         else
-                        {
                             textureFileDataID = WoWFormatLib.Utils.CASC.getFileDataIdByName(model.textures[i].filename);
-                        }
                         break;
-                    case 1:
-                    case 2:
-                    case 11:
-                    default:
-                        textureFileDataID = 528732;
+                    case 1: // TEX_COMPONENT_SKIN
+                    case 2: // TEX_COMPONENT_OBJECT_SKIN
+                    case 11: // TEX_COMPONENT_MONSTER_1
                         break;
                 }
 
                 // Not set in TXID
-                if(textureFileDataID == 0)
-                {
-                    textureFileDataID = 528732;
-                }
+                if (textureFileDataID == 0)
+                    textureFileDataID = DEFAULT_TEXTURE_ID;
 
                 if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
-                {
-                    textureFileDataID = 186184;
-                }
+                    textureFileDataID = MISSING_TEXTURE_ID;
 
-                ddBatch.mats[i].textureID = BLPLoader.LoadTexture(textureFileDataID, cache);
-                ddBatch.mats[i].filename = textureFileDataID.ToString();
+                doodadBatch.mats[i].textureID = BLPLoader.LoadTexture(textureFileDataID);
+                doodadBatch.mats[i].filename = textureFileDataID.ToString();
             }
 
             // Submeshes
-            ddBatch.submeshes = new Renderer.Structs.Submesh[model.skins[0].submeshes.Count()];
+            doodadBatch.submeshes = new Renderer.Structs.Submesh[model.skins[0].submeshes.Count()];
             for (var i = 0; i < model.skins[0].submeshes.Count(); i++)
             {
-                if (filename.StartsWith("character"))
-                {
-                    if (model.skins[0].submeshes[i].submeshID != 0)
-                    {
-                        if (!model.skins[0].submeshes[i].submeshID.ToString().EndsWith("01"))
-                        {
-                            continue;
-                        }
-                    }
-                }
-
-                ddBatch.submeshes[i].firstFace = model.skins[0].submeshes[i].startTriangle;
-                ddBatch.submeshes[i].numFaces = model.skins[0].submeshes[i].nTriangles;
+                doodadBatch.submeshes[i].firstFace = model.skins[0].submeshes[i].startTriangle;
+                doodadBatch.submeshes[i].numFaces = model.skins[0].submeshes[i].nTriangles;
                 for (var tu = 0; tu < model.skins[0].textureunit.Count(); tu++)
                 {
                     if (model.skins[0].textureunit[tu].submeshIndex == i)
                     {
-                        ddBatch.submeshes[i].blendType = model.renderflags[model.skins[0].textureunit[tu].renderFlags].blendingMode;
+                        doodadBatch.submeshes[i].blendType = model.renderflags[model.skins[0].textureunit[tu].renderFlags].blendingMode;
 
-                        uint textureFileDataID = 528732;
+                        uint textureFileDataID = DEFAULT_TEXTURE_ID;
                         if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
-                        {
-                            textureFileDataID = 186184;
-                        }
+                            textureFileDataID = MISSING_TEXTURE_ID;
+
                         if (model.textureFileDataIDs != null && model.textureFileDataIDs.Length > 0 && model.textureFileDataIDs[model.texlookup[model.skins[0].textureunit[tu].texture].textureID] != 0)
                         {
                             textureFileDataID = model.textureFileDataIDs[model.texlookup[model.skins[0].textureunit[tu].texture].textureID];
                         }
                         else
                         {
-                            if(Listfile.FilenameToFDID.TryGetValue(model.textures[model.texlookup[model.skins[0].textureunit[tu].texture].textureID].filename.Replace('\\', '/').ToLower(), out var filedataid))
+                            if (Listfile.FilenameToFDID.TryGetValue(model.textures[model.texlookup[model.skins[0].textureunit[tu].texture].textureID].filename.Replace('\\', '/').ToLower(), out var filedataid))
                             {
                                 textureFileDataID = filedataid;
                             }
                             else
                             {
-                                textureFileDataID = 528732;
+                                textureFileDataID = DEFAULT_TEXTURE_ID;
                                 if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
-                                {
-                                    textureFileDataID = 186184;
-                                }
+                                    textureFileDataID = MISSING_TEXTURE_ID;
                             }
                         }
 
                         if (!WoWFormatLib.Utils.CASC.FileExists(textureFileDataID))
-                        {
-                            textureFileDataID = 186184;
-                        }
+                            textureFileDataID = MISSING_TEXTURE_ID;
 
-                        if (!cache.materials.ContainsKey(textureFileDataID))
-                        {
-                            throw new Exception("MaterialCache does not have texture " + textureFileDataID);
-                        }
-
-                        ddBatch.submeshes[i].material = (uint)cache.materials[textureFileDataID];
+                        doodadBatch.submeshes[i].material = (uint)BLPLoader.LoadTexture(textureFileDataID);
                     }
                 }
             }
 
-            ddBatch.vao = GL.GenVertexArray();
-            GL.BindVertexArray(ddBatch.vao);
+            doodadBatch.vao = GL.GenVertexArray();
+            GL.BindVertexArray(doodadBatch.vao);
 
             // Vertices & indices
-            ddBatch.vertexBuffer = GL.GenBuffer();
-            ddBatch.indiceBuffer = GL.GenBuffer();
+            doodadBatch.vertexBuffer = GL.GenBuffer();
+            doodadBatch.indiceBuffer = GL.GenBuffer();
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, ddBatch.vertexBuffer);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ddBatch.indiceBuffer);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, doodadBatch.vertexBuffer);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, doodadBatch.indiceBuffer);
 
             var modelindicelist = new List<uint>();
             for (var i = 0; i < model.skins[0].triangles.Count(); i++)
@@ -204,10 +149,10 @@ namespace WoWExportTools.Loaders
 
             var modelindices = modelindicelist.ToArray();
 
-            ddBatch.indices = modelindices;
+            doodadBatch.indices = modelindices;
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ddBatch.indiceBuffer);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(ddBatch.indices.Length * sizeof(uint)), ddBatch.indices, BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, doodadBatch.indiceBuffer);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(doodadBatch.indices.Length * sizeof(uint)), doodadBatch.indices, BufferUsageHint.StaticDraw);
 
             var modelvertices = new Renderer.Structs.M2Vertex[model.vertices.Count()];
 
@@ -217,7 +162,7 @@ namespace WoWExportTools.Loaders
                 modelvertices[i].Normal = new Vector3(model.vertices[i].normal.X, model.vertices[i].normal.Y, model.vertices[i].normal.Z);
                 modelvertices[i].TexCoord = new Vector2(model.vertices[i].textureCoordX, model.vertices[i].textureCoordY);
             }
-            GL.BindBuffer(BufferTarget.ArrayBuffer, ddBatch.vertexBuffer);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, doodadBatch.vertexBuffer);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(modelvertices.Length * 8 * sizeof(float)), modelvertices, BufferUsageHint.StaticDraw);
 
             //Set pointers in buffer
@@ -232,7 +177,8 @@ namespace WoWExportTools.Loaders
             var posAttrib = GL.GetAttribLocation(shaderProgram, "position");
             GL.EnableVertexAttribArray(posAttrib);
             GL.VertexAttribPointer(posAttrib, 3, VertexAttribPointerType.Float, false, sizeof(float) * 8, sizeof(float) * 5);
-            cache.doodadBatches.Add(filename, ddBatch);
+
+            return doodadBatch;
         }
     }
 }

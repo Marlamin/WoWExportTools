@@ -7,12 +7,13 @@ using System.Configuration;
 using System.IO;
 using CASCLib;
 using static WoWExportTools.Structs;
+using static WoWExportTools.Renderer.Structs;
 
 namespace WoWExportTools.Renderer
 {
     class RenderMinimap
     {
-        public void Generate(MapTile mapTile, string outName, CacheStorage cache, int bakeShaderProgram, bool loadModels = false)
+        public void Generate(MapTile mapTile, string outName, int bakeShaderProgram, bool loadModels = false)
         {
             var TileSize = 1600.0f / 3.0f; //533.333
             var ChunkSize = TileSize / 16.0f; //33.333
@@ -23,57 +24,27 @@ namespace WoWExportTools.Renderer
             var splitFiles = false;
 
             ConfigurationManager.RefreshSection("appSettings");
-
-            var size = ConfigurationManager.AppSettings["bakeQuality"];
-
-            if(size == "minimap")
+            switch (ConfigurationManager.AppSettings["bakeQuality"])
             {
-                bakeSize = 256;
-            }else if (size == "low")
-            {
-                bakeSize = 4096;
-            }else if(size == "medium")
-            {
-                bakeSize = 8192;
-            }else if(size == "high")
-            {
-                bakeSize = 1024;
-                splitFiles = true;
+                case "minimap": bakeSize = 256; break;
+                case "low": bakeSize = 4096; break;
+                case "medium": bakeSize = 8192; break;
+                case "high":
+                    bakeSize = 1024;
+                    splitFiles = true;
+                    break;
             }
 
             if (!Directory.Exists(Path.GetDirectoryName(outName)))
-            {
                 Directory.CreateDirectory(Path.GetDirectoryName(outName));
-            }
 
-            // Force terrain cache to empty after having 1 ADT cached and run GC
-            if(cache.terrain.Count > 1)
-            {
-                // Make sure to delete lingering alpha textures from GPU
-                foreach(var adt in cache.terrain)
-                {
-                    foreach(var batch in adt.Value.renderBatches)
-                    {
-                        GL.DeleteTextures(batch.alphaMaterialID.Length, batch.alphaMaterialID);
-                    }
-                }
-
-                cache.terrain = new System.Collections.Generic.Dictionary<string, Structs.Terrain>();
-                GC.Collect();
-            }
-
-            if (!cache.terrain.ContainsKey(mapTile.wdtFileDataID + "_" + mapTile.tileX + "_" + mapTile.tileY))
-            {
-                ADTLoader.LoadADT(mapTile, cache, bakeShaderProgram, loadModels);
-            }
-
-            var cachedFile = cache.terrain[mapTile.wdtFileDataID + "_" + mapTile.tileX + "_" + mapTile.tileY];
+            Terrain terrain = ADTLoader.LoadADT(mapTile, bakeShaderProgram, loadModels);
             GL.ClearColor(Color.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.UseProgram(bakeShaderProgram);
 
             // Look up uniforms beforehand instead of during drawing
-            var firstPos = cachedFile.startPos.Position;
+            var firstPos = terrain.startPos.Position;
             var projectionMatrixLocation = GL.GetUniformLocation(bakeShaderProgram, "projection_matrix");
             var modelviewMatrixLocation = GL.GetUniformLocation(bakeShaderProgram, "modelview_matrix");
             var firstPosLocation = GL.GetUniformLocation(bakeShaderProgram, "firstPos");
@@ -101,9 +72,9 @@ namespace WoWExportTools.Renderer
 
             if (splitFiles)
             {
-                GL.BindVertexArray(cachedFile.vao);
+                GL.BindVertexArray(terrain.vao);
 
-                for (var i = 0; i < cachedFile.renderBatches.Length; i++)
+                for (var i = 0; i < terrain.renderBatches.Length; i++)
                 {
                     var x = i / 16;
                     var y = i % 16;
@@ -142,39 +113,36 @@ namespace WoWExportTools.Renderer
                     chunkPos.Y -= ChunkSize * y;
 
                     GL.Uniform3(firstPosLocation, ref chunkPos);
-
                     GL.Viewport(0,0, bakeSize, bakeSize);
+                    GL.Uniform4(heightScaleLoc, terrain.renderBatches[i].heightScales);
+                    GL.Uniform4(heightOffsetLoc, terrain.renderBatches[i].heightOffsets);
 
-                    GL.Uniform4(heightScaleLoc, cachedFile.renderBatches[i].heightScales);
-
-                    GL.Uniform4(heightOffsetLoc, cachedFile.renderBatches[i].heightOffsets);
-
-                    for (var j = 0; j < cachedFile.renderBatches[i].materialID.Length; j++)
+                    for (var j = 0; j < terrain.renderBatches[i].materialID.Length; j++)
                     {
                         GL.Uniform1(layerLocs[j], j);
-                        GL.Uniform1(scaleLocs[j], cachedFile.renderBatches[i].scales[j]);
+                        GL.Uniform1(scaleLocs[j], terrain.renderBatches[i].scales[j]);
 
                         GL.ActiveTexture(TextureUnit.Texture0 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, (int)cachedFile.renderBatches[i].materialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, (int)terrain.renderBatches[i].materialID[j]);
                     }
 
-                    for (var j = 1; j < cachedFile.renderBatches[i].alphaMaterialID.Length; j++)
+                    for (var j = 1; j < terrain.renderBatches[i].alphaMaterialID.Length; j++)
                     {
                         GL.Uniform1(blendLocs[j], 3 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture3 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].alphaMaterialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, terrain.renderBatches[i].alphaMaterialID[j]);
                     }
 
-                    for (var j = 0; j < cachedFile.renderBatches[i].heightMaterialIDs.Length; j++)
+                    for (var j = 0; j < terrain.renderBatches[i].heightMaterialIDs.Length; j++)
                     {
                         GL.Uniform1(heightLocs[j], 7 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture7 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].heightMaterialIDs[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, terrain.renderBatches[i].heightMaterialIDs[j]);
                     }
 
-                    GL.DrawElements(PrimitiveType.Triangles, (int)cachedFile.renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)cachedFile.renderBatches[i].firstFace * 4);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)terrain.renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)terrain.renderBatches[i].firstFace * 4);
 
                     for (var j = 0; j < 11; j++)
                     {
@@ -184,9 +152,7 @@ namespace WoWExportTools.Renderer
 
                     var error = GL.GetError().ToString();
                     if (error != "NoError")
-                    {
                         Logger.WriteLine("Drawing error: " + error);
-                    }
 
                     var bmp = new Bitmap(bakeSize, bakeSize, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                     var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
@@ -238,39 +204,39 @@ namespace WoWExportTools.Renderer
 
                 GL.Viewport(0, 0, bakeSize, bakeSize);
 
-                GL.BindVertexArray(cachedFile.vao);
+                GL.BindVertexArray(terrain.vao);
 
-                for (var i = 0; i < cachedFile.renderBatches.Length; i++)
+                for (var i = 0; i < terrain.renderBatches.Length; i++)
                 {
-                    GL.Uniform4(heightScaleLoc, cachedFile.renderBatches[i].heightScales);
-                    GL.Uniform4(heightOffsetLoc, cachedFile.renderBatches[i].heightOffsets);
+                    GL.Uniform4(heightScaleLoc, terrain.renderBatches[i].heightScales);
+                    GL.Uniform4(heightOffsetLoc, terrain.renderBatches[i].heightOffsets);
 
-                    for (var j = 0; j < cachedFile.renderBatches[i].materialID.Length; j++)
+                    for (var j = 0; j < terrain.renderBatches[i].materialID.Length; j++)
                     {
                         GL.Uniform1(layerLocs[j], j);
-                        GL.Uniform1(scaleLocs[j], cachedFile.renderBatches[i].scales[j]);
+                        GL.Uniform1(scaleLocs[j], terrain.renderBatches[i].scales[j]);
 
                         GL.ActiveTexture(TextureUnit.Texture0 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, (int)cachedFile.renderBatches[i].materialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, (int)terrain.renderBatches[i].materialID[j]);
                     }
 
-                    for (var j = 1; j < cachedFile.renderBatches[i].alphaMaterialID.Length; j++)
+                    for (var j = 1; j < terrain.renderBatches[i].alphaMaterialID.Length; j++)
                     {
                         GL.Uniform1(blendLocs[j], 3 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture3 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].alphaMaterialID[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, terrain.renderBatches[i].alphaMaterialID[j]);
                     }
 
-                    for (var j = 0; j < cachedFile.renderBatches[i].heightMaterialIDs.Length; j++)
+                    for (var j = 0; j < terrain.renderBatches[i].heightMaterialIDs.Length; j++)
                     {
                         GL.Uniform1(heightLocs[j], 7 + j);
 
                         GL.ActiveTexture(TextureUnit.Texture7 + j);
-                        GL.BindTexture(TextureTarget.Texture2D, cachedFile.renderBatches[i].heightMaterialIDs[j]);
+                        GL.BindTexture(TextureTarget.Texture2D, terrain.renderBatches[i].heightMaterialIDs[j]);
                     }
 
-                    GL.DrawElements(PrimitiveType.Triangles, (int)cachedFile.renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)cachedFile.renderBatches[i].firstFace * 4);
+                    GL.DrawElements(PrimitiveType.Triangles, (int)terrain.renderBatches[i].numFaces, DrawElementsType.UnsignedInt, (int)terrain.renderBatches[i].firstFace * 4);
 
                     for (var j = 0; j < 11; j++)
                     {
@@ -281,9 +247,7 @@ namespace WoWExportTools.Renderer
 
                 var error = GL.GetError().ToString();
                 if (error != "NoError")
-                {
                     Logger.WriteLine("Drawing error: " + error);
-                }
 
                 try
                 {

@@ -114,13 +114,18 @@
     </ApplicationDefinition>
     <Compile Include="DBC\CASCDBCProvider.cs" />
     <Compile Include="Loaders\ADTLoader.cs" />
-    <Compile Include="Renderer\CacheStorage.cs" />
+    <Compile Include="ModelControl.xaml.cs">
+      <DependentUpon>ModelControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Exporters\OBJ\ADTExporter.cs" />
     <Compile Include="Exporters\OBJ\M2Exporter.cs" />
     <Compile Include="Exporters\OBJ\WMOExporter.cs" />
     <Compile Include="Loaders\BLPLoader.cs" />
     <Compile Include="Loaders\M2Loader.cs" />
     <Compile Include="Loaders\WMOLoader.cs" />
+    <Compile Include="Objects\Container3D.cs" />
+    <Compile Include="Objects\M2Container.cs" />
+    <Compile Include="Objects\WMOContainer.cs" />
     <Compile Include="Renderer\NewCamera.cs" />
     <Compile Include="PreviewControl.cs" />
     <Compile Include="Renderer\RenderMinimap.cs" />
@@ -153,6 +158,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ModelControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Splash.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -180,6 +189,9 @@
     <Resource Include="Resources\loading.gif" />
     <Resource Include="Resources\wet-logo.png" />
     <Resource Include="Resources\checker.png" />
+    <Content Include="geosets.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Utils\Blender plugins\2.7\io_scene_adt\import_adtobj.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
