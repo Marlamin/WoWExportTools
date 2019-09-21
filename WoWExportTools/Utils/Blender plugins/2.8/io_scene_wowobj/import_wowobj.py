@@ -198,8 +198,18 @@ def importWoWOBJ(objectFile, givenParent = None):
             else:
                 importType = 'WMO'
 
+            if 'importedModelIDs' in bpy.context.scene:
+                tempModelIDList = bpy.context.scene['importedModelIDs']
+            else:
+                tempModelIDList = []
             for row in reader:
                 if importType == 'ADT':
+                    if row['ModelId'] in tempModelIDList:
+                        print('Skipping already imported model ' + row['ModelId'])
+                        continue;
+                    else:    
+                        tempModelIDList.append(row['ModelId'])
+                    
                     # ADT CSV
                     if row['Type'] == 'wmo':
                         print('ADT WMO import: ' + row['ModelFile'])
@@ -263,6 +273,7 @@ def importWoWOBJ(objectFile, givenParent = None):
                     importedFile.parent = givenParent
                     if row['ScaleFactor']:
                         importedFile.scale = (float(row['ScaleFactor']), float(row['ScaleFactor']), float(row['ScaleFactor']))
+            bpy.context.scene['importedModelIDs'] = tempModelIDList
     return obj
 
 
