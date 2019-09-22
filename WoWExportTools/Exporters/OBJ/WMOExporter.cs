@@ -118,19 +118,9 @@ namespace WoWExportTools.Exporters.OBJ
             {
                 // Create output directory
                 if (!string.IsNullOrEmpty(filename))
-                {
-                    if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(filename))))
-                    {
-                        Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(filename)));
-                    }
-                }
+                    Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(filename)));
                 else
-                {
-                    if (!Directory.Exists(outdir))
-                    {
-                        Directory.CreateDirectory(outdir);
-                    }
-                }
+                    Directory.CreateDirectory(outdir);
             }
 
 

@@ -53,10 +53,7 @@ namespace WoWExportTools.Exporters.OBJ
 
             Logger.WriteLine("ADT OBJ Exporter: Starting export of {0}..", file);
 
-            if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(file))))
-            {
-                Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(file)));
-            }
+            Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(file)));
 
             exportworker.ReportProgress(0, "Loading ADT " + file);
 

@@ -623,9 +623,7 @@ namespace WoWExportTools
 
                             if (!fdidExport)
                             {
-                                if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(selectedFile))))
-                                    Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
-
+                                Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
                                 bmp.Save(Path.Combine(outdir, Path.GetDirectoryName(selectedFile), Path.GetFileNameWithoutExtension(selectedFile)) + ".png");
                             }
                             else

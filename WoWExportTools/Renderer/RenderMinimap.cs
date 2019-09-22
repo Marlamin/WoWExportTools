@@ -35,8 +35,7 @@ namespace WoWExportTools.Renderer
                     break;
             }
 
-            if (!Directory.Exists(Path.GetDirectoryName(outName)))
-                Directory.CreateDirectory(Path.GetDirectoryName(outName));
+            Directory.CreateDirectory(Path.GetDirectoryName(outName));
 
             Terrain terrain = ADTLoader.LoadADT(mapTile, bakeShaderProgram, loadModels);
             GL.ClearColor(Color.Black);

@@ -100,8 +100,7 @@ namespace WoWExportTools.Exporters.OBJ
                 outDir = Path.Combine(outDir, Path.GetDirectoryName(fileName));
             }
 
-            if (!Directory.Exists(outDir))
-                Directory.CreateDirectory(outDir);
+            Directory.CreateDirectory(outDir);
 
             string filePath = Path.Combine(outDir, Path.GetFileName(fileName).Replace(".m2", ""));
             string objFilePath = filePath + ".obj";
