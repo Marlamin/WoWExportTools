@@ -404,7 +404,10 @@ namespace WoWExportTools.Exporters.OBJ
             }
 
             string mtlFile = fileName != null ? fileName.Replace(".wmo", ".mtl") : fileDataID + ".mtl";
-            File.WriteAllText(Path.Combine(outDir, destinationOverride ?? mtlFile), mtlsb.ToString());
+            if (destinationOverride != null)
+                mtlFile = Path.GetFileName(mtlFile);
+
+            File.WriteAllText(Path.Combine(destinationOverride ?? outDir, mtlFile), mtlsb.ToString());
 
             var rb = 0;
             for (var g = 0; g < wmo.group.Count(); g++)
