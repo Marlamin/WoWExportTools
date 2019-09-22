@@ -17,6 +17,7 @@ using System.Windows.Input;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
 using WoWExportTools.Objects;
+using WoWExportTools.Sound;
 
 namespace WoWExportTools
 {
@@ -40,6 +41,7 @@ namespace WoWExportTools
 
         private List<string> models;
         private List<string> textures;
+        private List<string> sounds;
 
         private Dictionary<int, MapListItem> mapNames = new Dictionary<int, MapListItem>();
         private Dictionary<uint, WDTReader> wdtCache = new Dictionary<uint, WoWFormatLib.FileReaders.WDTReader>();
@@ -55,6 +57,8 @@ namespace WoWExportTools
         public static bool shuttingDown = false;
 
         private ModelControl modelControlWindow;
+
+        private SoundPlayer soundPlayer;
 
         private System.Windows.Forms.OpenFileDialog dialogM2Open;
         private System.Windows.Forms.OpenFileDialog dialogBLPOpen;
@@ -80,6 +84,9 @@ namespace WoWExportTools
 
             if (shuttingDown)
                 return;
+
+            soundPlayer = new SoundPlayer();
+            soundPlayer.PlaybackStopped += SoundPlayer_PlaybackStopped;
 
             previewControl = new PreviewControl(renderCanvas);
             previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
@@ -176,12 +183,8 @@ namespace WoWExportTools
             if (TexturesTab.IsSelected)
             {
                 for (var i = 0; i < textures.Count(); i++)
-                {
                     if (textures[i].IndexOf(filterTextBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1)
-                    {
                         filtered.Add(textures[i]);
-                    }
-                }
 
                 textureListBox.DataContext = filtered;
             }
@@ -201,13 +204,9 @@ namespace WoWExportTools
                         if (Listfile.TryGetFileDataID("world/maps/" + filterSplit[0] + "/" + filterSplit[0] + "_" + filterSplit[1] + "_" + filterSplit[2] + ".adt", out var fileDataID))
                         {
                             if (CASC.FileExists(fileDataID))
-                            {
                                 exportButton.IsEnabled = true;
-                            }
                             else
-                            {
                                 exportButton.IsEnabled = false;
-                            }
                         }
                         else
                         {
@@ -221,14 +220,18 @@ namespace WoWExportTools
                 }
 
                 for (var i = 0; i < models.Count(); i++)
-                {
                     if (models[i].IndexOf(filterTextBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1)
-                    {
                         filtered.Add(models[i]);
-                    }
-                }
 
                 modelListBox.DataContext = filtered;
+            }
+            else if (SoundTab.IsSelected)
+            {
+                for (var i = 0; i < sounds.Count(); i++)
+                    if (sounds[i].IndexOf(filterTextBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1)
+                        filtered.Add(sounds[i]);
+
+                soundListBox.DataContext = filtered;
             }
         }
 
@@ -272,6 +275,7 @@ namespace WoWExportTools
 
             models = new List<string>();
             textures = new List<string>();
+            sounds = new List<string>();
 
             progressBar.Visibility = Visibility.Visible;
 
@@ -389,6 +393,7 @@ namespace WoWExportTools
 
             modelListBox.DataContext = models;
             textureListBox.DataContext = textures;
+            soundListBox.DataContext = sounds;
 
             Logger.WriteLine("Worker: Startup complete!");
 
@@ -478,6 +483,9 @@ namespace WoWExportTools
 
                 if (line.EndsWith("blp"))
                     textures.Add(line);
+
+                if (line.EndsWith(".ogg") || line.EndsWith(".mp3"))
+                    sounds.Add(line);
             }
 
             worker.ReportProgress(70, "Adding unknown files to file list..");
@@ -527,6 +535,7 @@ namespace WoWExportTools
 
             models.Sort();
             textures.Sort();
+            sounds.Sort();
         }
 
         private void Exportworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -538,12 +547,14 @@ namespace WoWExportTools
             m2CheckBox.IsEnabled = true;
             modelListBox.IsEnabled = true;
             exportCollision.IsEnabled = true;
+            exportSoundButton.IsEnabled = true;
 
             /* ADT specific UI */
             exportTileButton.IsEnabled = true;
             mapListBox.IsEnabled = true;
             tileListBox.IsEnabled = true;
         }
+
         private void Exportworker_DoWork(object sender, DoWorkEventArgs e)
         {
             var selectedFiles = (System.Collections.IList)e.Argument;
@@ -578,6 +589,9 @@ namespace WoWExportTools
                 Logger.WriteLine("ExportWorker: Exporting {0}..", selectedFile);
                 try
                 {
+                    ConfigurationManager.RefreshSection("appSettings");
+                    var outdir = ConfigurationManager.AppSettings["outdir"];
+
                     if (selectedFile.EndsWith(".wmo"))
                     {
                         Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker);
@@ -598,8 +612,6 @@ namespace WoWExportTools
                     }
                     else if (selectedFile.EndsWith(".blp"))
                     {
-                        ConfigurationManager.RefreshSection("appSettings");
-                        var outdir = ConfigurationManager.AppSettings["outdir"];
                         try
                         {
                             var blp = new BLPReader();
@@ -626,6 +638,23 @@ namespace WoWExportTools
                             Console.WriteLine(blpException.Message);
                         }
                     }
+                    else
+                    {
+                        // Default to just exporting raw files for everything else.
+                        string outPath = Path.Combine(outdir, selectedFile);
+                        if (!File.Exists(outPath))
+                        {
+                            string outDir = Path.Combine(outdir, Path.GetDirectoryName(selectedFile));
+                            Directory.CreateDirectory(outDir);
+
+                            using (Stream rs = CASC.OpenFile(fileDataID))
+                            using (FileStream fs = File.Create(outPath))
+                            {
+                                rs.Seek(0, SeekOrigin.Begin);
+                                rs.CopyTo(fs);
+                            }
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -639,7 +668,6 @@ namespace WoWExportTools
             UpdateFilter();
         }
 
-        /* Model tab */
         private void ModelListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Just use the first selected item in the case of multi-selections.
@@ -678,10 +706,10 @@ namespace WoWExportTools
 
             models = new List<string>();
             textures = new List<string>();
+            sounds = new List<string>();
             worker.RunWorkerAsync();
         }
 
-        /* Texture tab */
         private void TexturesTab_GotFocus(object sender, RoutedEventArgs e)
         {
             if (!texturesLoaded)
@@ -691,6 +719,7 @@ namespace WoWExportTools
                 UpdateFilter();
             }
         }
+
         private void TextureListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var file = (string)textureListBox.SelectedItem;
@@ -786,7 +815,6 @@ namespace WoWExportTools
             exportworker.RunWorkerAsync(textureListBox.SelectedItems);
         }
 
-        /* Map tab */
         private void ExportTileButton_Click(object sender, RoutedEventArgs e)
         {
             var selectedMap = (MapListItem)mapListBox.SelectedItem;
@@ -848,6 +876,7 @@ namespace WoWExportTools
 
             adtexportworker.RunWorkerAsync(tileList);
         }
+
         private void MapListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             tileListBox.Items.Clear();
@@ -874,6 +903,7 @@ namespace WoWExportTools
 
             e.Handled = true;
         }
+
         private void TileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (tileListBox.SelectedItem == null)
@@ -941,6 +971,7 @@ namespace WoWExportTools
 
             e.Handled = true;
         }
+
         private void MapCheckBox_Click(object sender, RoutedEventArgs e)
         {
             var source = (CheckBox)sender;
@@ -984,6 +1015,7 @@ namespace WoWExportTools
                 UpdateMapListView();
             }
         }
+
         private void MapViewerButton_Click(object sender, RoutedEventArgs e)
         {
             var tileList = new List<string>();
@@ -1003,6 +1035,7 @@ namespace WoWExportTools
 
             //previewControl.LoadModel(tileList);
         }
+
         private void TileViewerButton_Click(object sender, RoutedEventArgs e)
         {
             var selectedItem = (MapListItem)mapListBox.SelectedItem;
@@ -1024,10 +1057,12 @@ namespace WoWExportTools
                 }
             }
         }
+
         public static void SelectTile(string tile)
         {
             tileBox.SelectedValue = tile;
         }
+
         public class MapListItem
         {
             public uint ID { get; set; }
@@ -1039,11 +1074,11 @@ namespace WoWExportTools
             public int WDTFileDataID { get; set; }
         }
 
-        /* Menu */
         private void MenuMapNames_Click(object sender, RoutedEventArgs e)
         {
             UpdateMapList();
         }
+
         private void MenuPreferences_Click(object sender, RoutedEventArgs e)
         {
             var cfgWindow = new ConfigurationWindow(true);
@@ -1069,6 +1104,7 @@ namespace WoWExportTools
 
             models.Clear();
             textures.Clear();
+            sounds.Clear();
 
             worker.RunWorkerAsync();
         }
@@ -1369,6 +1405,51 @@ namespace WoWExportTools
 
             if (modelControlWindow != null)
                 modelControlWindow.Close();
+        }
+
+        private void PlaySelectedSound(object sender, EventArgs e)
+        {
+            if (soundPlayer.IsPlaying)
+            {
+                soundPlayer.Stop();
+                exportPlayButton.Content = "Play";
+            }
+            else
+            {
+                if (soundListBox.SelectedItem != null)
+                {
+                    string fileName = (string)soundListBox.SelectedItem;
+                    if (Listfile.TryGetFileDataID(fileName, out uint fileID))
+                    {
+                        if (fileName.EndsWith(".mp3"))
+                            soundPlayer.Play(fileID, SoundPlayer.FORMAT_MP3);
+                        else if (fileName.EndsWith(".ogg"))
+                            soundPlayer.Play(fileID, SoundPlayer.FORMAT_VORBIS);
+
+                        exportPlayButton.Content = "Stop";
+                    }
+                    else
+                    {
+                        throw new FileNotFoundException("Unable to locate sound file: " + fileName);
+                    }
+                }
+            }
+        }
+
+        private void SoundPlayer_PlaybackStopped(object sender, EventArgs e)
+        {
+            exportPlayButton.Content = "Play";
+        }
+
+        private void ExportSound_Click(object sender, RoutedEventArgs e)
+        {
+            progressBar.Value = 0;
+            progressBar.Visibility = Visibility.Visible;
+            loadingLabel.Content = "";
+            loadingLabel.Visibility = Visibility.Visible;
+            exportSoundButton.IsEnabled = false;
+
+            exportworker.RunWorkerAsync(soundListBox.SelectedItems);
         }
     }
 }
