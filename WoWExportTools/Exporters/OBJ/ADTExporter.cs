@@ -6,7 +6,6 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using WoWFormatLib.FileReaders;
-using DBCD;
 using DBCD.Providers;
 
 namespace WoWExportTools.Exporters.OBJ

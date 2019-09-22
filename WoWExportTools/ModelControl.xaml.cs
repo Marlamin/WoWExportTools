@@ -3,7 +3,6 @@ using System.Windows;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Controls;
 using WoWExportTools.Objects;
 
 namespace WoWExportTools
