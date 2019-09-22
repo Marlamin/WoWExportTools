@@ -15,7 +15,7 @@ namespace WoWExportTools.Exporters.OBJ
 {
     public class WMOExporter
     {
-        public static void ExportWMO(string file, BackgroundWorker exportworker = null, string destinationOverride = null, short doodadSetExportID = short.MaxValue)
+        public static void ExportWMO(string file, BackgroundWorker exportworker = null, string destinationOverride = null, short doodadSetExportID = short.MaxValue, bool[] enabledGroups = null, bool[] enabledSets = null)
         {
             if (!Listfile.TryGetFileDataID(file, out var filedataid))
             {
@@ -24,11 +24,11 @@ namespace WoWExportTools.Exporters.OBJ
             }
             else
             {
-                ExportWMO(filedataid, exportworker, destinationOverride, doodadSetExportID, file);
+                ExportWMO(filedataid, exportworker, destinationOverride, doodadSetExportID, file, enabledGroups, enabledSets);
             }
         }
 
-        public static void ExportWMO(uint fileDataID, BackgroundWorker exportworker = null, string destinationOverride = null, short doodadSetExportID = short.MaxValue, string fileName = "")
+        public static void ExportWMO(uint fileDataID, BackgroundWorker exportworker = null, string destinationOverride = null, short doodadSetExportID = short.MaxValue, string fileName = "", bool[] enabledGroups = null, bool[] enabledSets = null)
         {
             if (exportworker == null)
             {
@@ -59,6 +59,12 @@ namespace WoWExportTools.Exporters.OBJ
 
             for (var g = 0; g < wmo.group.Count(); g++)
             {
+                if (enabledGroups != null && !enabledGroups[g])
+                {
+                    Console.WriteLine("Skipping group " + g + " due to WMO control");
+                    continue;
+                }
+
                 Console.WriteLine("Loading group #" + g);
                 if (wmo.group[g].mogp.vertices == null)
                 {
@@ -124,6 +130,12 @@ namespace WoWExportTools.Exporters.OBJ
             {
                 for (var i = 0; i < wmo.doodadSets.Count(); i++)
                 {
+                    if (enabledSets != null && !enabledSets[i])
+                    {
+                        Console.WriteLine("Skipping doodadSet " + i + " due to WMO control");
+                        continue;
+                    }
+
                     var doodadSet = wmo.doodadSets[i];
                     var currentDoodadSetName = doodadSet.setName.Replace("Set_", "").Replace("SET_", "").Replace("$DefaultGlobal", "Default");
 

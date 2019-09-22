@@ -31,27 +31,29 @@ namespace WoWExportTools.Loaders
                 groupBatches = new Renderer.Structs.WorldModelGroupBatches[wmo.group.Count()]
             };
 
-            var groupNames = new string[wmo.group.Count()];
-
             for (var g = 0; g < wmo.group.Count(); g++)
             {
-                if (wmo.group[g].mogp.vertices == null) { continue; }
+                if (wmo.group[g].mogp.vertices == null)
+                    continue;
 
                 wmoBatch.groupBatches[g].vao = GL.GenVertexArray();
                 wmoBatch.groupBatches[g].vertexBuffer = GL.GenBuffer();
                 wmoBatch.groupBatches[g].indiceBuffer = GL.GenBuffer();
 
                 GL.BindVertexArray(wmoBatch.groupBatches[g].vao);
-
                 GL.BindBuffer(BufferTarget.ArrayBuffer, wmoBatch.groupBatches[g].vertexBuffer);
 
                 var wmovertices = new Renderer.Structs.M2Vertex[wmo.group[g].mogp.vertices.Count()];
 
+                string groupName = null;
                 for (var i = 0; i < wmo.groupNames.Count(); i++)
                     if (wmo.group[g].mogp.nameOffset == wmo.groupNames[i].offset)
-                        groupNames[g] = wmo.groupNames[i].name.Replace(" ", "_");
+                        groupName = wmo.groupNames[i].name.Replace(" ", "_");
 
-                if (groupNames[g] == "antiportal") { continue; }
+                if (groupName == "antiportal")
+                    continue;
+
+                wmoBatch.groupBatches[g].groupName = groupName;
 
                 for (var i = 0; i < wmo.group[g].mogp.vertices.Count(); i++)
                 {
@@ -127,19 +129,19 @@ namespace WoWExportTools.Loaders
                 }
             }
 
-            wmoBatch.doodads = new Renderer.Structs.WMODoodad[wmo.doodadDefinitions.Count()];
+            // Store all of the doodad set names for the WMO.
+            wmoBatch.doodadSets = new string[wmo.doodadSets.Length];
+            for (uint i = 0; i < wmo.doodadSets.Length; i++)
+                wmoBatch.doodadSets[i] = wmo.doodadSets[i].setName;
 
-            for(var i = 0; i < wmo.doodadDefinitions.Count(); i++)
+            wmoBatch.doodads = new Renderer.Structs.WMODoodad[wmo.doodadDefinitions.Count()];
+            for (var i = 0; i < wmo.doodadDefinitions.Count(); i++)
             {
-                if(wmo.doodadNames != null)
+                if (wmo.doodadNames != null)
                 {
                     for (var j = 0; j < wmo.doodadNames.Count(); j++)
-                    {
                         if (wmo.doodadDefinitions[i].offset == wmo.doodadNames[j].startOffset)
-                        {
                             wmoBatch.doodads[i].filename = wmo.doodadNames[j].filename;
-                        }
-                    }
                 }
                 else
                 {
@@ -151,6 +153,18 @@ namespace WoWExportTools.Loaders
                 wmoBatch.doodads[i].rotation = new Quaternion(wmo.doodadDefinitions[i].rotation.X, wmo.doodadDefinitions[i].rotation.Y, wmo.doodadDefinitions[i].rotation.Z, wmo.doodadDefinitions[i].rotation.W);
                 wmoBatch.doodads[i].scale = wmo.doodadDefinitions[i].scale;
                 wmoBatch.doodads[i].color = new Vector4(wmo.doodadDefinitions[i].color[0], wmo.doodadDefinitions[i].color[1], wmo.doodadDefinitions[i].color[2], wmo.doodadDefinitions[i].color[3]);
+                wmoBatch.doodads[i].doodadSet = 0; // Default to 0.
+
+                // Search all the doodadSets to see which one this doodad falls into.
+                for (uint j = 0; j < wmo.doodadSets.Length; j++)
+                {
+                    var doodadSet = wmo.doodadSets[j];
+                    if (i >= doodadSet.firstInstanceIndex && i < doodadSet.firstInstanceIndex + doodadSet.numDoodads)
+                    {
+                        wmoBatch.doodads[i].doodadSet = j;
+                        break; // Assumingly, a doodad cannot be in more than one doodadSet.
+                    }
+                }
             }
 
             var numRenderbatches = 0;

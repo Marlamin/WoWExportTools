@@ -121,9 +121,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ControlWindows\ControlOption.cs" />
     <Compile Include="DBC\CASCDBCProvider.cs" />
     <Compile Include="Loaders\ADTLoader.cs" />
-    <Compile Include="ModelControl.xaml.cs">
+    <Compile Include="ControlWindows\ModelControl.xaml.cs">
       <DependentUpon>ModelControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Exporters\OBJ\ADTExporter.cs" />
@@ -149,6 +150,9 @@
     <Compile Include="VersionWindow.xaml.cs">
       <DependentUpon>VersionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ControlWindows\WMOControl.xaml.cs">
+      <DependentUpon>WMOControl.xaml</DependentUpon>
+    </Compile>
     <Page Include="ConfigurationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -168,7 +172,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="ModelControl.xaml">
+    <Page Include="ControlWindows\ModelControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -177,6 +181,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="VersionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ControlWindows\WMOControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

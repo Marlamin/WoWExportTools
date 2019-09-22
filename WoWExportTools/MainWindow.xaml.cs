@@ -57,6 +57,7 @@ namespace WoWExportTools
         public static bool shuttingDown = false;
 
         private ModelControl modelControlWindow;
+        private WMOControl wmoControlWindow;
 
         private SoundPlayer soundPlayer;
 
@@ -91,6 +92,7 @@ namespace WoWExportTools
             previewControl = new PreviewControl(renderCanvas);
             previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
             modelControlWindow = new ModelControl(previewControl);
+            wmoControlWindow = new WMOControl(previewControl);
 
             CompositionTarget.Rendering += previewControl.CompositionTarget_Rendering;
             wfHost.Initialized += previewControl.WindowsFormsHost_Initialized;
@@ -693,7 +695,35 @@ namespace WoWExportTools
                 // we have geoset data and the likes available.
                 previewControl.LoadModel(selectedFile);
 
-                modelControlWindow.UpdateModelControl();
+                // Update the relative control depending on what model we're showing.
+                // If we have a different type of control window open, swap to a relevant one.
+                bool controlActive = modelControlWindow.IsVisible || wmoControlWindow.IsVisible;
+                if (previewControl.activeObject is M2Container)
+                {
+                    modelControlWindow.UpdateModelControl();
+                    
+                    if (controlActive)
+                    {
+                        modelControlWindow.Show();
+                        modelControlWindow.Focus();
+                        wmoControlWindow.Hide();
+                    }
+                }
+                else if (previewControl.activeObject is WMOContainer)
+                {
+                    wmoControlWindow.UpdateWMOControl();
+
+                    if (controlActive)
+                    {
+                        wmoControlWindow.Show();
+                        wmoControlWindow.Focus();
+                        modelControlWindow.Hide();
+                    }
+                }
+            }
+            else
+            {
+                modelControlButton.IsEnabled = false;
             }
 
             e.Handled = true;
@@ -1413,8 +1443,17 @@ namespace WoWExportTools
 
         private void ShowModelControlButton_Click(object sender, RoutedEventArgs e)
         {
-            modelControlWindow.Show();
-            modelControlWindow.Focus();
+            Container3D activeObject = previewControl.activeObject;
+            if (activeObject is M2Container)
+            {
+                modelControlWindow.Show();
+                modelControlWindow.Focus();
+            }
+            else if (activeObject is WMOContainer)
+            {
+                wmoControlWindow.Show();
+                wmoControlWindow.Focus();
+            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -1423,6 +1462,9 @@ namespace WoWExportTools
 
             if (modelControlWindow != null)
                 modelControlWindow.Close();
+
+            if (wmoControlWindow != null)
+                wmoControlWindow.Close();
         }
 
         private void PlaySelectedSound(object sender, EventArgs e)
