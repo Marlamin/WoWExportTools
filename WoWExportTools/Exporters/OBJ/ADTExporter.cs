@@ -323,29 +323,27 @@ namespace WoWExportTools.Exporters.OBJ
                             }
                         }
 
+                        short doodadSet = -1;
+                        if (ConfigurationManager.AppSettings["exportWMODoodads"] == "True")
+                            doodadSet = (short)wmo.doodadSet;
+
                         if (string.IsNullOrEmpty(filename))
                         {
-                            if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj")))
-                            {
-                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), (short)wmo.doodadSet);
-                            }
+                            string wmoFile = Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj");
+                            if (!File.Exists(wmoFile))
+                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), doodadSet);
 
-                            if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj")))
-                            {
+                            if (File.Exists(wmoFile))
                                 doodadSW.WriteLine(filedataid + ".obj;" + wmo.position.X + ";" + wmo.position.Y + ";" + wmo.position.Z + ";" + wmo.rotation.X + ";" + wmo.rotation.Y + ";" + wmo.rotation.Z + ";" + wmo.scale / 1024f + ";" + wmo.uniqueId + ";wmo");
-                            }
                         }
                         else
                         {
-                            if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
-                            {
-                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), (short)wmo.doodadSet, filename);
-                            }
+                            string wmoFile = Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj");
+                            if (!File.Exists(wmoFile))
+                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), doodadSet, filename);
 
                             if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
-                            {
                                 doodadSW.WriteLine(Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj;" + wmo.position.X + ";" + wmo.position.Y + ";" + wmo.position.Z + ";" + wmo.rotation.X + ";" + wmo.rotation.Y + ";" + wmo.rotation.Z + ";" + wmo.scale / 1024f + ";" + wmo.uniqueId + ";wmo");
-                            }
                         }
                     }
                 }
