@@ -434,8 +434,8 @@ namespace WoWExportTools.Exporters.OBJ
             exportworker.ReportProgress(95, "Writing WMO files..");
 
             string objFile = fileName != null ? fileName.Replace(".wmo", ".obj") : fileDataID + ".obj";
-            if(destinationOverride != null)
-                objFile = Path.GetFileName(objFile)
+            if (destinationOverride != null)
+                objFile = Path.GetFileName(objFile);
 
             string fileID = fileName ?? fileDataID.ToString();
             StreamWriter objWriter = new StreamWriter(Path.Combine(destinationOverride ?? outDir, objFile));
