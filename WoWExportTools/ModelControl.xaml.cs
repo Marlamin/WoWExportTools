@@ -77,6 +77,8 @@ namespace WoWExportTools
         public Dictionary<uint, string> GeosetNameMap = null;
         public ObservableCollection<ModelGeoset> activeModelGeosets;
 
+        private bool loadedGeosetMapping = false;
+
         private PreviewControl previewControl;
 
         public ModelControl(PreviewControl previewControl)
@@ -122,6 +124,11 @@ namespace WoWExportTools
 
         public void LoadGeosetMapping()
         {
+            if (loadedGeosetMapping)
+                return;
+
+            loadedGeosetMapping = true;
+
             if (!File.Exists(MAPPING_FILE))
                 return;
 
