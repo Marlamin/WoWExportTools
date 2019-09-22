@@ -58,7 +58,7 @@ namespace WoWExportTools
 
         private ModelControl modelControlWindow;
 
-        private SoundPlayer soundPlayer = new SoundPlayer();
+        private SoundPlayer soundPlayer;
 
         private System.Windows.Forms.OpenFileDialog dialogM2Open;
         private System.Windows.Forms.OpenFileDialog dialogBLPOpen;
@@ -84,6 +84,9 @@ namespace WoWExportTools
 
             if (shuttingDown)
                 return;
+
+            soundPlayer = new SoundPlayer();
+            soundPlayer.PlaybackStopped += SoundPlayer_PlaybackStopped;
 
             previewControl = new PreviewControl(renderCanvas);
             previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
@@ -1388,21 +1391,36 @@ namespace WoWExportTools
 
         private void PlaySelectedSound(object sender, EventArgs e)
         {
-            if (soundListBox.SelectedItem != null)
+            if (soundPlayer.IsPlaying)
             {
-                string fileName = (string)soundListBox.SelectedItem;
-                if (Listfile.TryGetFileDataID(fileName, out uint fileID))
+                soundPlayer.Stop();
+                exportPlayButton.Content = "Play";
+            }
+            else
+            {
+                if (soundListBox.SelectedItem != null)
                 {
-                    if (fileName.EndsWith(".mp3"))
-                        soundPlayer.Play(fileID, SoundPlayer.FORMAT_MP3);
-                    else if (fileName.EndsWith(".ogg"))
-                        soundPlayer.Play(fileID, SoundPlayer.FORMAT_VORBIS);
-                }
-                else
-                {
-                    throw new FileNotFoundException("Unable to locate sound file: " + fileName);
+                    string fileName = (string)soundListBox.SelectedItem;
+                    if (Listfile.TryGetFileDataID(fileName, out uint fileID))
+                    {
+                        if (fileName.EndsWith(".mp3"))
+                            soundPlayer.Play(fileID, SoundPlayer.FORMAT_MP3);
+                        else if (fileName.EndsWith(".ogg"))
+                            soundPlayer.Play(fileID, SoundPlayer.FORMAT_VORBIS);
+
+                        exportPlayButton.Content = "Stop";
+                    }
+                    else
+                    {
+                        throw new FileNotFoundException("Unable to locate sound file: " + fileName);
+                    }
                 }
             }
+        }
+
+        private void SoundPlayer_PlaybackStopped(object sender, EventArgs e)
+        {
+            exportPlayButton.Content = "Play";
         }
 
         private void ExportSound_Click(object sender, RoutedEventArgs e)

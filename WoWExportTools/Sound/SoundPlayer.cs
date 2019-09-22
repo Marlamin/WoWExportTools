@@ -17,8 +17,19 @@ namespace WoWExportTools.Sound
         public static uint FORMAT_MP3 = 0x1;
         public static uint FORMAT_VORBIS = 0x2;
 
+        public event EventHandler PlaybackStopped;
+
         private WaveOut outputDevice;
         private Sound activeSound;
+
+        public bool IsPlaying
+        {
+            get
+            {
+                // We don't currently utilize pausing, so assume anything other than 'stopped' is playing.
+                return outputDevice != null && outputDevice.PlaybackState != PlaybackState.Stopped;
+            }
+        }
 
         public void Play(uint fileID, uint format)
         {
@@ -51,6 +62,7 @@ namespace WoWExportTools.Sound
         private void OutputDevice_PlaybackStopped(object sender, StoppedEventArgs e)
         {
             Stop();
+            PlaybackStopped(this, EventArgs.Empty);
         }
 
         public void Stop()
@@ -58,7 +70,10 @@ namespace WoWExportTools.Sound
             if (outputDevice != null)
             {
                 if (outputDevice.PlaybackState != PlaybackState.Stopped)
+                {
                     outputDevice.Stop();
+                    PlaybackStopped(this, EventArgs.Empty);
+                }
 
                 activeSound.fs.Dispose();
                 activeSound.ws.Dispose();
