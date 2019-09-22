@@ -121,6 +121,7 @@ namespace WoWExportTools
             exportM2.IsChecked = ConfigurationManager.AppSettings["exportM2"] == "True";
             exportFoliage.IsChecked = ConfigurationManager.AppSettings["exportFoliage"] == "True";
             exportCollision.IsChecked = ConfigurationManager.AppSettings["exportCollision"] == "True";
+            exportWMODoodads.IsChecked = ConfigurationManager.AppSettings["exportWMODoodads"] == "True";
 
             // Set-up conversion dialogs.
             dialogM2Open = new System.Windows.Forms.OpenFileDialog()
@@ -260,6 +261,7 @@ namespace WoWExportTools
                 exportButton.IsEnabled = false;
                 modelListBox.IsEnabled = false;
                 exportCollision.IsEnabled = false;
+                exportWMODoodads.IsEnabled = false;
 
                 exportworker.RunWorkerAsync(modelListBox.SelectedItems);
             }
@@ -381,6 +383,7 @@ namespace WoWExportTools
             wmoCheckBox.Visibility = Visibility.Visible;
             m2CheckBox.Visibility = Visibility.Visible;
             exportCollision.Visibility = Visibility.Visible;
+            exportWMODoodads.Visibility = Visibility.Visible;
 
             splash.Visibility = Visibility.Hidden;
             Visibility = Visibility.Collapsed;
@@ -548,6 +551,7 @@ namespace WoWExportTools
             modelListBox.IsEnabled = true;
             exportCollision.IsEnabled = true;
             exportSoundButton.IsEnabled = true;
+            exportWMODoodads.IsEnabled = true;
 
             /* ADT specific UI */
             exportTileButton.IsEnabled = true;
@@ -594,7 +598,14 @@ namespace WoWExportTools
 
                     if (selectedFile.EndsWith(".wmo"))
                     {
-                        Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker);
+                        short doodadGroups = -1;
+                        if (ConfigurationManager.AppSettings["exportWMODoodads"] == "True")
+                        {
+                            // ToDo: Apply additional filtering of doodad groups here.
+                            doodadGroups = short.MaxValue;
+                        }
+
+                        Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker, null, doodadGroups);
                     }
                     else if (selectedFile.EndsWith(".m2"))
                     {
@@ -701,6 +712,7 @@ namespace WoWExportTools
             wmoCheckBox.Visibility = Visibility.Hidden;
             m2CheckBox.Visibility = Visibility.Hidden;
             exportCollision.Visibility = Visibility.Hidden;
+            exportWMODoodads.Visibility = Visibility.Hidden;
 
             models = new List<string>();
             textures = new List<string>();
@@ -1297,6 +1309,11 @@ namespace WoWExportTools
         private void CollisionCheckbox_Checked(object sender, RoutedEventArgs e)
         {
             SetConfigValue("exportCollision", exportCollision.IsChecked.ToString());
+        }
+
+        private void ExportWMODoodadsCheckbox_Checked(object sender, RoutedEventArgs e)
+        {
+            SetConfigValue("exportWMODoodads", exportWMODoodads.IsChecked.ToString());
         }
 
         private void ExportWMO_Click(object sender, RoutedEventArgs e)
