@@ -143,7 +143,7 @@
                     <Button Grid.Row="2" x:Name="exportTileButton" Content="Export maptile" HorizontalAlignment="Stretch" Margin="10,0,10,10" VerticalAlignment="Bottom" HorizontalContentAlignment="Center" Click="ExportTileButton_Click"/>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="SoundTab" Header="Sound">
+            <TabItem x:Name="SoundTab" Header="Sounds">
                 <Grid>
                     <ListBox x:Name="soundListBox" SelectionMode="Extended" MouseDoubleClick="PlaySelectedSound" HorizontalAlignment="Stretch" Margin="10,30,10,40" VerticalAlignment="Stretch" ItemsSource="{Binding}" KeyDown="ListBoxKeyDown"></ListBox>
                     <Button x:Name="exportSoundButton" Height="25" Content="Export" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="ExportSound_Click" Width="71"/>
