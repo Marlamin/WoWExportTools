@@ -498,17 +498,20 @@ namespace WoWExportTools
                 var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new DBCD.Providers.GithubDBDProvider());
 
                 // M2s
-                var storage = dbcd.Load("ModelFileData");
-
-                if (!storage.AvailableColumns.Contains("FileDataID"))
-                    throw new Exception("Unable to find FileDataID column in ModelFileData! Likely using a version without up to date definition.");
-
-                foreach (dynamic entry in storage.Values)
+                if (showM2)
                 {
-                    uint fileDataID = (uint)entry.FileDataID;
-                    if (!Listfile.FDIDToFilename.ContainsKey(fileDataID))
+                    var storage = dbcd.Load("ModelFileData");
+
+                    if (!storage.AvailableColumns.Contains("FileDataID"))
+                        throw new Exception("Unable to find FileDataID column in ModelFileData! Likely using a version without up to date definition.");
+
+                    foreach (dynamic entry in storage.Values)
                     {
-                        models.Add("unknown_" + fileDataID + ".m2");
+                        uint fileDataID = (uint)entry.FileDataID;
+                        if (!Listfile.FDIDToFilename.ContainsKey(fileDataID))
+                        {
+                            models.Add("unknown_" + fileDataID + ".m2");
+                        }
                     }
                 }
 
