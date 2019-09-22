@@ -12,6 +12,7 @@ from datetime import datetime
 def importWoWOBJ(objectFile, givenParent = None):
     baseDir, fileName = os.path.split(objectFile)
 
+    print('Parsing OBJ: ' + fileName)
     ### OBJ wide
     material_libs = set()
     mtlfile = ""
@@ -215,7 +216,7 @@ def importWoWOBJ(objectFile, givenParent = None):
                         print('ADT WMO import: ' + row['ModelFile'])
 
                         # Make WMO parent that holds WMO and doodads
-                        parent = bpy.data.objects.new(row['ModelFile'], None)
+                        parent = bpy.data.objects.new(row['ModelFile'] + " parent", None)
                         parent.parent = wmoparent
                         parent.location = (17066 - float(row['PositionX']), (17066 - float(row['PositionZ'])) * -1, float(row['PositionY']))
                         parent.rotation_euler = [0, 0, 0]
@@ -225,8 +226,20 @@ def importWoWOBJ(objectFile, givenParent = None):
                         if row['ScaleFactor']:
                             parent.scale = (float(row['ScaleFactor']), float(row['ScaleFactor']), float(row['ScaleFactor']))
                         bpy.context.scene.collection.objects.link(parent)
+                        
+                        ## Only import OBJ if model is not yet in scene, otherwise copy existing
+                        if row['ModelFile'] not in bpy.data.objects:
+                            importedFile = importWoWOBJ(os.path.join(baseDir, row['ModelFile']), parent)
+                        else:
+                            ## Don't copy WMOs with doodads!
+                            if os.path.exists(os.path.join(baseDir, row['ModelFile'].replace('.obj', '_ModelPlacementInformation.csv'))):
+                                importedFile = importWoWOBJ(os.path.join(baseDir, row['ModelFile']), parent)
+                            else:
+                                originalObject = bpy.data.objects[row['ModelFile']]
+                                importedFile = originalObject.copy()
+                                importedFile.data = originalObject.data.copy()
+                                bpy.context.scene.collection.objects.link(importedFile)
 
-                        importedFile = importWoWOBJ(os.path.join(baseDir, row['ModelFile']), parent)
                         importedFile.parent = parent
                     elif row['Type'] == 'm2':
                         print('ADT M2 import: ' + row['ModelFile'])
@@ -234,7 +247,6 @@ def importWoWOBJ(objectFile, givenParent = None):
                         ## Only import OBJ if model is not yet in scene, otherwise copy existing
                         if row['ModelFile'] not in bpy.data.objects:
                             importedFile = importWoWOBJ(os.path.join(baseDir, row['ModelFile']))
-                            print(importedFile.rotation_euler)
                         else:
                             originalObject = bpy.data.objects[row['ModelFile']]
                             importedFile = originalObject.copy()
