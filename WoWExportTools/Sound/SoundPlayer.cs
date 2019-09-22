@@ -51,6 +51,7 @@ namespace WoWExportTools.Sound
                 Console.WriteLine(e.Message);
 
                 fs.Dispose();
+                PlaybackStopped(this, EventArgs.Empty);
 
                 return;
             }
