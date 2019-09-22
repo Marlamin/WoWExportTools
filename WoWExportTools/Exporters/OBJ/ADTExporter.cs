@@ -372,7 +372,7 @@ namespace WoWExportTools.Exporters.OBJ
                         }
                         else
                         {
-                            filename = reader.adtfile.objects.m2Names.filenames[doodad.mmidEntry];
+                            filename = reader.adtfile.objects.m2Names.filenames[doodad.mmidEntry].ToLower();
                             if (!Listfile.TryGetFileDataID(filename, out filedataid))
                             {
                                 Logger.WriteLine("Error! Could not find filedataid for " + filename + "!");
@@ -380,14 +380,14 @@ namespace WoWExportTools.Exporters.OBJ
                             }
                         }
 
-                        if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
+                        if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename) + ".obj")))
                         {
                             M2Exporter.ExportM2(filedataid, null, Path.Combine(outdir, Path.GetDirectoryName(file)), filename);
                         }
 
-                        if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
+                        if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename) + ".obj")))
                         {
-                            doodadSW.WriteLine(Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj;" + doodad.position.X + ";" + doodad.position.Y + ";" + doodad.position.Z + ";" + doodad.rotation.X + ";" + doodad.rotation.Y + ";" + doodad.rotation.Z + ";" + doodad.scale / 1024f + ";" + doodad.uniqueId + ";m2");
+                            doodadSW.WriteLine(Path.GetFileNameWithoutExtension(filename) + ".obj;" + doodad.position.X + ";" + doodad.position.Y + ";" + doodad.position.Z + ";" + doodad.rotation.X + ";" + doodad.rotation.Y + ";" + doodad.rotation.Z + ";" + doodad.scale / 1024f + ";" + doodad.uniqueId + ";m2");
                         }
                     }
                 }
