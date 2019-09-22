@@ -601,21 +601,31 @@ namespace WoWExportTools
                     ConfigurationManager.RefreshSection("appSettings");
                     var outdir = ConfigurationManager.AppSettings["outdir"];
 
+                    Container3D activeObject = previewControl.activeObject;
+
                     if (selectedFile.EndsWith(".wmo"))
                     {
                         short doodadGroups = -1;
                         if (ConfigurationManager.AppSettings["exportWMODoodads"] == "True")
-                        {
-                            // ToDo: Apply additional filtering of doodad groups here.
                             doodadGroups = short.MaxValue;
+
+                        bool[] enabledSets = null;
+                        bool[] enabledGroups = null;
+
+                        if (activeObject is WMOContainer wmoObject)
+                        {
+                            if (wmoObject.FileName == selectedFile)
+                            {
+                                enabledSets = wmoObject.EnabledDoodadSets;
+                                enabledGroups = wmoObject.EnabledGroups;
+                            }
                         }
 
-                        Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker, null, doodadGroups);
+                        Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker, null, doodadGroups, enabledGroups, enabledSets);
                     }
                     else if (selectedFile.EndsWith(".m2"))
                     {
                         bool[] enabledGeosets = null;
-                        Container3D activeObject = previewControl.activeObject;
                         
                         if (activeObject is M2Container m2Object)
                             if (m2Object.FileName == selectedFile)
