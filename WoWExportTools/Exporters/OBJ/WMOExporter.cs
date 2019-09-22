@@ -40,6 +40,8 @@ namespace WoWExportTools.Exporters.OBJ
                 if (!Listfile.TryGetFilename(fileDataID, out fileName))
                     CASCLib.Logger.WriteLine("Warning! Could not find filename for " + fileDataID + "!");
 
+            fileName = fileName.ToLower();
+
             Console.WriteLine("Loading WMO file..");
             exportworker.ReportProgress(5, "Reading WMO..");
 
@@ -172,9 +174,11 @@ namespace WoWExportTools.Exporters.OBJ
                         if (!doodadNotFound)
                         {
                             string objFileName = Path.GetFileNameWithoutExtension(doodadFileName ?? doodadFileDataID.ToString()) + ".obj";
-                            string objName = Path.Combine(destinationOverride ?? outDir, Path.GetDirectoryName(fileName), objFileName);
+                            string objPath = Path.Combine(destinationOverride ?? outDir, destinationOverride != null ? "" : Path.GetDirectoryName(fileName));
+                            string objName = Path.Combine(objPath, objFileName);
+
                             if (!File.Exists(objName))
-                                M2Exporter.ExportM2(doodadFileDataID, null, Path.Combine(destinationOverride ?? outDir, Path.GetDirectoryName(fileName)), doodadFileName);
+                                M2Exporter.ExportM2(doodadFileDataID, null, objPath, doodadFileName);
 
                             if (File.Exists(objName))
                                 doodadList.Add(objFileName + ";" + doodadDefinition.position.X.ToString("F09") + ";" + doodadDefinition.position.Y.ToString("F09") + ";" + doodadDefinition.position.Z.ToString("F09") + ";" + doodadDefinition.rotation.W.ToString("F15") + ";" + doodadDefinition.rotation.X.ToString("F15") + ";" + doodadDefinition.rotation.Y.ToString("F15") + ";" + doodadDefinition.rotation.Z.ToString("F15") + ";" + doodadDefinition.scale + ";" + currentDoodadSetName);
@@ -210,7 +214,7 @@ namespace WoWExportTools.Exporters.OBJ
                 if (wmo.textures == null)
                 {
                     if (Listfile.TryGetFilename(wmo.materials[i].texture1, out var textureFilename))
-                        materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
+                        materials[i].filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "").ToLower();
                     else
                         materials[i].filename = wmo.materials[i].texture1.ToString();
 
@@ -222,7 +226,7 @@ namespace WoWExportTools.Exporters.OBJ
                     {
                         if (wmo.textures[ti].startOffset == wmo.materials[i].texture1)
                         {
-                            materials[i].filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
+                            materials[i].filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "").ToLower();
                             blpReader.LoadBLP(wmo.textures[ti].filename);
                         }
                     }
