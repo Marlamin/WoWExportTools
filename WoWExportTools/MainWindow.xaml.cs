@@ -547,6 +547,7 @@ namespace WoWExportTools
             m2CheckBox.IsEnabled = true;
             modelListBox.IsEnabled = true;
             exportCollision.IsEnabled = true;
+            exportSoundButton.IsEnabled = true;
 
             /* ADT specific UI */
             exportTileButton.IsEnabled = true;
@@ -588,6 +589,9 @@ namespace WoWExportTools
                 Logger.WriteLine("ExportWorker: Exporting {0}..", selectedFile);
                 try
                 {
+                    ConfigurationManager.RefreshSection("appSettings");
+                    var outdir = ConfigurationManager.AppSettings["outdir"];
+
                     if (selectedFile.EndsWith(".wmo"))
                     {
                         Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker);
@@ -608,9 +612,6 @@ namespace WoWExportTools
                     }
                     else if (selectedFile.EndsWith(".blp"))
                     {
-                        ConfigurationManager.RefreshSection("appSettings");
-                        var outdir = ConfigurationManager.AppSettings["outdir"];
-
                         try
                         {
                             var blp = new BLPReader();
@@ -635,6 +636,23 @@ namespace WoWExportTools
                         catch (Exception blpException)
                         {
                             Console.WriteLine(blpException.Message);
+                        }
+                    }
+                    else
+                    {
+                        // Default to just exporting raw files for everything else.
+                        string outPath = Path.Combine(outdir, selectedFile);
+                        if (!File.Exists(outPath))
+                        {
+                            string outDir = Path.Combine(outdir, Path.GetDirectoryName(selectedFile));
+                            Directory.CreateDirectory(outDir);
+
+                            using (Stream rs = CASC.OpenFile(fileDataID))
+                            using (FileStream fs = File.Create(outPath))
+                            {
+                                rs.Seek(0, SeekOrigin.Begin);
+                                rs.CopyTo(fs);
+                            }
                         }
                     }
                 }
@@ -1425,7 +1443,13 @@ namespace WoWExportTools
 
         private void ExportSound_Click(object sender, RoutedEventArgs e)
         {
-            // ToDo: Implement.
+            progressBar.Value = 0;
+            progressBar.Visibility = Visibility.Visible;
+            loadingLabel.Content = "";
+            loadingLabel.Visibility = Visibility.Visible;
+            exportSoundButton.IsEnabled = false;
+
+            exportworker.RunWorkerAsync(soundListBox.SelectedItems);
         }
     }
 }
