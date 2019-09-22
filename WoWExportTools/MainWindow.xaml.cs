@@ -17,6 +17,7 @@ using System.Windows.Input;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
 using WoWExportTools.Objects;
+using WoWExportTools.Sound;
 
 namespace WoWExportTools
 {
@@ -56,6 +57,8 @@ namespace WoWExportTools
         public static bool shuttingDown = false;
 
         private ModelControl modelControlWindow;
+
+        private SoundPlayer soundPlayer = new SoundPlayer();
 
         private System.Windows.Forms.OpenFileDialog dialogM2Open;
         private System.Windows.Forms.OpenFileDialog dialogBLPOpen;
@@ -1385,32 +1388,15 @@ namespace WoWExportTools
 
         private void PlaySelectedSound(object sender, EventArgs e)
         {
-            soundPlayer.Stop();
-
             if (soundListBox.SelectedItem != null)
             {
                 string fileName = (string)soundListBox.SelectedItem;
                 if (Listfile.TryGetFileDataID(fileName, out uint fileID))
                 {
-                    ConfigurationManager.RefreshSection("appSettings");
-                    var outDir = ConfigurationManager.AppSettings["outdir"];
-                    string outPath = Path.Combine(outDir, Path.GetDirectoryName(fileName), Path.GetFileName(fileName));
-
-                    // MediaElement requires an on-disk source, so we have to export the file
-                    // so that it can then be loaded by that. Not ideal.
-                    Directory.CreateDirectory(Path.GetDirectoryName(outPath));
-                    if (!File.Exists(outPath))
-                    {
-                        using (FileStream fs = File.Create(outPath))
-                        {
-                            Stream file = CASC.OpenFile(fileID);
-                            file.Seek(0, SeekOrigin.Begin); // Be kind, rewind.
-                            file.CopyTo(fs);
-                        }
-                    }
-
-                    soundPlayer.Source = new Uri(outPath);
-                    soundPlayer.Play();
+                    if (fileName.EndsWith(".mp3"))
+                        soundPlayer.Play(fileID, SoundPlayer.FORMAT_MP3);
+                    else if (fileName.EndsWith(".ogg"))
+                        soundPlayer.Play(fileID, SoundPlayer.FORMAT_VORBIS);
                 }
                 else
                 {

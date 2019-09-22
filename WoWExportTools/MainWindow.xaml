@@ -148,7 +148,6 @@
                     <ListBox x:Name="soundListBox" SelectionMode="Extended" MouseDoubleClick="PlaySelectedSound" HorizontalAlignment="Stretch" Margin="10,30,10,40" VerticalAlignment="Stretch" ItemsSource="{Binding}" KeyDown="ListBoxKeyDown"></ListBox>
                     <Button x:Name="exportSoundButton" Height="25" Content="Export" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Click="ExportSound_Click" Width="71"/>
                     <Button x:Name="exportPlayButton" Height="25" Content="Play" HorizontalAlignment="Left" Margin="86,0,0,10" VerticalAlignment="Bottom" Click="PlaySelectedSound" Width="71"/>
-                    <MediaElement x:Name="soundPlayer" Margin="281,0,0,10" LoadedBehavior="Manual" HorizontalAlignment="Left" Width="303" Height="25" VerticalAlignment="Bottom"/>
                 </Grid>
             </TabItem>
         </TabControl>
