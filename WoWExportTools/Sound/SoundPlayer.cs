@@ -36,12 +36,24 @@ namespace WoWExportTools.Sound
             Stream fs = CASC.OpenFile(fileID);
             WaveStream ws;
 
-            if (format == FORMAT_MP3)
-                ws = new Mp3FileReader(fs);
-            else if (format == FORMAT_VORBIS)
-                ws = new VorbisWaveReader(fs);
-            else
-                throw new Exception("Unsupported audio format: " + format);
+            try
+            {
+                if (format == FORMAT_MP3)
+                    ws = new Mp3FileReader(fs);
+                else if (format == FORMAT_VORBIS)
+                    ws = new VorbisWaveReader(fs);
+                else
+                    throw new Exception("Unsupported audio format: " + format);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unable to play sound: " + fileID);
+                Console.WriteLine(e.Message);
+
+                fs.Dispose();
+
+                return;
+            }
 
             if (outputDevice == null)
             {
