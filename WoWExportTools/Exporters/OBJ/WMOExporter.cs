@@ -349,6 +349,8 @@ namespace WoWExportTools.Exporters.OBJ
 
             exportworker.ReportProgress(75, "Exporting WMO model..");
 
+            bool exportMetadata = ConfigurationManager.AppSettings["textureMetadata"] == "True";
+
             //No idea how MTL files really work yet. Needs more investigation.
             foreach (var material in materials)
             {
@@ -366,7 +368,7 @@ namespace WoWExportTools.Exporters.OBJ
                 if (material.transparent)
                     mtlsb.Append("map_d " + material.filename + ".png\n");
 
-                if (ConfigurationManager.AppSettings["textureMetadata"] == "True")
+                if (exportMetadata)
                 {
                     for (var g = 0; g < wmo.group.Count(); g++)
                     {
