@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using WoWFormatLib.FileReaders;
+using WoWFormatLib.SereniaBLPLib;
 using WoWFormatLib.Utils;
 
 namespace WoWExportTools.Exporters.OBJ
@@ -204,7 +205,7 @@ namespace WoWExportTools.Exporters.OBJ
 
             for (var i = 0; i < wmo.materials.Count(); i++)
             {
-                var blpreader = new BLPReader();
+                var blpReader = new BLPReader();
 
                 if (wmo.textures == null)
                 {
@@ -213,7 +214,7 @@ namespace WoWExportTools.Exporters.OBJ
                     else
                         materials[i].filename = wmo.materials[i].texture1.ToString();
 
-                    blpreader.LoadBLP(wmo.materials[i].texture1);
+                    blpReader.LoadBLP(wmo.materials[i].texture1);
                 }
                 else
                 {
@@ -222,7 +223,7 @@ namespace WoWExportTools.Exporters.OBJ
                         if (wmo.textures[ti].startOffset == wmo.materials[i].texture1)
                         {
                             materials[i].filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
-                            blpreader.LoadBLP(wmo.textures[ti].filename);
+                            blpReader.LoadBLP(wmo.textures[ti].filename);
                         }
                     }
                 }
@@ -240,9 +241,9 @@ namespace WoWExportTools.Exporters.OBJ
                     try
                     {
                         if (materials[i].transparent)
-                            blpreader.bmp.Save(saveLocation);
+                            blpReader.bmp.Save(saveLocation);
                         else
-                            blpreader.bmp.Clone(new Rectangle(0, 0, blpreader.bmp.Width, blpreader.bmp.Height), PixelFormat.Format32bppRgb).Save(saveLocation);
+                            blpReader.bmp.Clone(new Rectangle(0, 0, blpReader.bmp.Width, blpReader.bmp.Height), PixelFormat.Format32bppRgb).Save(saveLocation);
                     }
                     catch (Exception e)
                     {
@@ -252,89 +253,9 @@ namespace WoWExportTools.Exporters.OBJ
 
                 textureID++;
 
-                // Extra materials
-                // Texture 2
-                if (CASC.FileExists(wmo.materials[i].texture2))
-                {
-                    var tex2mat = new Structs.Material();
-                    if (wmo.textures == null)
-                    {
-                        if (Listfile.TryGetFilename(wmo.materials[i].texture2, out var textureFilename))
-                            tex2mat.filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
-                        else
-                            tex2mat.filename = wmo.materials[i].texture2.ToString();
-
-                        blpreader.LoadBLP(wmo.materials[i].texture2);
-                    }
-                    else
-                    {
-                        for (var ti = 0; ti < wmo.textures.Count(); ti++)
-                        {
-                            if (wmo.textures[ti].startOffset == wmo.materials[i].texture2)
-                            {
-                                tex2mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
-                                blpreader.LoadBLP(wmo.textures[ti].filename);
-                            }
-                        }
-                    }
-
-                    saveLocation = Path.Combine(outDir, destinationOverride ?? Path.GetDirectoryName(fileName), tex2mat.filename + ".png");
-                    if (!File.Exists(saveLocation))
-                    {
-                        try
-                        {
-                            blpreader.bmp.Save(saveLocation);
-                        }
-                        catch (Exception e)
-                        {
-                            CASCLib.Logger.WriteLine("Exception while saving BLP " + tex2mat.filename + ": " + e.Message);
-                        }
-                    }
-
-                    extraMaterials.Add(tex2mat);
-                }
-
-                // Texture 3
-                if (CASC.FileExists(wmo.materials[i].texture3))
-                {
-                    var tex3mat = new Structs.Material();
-                    if (wmo.textures == null)
-                    {
-                        if (Listfile.TryGetFilename(wmo.materials[i].texture3, out var textureFilename))
-                            tex3mat.filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
-                        else
-                            tex3mat.filename = wmo.materials[i].texture3.ToString();
-
-                        blpreader.LoadBLP(wmo.materials[i].texture3);
-                    }
-                    else
-                    {
-                        for (var ti = 0; ti < wmo.textures.Count(); ti++)
-                        {
-                            if (wmo.textures[ti].startOffset == wmo.materials[i].texture3)
-                            {
-                                tex3mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
-                                blpreader.LoadBLP(wmo.textures[ti].filename);
-                            }
-                        }
-                    }
-
-                    saveLocation = Path.Combine(outDir, destinationOverride ?? Path.GetDirectoryName(fileName), tex3mat.filename + ".png");
-
-                    if (!File.Exists(saveLocation))
-                    {
-                        try
-                        {
-                            blpreader.bmp.Save(saveLocation);
-                        }
-                        catch (Exception e)
-                        {
-                            CASCLib.Logger.WriteLine("Exception while saving BLP " + tex3mat.filename + ": " + e.Message);
-                        }
-                    }
-
-                    extraMaterials.Add(tex3mat);
-                }
+                string extraPath = Path.Combine(outDir, destinationOverride ?? Path.GetDirectoryName(fileName));
+                ExportExtraMaterials(wmo.materials[i].texture2, wmo, extraMaterials, i, extraPath);
+                ExportExtraMaterials(wmo.materials[i].texture3, wmo, extraMaterials, i, extraPath);
             }
 
             var numRenderbatches = 0;
@@ -479,6 +400,54 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
             objWriter.Close();
+        }
+
+        private static void ExportExtraMaterials(uint tex, WoWFormatLib.Structs.WMO.WMO wmo, List<Structs.Material> mats, int matIdx, string path)
+        {
+            Stream ms = null;
+            if (CASC.FileExists(tex))
+            {
+                var mat = new Structs.Material();
+                if (wmo.textures == null)
+                {
+                    if (Listfile.TryGetFilename(tex, out var textureFilename))
+                        mat.filename = Path.GetFileNameWithoutExtension(textureFilename).Replace(" ", "");
+                    else
+                        mat.filename = tex.ToString();
+
+                    ms = CASC.OpenFile(tex);
+                }
+                else
+                {
+                    for (var ti = 0; ti < wmo.textures.Count(); ti++)
+                    {
+                        if (wmo.textures[ti].startOffset == tex)
+                        {
+                            mat.filename = Path.GetFileNameWithoutExtension(wmo.textures[ti].filename).Replace(" ", "");
+                            ms = CASC.OpenFile(wmo.textures[ti].filename);
+                        }
+                    }
+                }
+
+                if (ms == null)
+                    return; // Can this even happen?
+
+                string saveLocation = path + mat.filename + ".png";
+                if (!File.Exists(saveLocation))
+                {
+                    try
+                    {
+                        using (BlpFile blp = new BlpFile(ms))
+                            blp.GetBitmap(0).Save(saveLocation);
+                    }
+                    catch (Exception e)
+                    {
+                        CASCLib.Logger.WriteLine("Exception while saving BLP " + mat.filename + ": " + e.Message);
+                    }
+                }
+
+                mats.Add(mat);
+            }
         }
     }
 }
