@@ -431,10 +431,11 @@ namespace WoWExportTools.Exporters.OBJ
             exportworker.ReportProgress(95, "Writing WMO files..");
 
             string objFile = fileName != null ? fileName.Replace(".wmo", ".obj") : fileDataID + ".obj";
+            string fileID = fileName ?? fileDataID.ToString();
             StreamWriter objWriter = new StreamWriter(Path.Combine(outDir, destinationOverride ?? objFile));
-            objWriter.WriteLine("# Written by Marlamin's WoW Export Tools. Original file: " + fileName ?? fileDataID.ToString());
-            objWriter.WriteLine("mtllib " + Path.GetFileNameWithoutExtension(fileName) + ".mtl");
-            objWriter.WriteLine("o " + Path.GetFileName(fileName));
+            objWriter.WriteLine("# Written by Marlamin's WoW Export Tools. Original file: " + fileID);
+            objWriter.WriteLine("mtllib " + Path.GetFileNameWithoutExtension(fileID) + ".mtl");
+            objWriter.WriteLine("o " + Path.GetFileName(fileID));
 
             foreach (var group in groups)
             {
