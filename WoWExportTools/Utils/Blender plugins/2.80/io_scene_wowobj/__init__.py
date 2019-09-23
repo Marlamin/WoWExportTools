@@ -35,7 +35,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_wowobj" in locals():
-        importlib.reload(import_adtobj)
+        importlib.reload(import_wowobj)
 
 import bpy
 
@@ -67,7 +67,7 @@ class ImportWoWOBJ(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         from . import import_wowobj
-        return import_wowobj.importWoWOBJ(self.filepath)
+        return import_wowobj.importWoWOBJAddon(self.filepath)
 
     def draw(self, context):
         layout = self.layout

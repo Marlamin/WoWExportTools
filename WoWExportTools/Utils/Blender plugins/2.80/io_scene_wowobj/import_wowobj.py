@@ -9,6 +9,10 @@ from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 from bpy_extras.image_utils import load_image
 from datetime import datetime
 
+def importWoWOBJAddon(objectFile):
+    importWoWOBJ(objectFile)
+    return {'FINISHED'}
+
 def importWoWOBJ(objectFile, givenParent = None):
     baseDir, fileName = os.path.split(objectFile)
 

@@ -1,1 +1,2 @@
-Drop these in your Blender addon directory to add ADT/WMO OBJ import to the import menu. These plugins are very experimental and not as supported as the application itself.
+Drop these in your Blender addon directory to add ADT/WMO OBJ import to the import menu. These plugins are very experimental and not as supported as the application itself. 
+If you're feeling super experimental, use the Import WoWOBJ plugin instead of the ADT/WMO specific one.
