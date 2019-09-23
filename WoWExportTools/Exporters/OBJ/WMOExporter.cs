@@ -448,7 +448,7 @@ namespace WoWExportTools.Exporters.OBJ
                 if (ms == null)
                     return; // Can this even happen?
 
-                string saveLocation = path + mat.filename + ".png";
+                string saveLocation = Path.Combine(path, mat.filename + ".png");
                 if (!File.Exists(saveLocation))
                 {
                     try
