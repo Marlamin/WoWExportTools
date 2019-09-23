@@ -6,7 +6,6 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using WoWFormatLib.FileReaders;
-using DBCD;
 using DBCD.Providers;
 
 namespace WoWExportTools.Exporters.OBJ
@@ -53,10 +52,7 @@ namespace WoWExportTools.Exporters.OBJ
 
             Logger.WriteLine("ADT OBJ Exporter: Starting export of {0}..", file);
 
-            if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(file))))
-            {
-                Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(file)));
-            }
+            Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(file)));
 
             exportworker.ReportProgress(0, "Loading ADT " + file);
 
@@ -327,29 +323,27 @@ namespace WoWExportTools.Exporters.OBJ
                             }
                         }
 
+                        short doodadSet = -1;
+                        if (ConfigurationManager.AppSettings["exportWMODoodads"] == "True")
+                            doodadSet = (short)wmo.doodadSet;
+
                         if (string.IsNullOrEmpty(filename))
                         {
-                            if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj")))
-                            {
-                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), wmo.doodadSet);
-                            }
+                            string wmoFile = Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj");
+                            if (!File.Exists(wmoFile))
+                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), doodadSet);
 
-                            if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), filedataid.ToString() + ".obj")))
-                            {
+                            if (File.Exists(wmoFile))
                                 doodadSW.WriteLine(filedataid + ".obj;" + wmo.position.X + ";" + wmo.position.Y + ";" + wmo.position.Z + ";" + wmo.rotation.X + ";" + wmo.rotation.Y + ";" + wmo.rotation.Z + ";" + wmo.scale / 1024f + ";" + wmo.uniqueId + ";wmo");
-                            }
                         }
                         else
                         {
-                            if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
-                            {
-                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), wmo.doodadSet, filename);
-                            }
+                            string wmoFile = Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj");
+                            if (!File.Exists(wmoFile))
+                                WMOExporter.ExportWMO(filedataid, exportworker, Path.Combine(outdir, Path.GetDirectoryName(file)), doodadSet, filename);
 
                             if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
-                            {
                                 doodadSW.WriteLine(Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj;" + wmo.position.X + ";" + wmo.position.Y + ";" + wmo.position.Z + ";" + wmo.rotation.X + ";" + wmo.rotation.Y + ";" + wmo.rotation.Z + ";" + wmo.scale / 1024f + ";" + wmo.uniqueId + ";wmo");
-                            }
                         }
                     }
                 }
@@ -376,7 +370,7 @@ namespace WoWExportTools.Exporters.OBJ
                         }
                         else
                         {
-                            filename = reader.adtfile.objects.m2Names.filenames[doodad.mmidEntry];
+                            filename = reader.adtfile.objects.m2Names.filenames[doodad.mmidEntry].ToLower();
                             if (!Listfile.TryGetFileDataID(filename, out filedataid))
                             {
                                 Logger.WriteLine("Error! Could not find filedataid for " + filename + "!");
@@ -384,14 +378,14 @@ namespace WoWExportTools.Exporters.OBJ
                             }
                         }
 
-                        if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
+                        if (!File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename) + ".obj")))
                         {
                             M2Exporter.ExportM2(filedataid, null, Path.Combine(outdir, Path.GetDirectoryName(file)), filename);
                         }
 
-                        if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj")))
+                        if (File.Exists(Path.Combine(outdir, Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(filename) + ".obj")))
                         {
-                            doodadSW.WriteLine(Path.GetFileNameWithoutExtension(filename).ToLower() + ".obj;" + doodad.position.X + ";" + doodad.position.Y + ";" + doodad.position.Z + ";" + doodad.rotation.X + ";" + doodad.rotation.Y + ";" + doodad.rotation.Z + ";" + doodad.scale / 1024f + ";" + doodad.uniqueId + ";m2");
+                            doodadSW.WriteLine(Path.GetFileNameWithoutExtension(filename) + ".obj;" + doodad.position.X + ";" + doodad.position.Y + ";" + doodad.position.Z + ";" + doodad.rotation.X + ";" + doodad.rotation.Y + ";" + doodad.rotation.Z + ";" + doodad.scale / 1024f + ";" + doodad.uniqueId + ";m2");
                         }
                     }
                 }

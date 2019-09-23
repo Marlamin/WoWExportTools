@@ -3,45 +3,13 @@ using System.Windows;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Controls;
 using WoWExportTools.Objects;
 
 namespace WoWExportTools
 {
-    public class ModelGeoset : INotifyPropertyChanged
+    public class ModelGeoset : ControlOption
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private uint _index;
-        private string _name;
-
         public M2Container Object;
-
-        public uint Index
-        {
-            get { return _index; }
-            set
-            {
-                if (value != _index)
-                {
-                    _index = value;
-                    Notify("DisplayName");
-                }
-            }
-        }
-
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                if (value != _name)
-                {
-                    _name = value;
-                    Notify("DisplayName");
-                }
-            }
-        }
 
         public bool IsEnabled
         {
@@ -52,22 +20,6 @@ namespace WoWExportTools
                 Notify("IsEnabled");
             }
         }
-
-        public string DisplayName
-        {
-            get
-            {
-                if (Name != null)
-                    return Index + " (" + Name + ")";
-
-                return Index.ToString();
-            }
-        }
-
-        private void Notify(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 
     public partial class ModelControl : Window
@@ -77,6 +29,8 @@ namespace WoWExportTools
 
         public Dictionary<uint, string> GeosetNameMap = null;
         public ObservableCollection<ModelGeoset> activeModelGeosets;
+
+        private bool loadedGeosetMapping = false;
 
         private PreviewControl previewControl;
 
@@ -115,14 +69,15 @@ namespace WoWExportTools
                     activeModelGeosets.Add(new ModelGeoset() { Object = m2Object, Name = name, Index = i });
                 }
             }
-            else
-            {
-                Hide();
-            }
         }
 
         public void LoadGeosetMapping()
         {
+            if (loadedGeosetMapping)
+                return;
+
+            loadedGeosetMapping = true;
+
             if (!File.Exists(MAPPING_FILE))
                 return;
 

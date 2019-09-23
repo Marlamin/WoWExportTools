@@ -26,7 +26,7 @@ namespace WoWExportTools
 
         private void GHButton_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("https://github.com/Marlamin/WoWFormatTest/issues");
+            Process.Start("https://github.com/Marlamin/WoWExportTools/issues");
         }
     }
 }

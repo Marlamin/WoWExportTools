@@ -121,9 +121,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ControlWindows\ControlOption.cs" />
     <Compile Include="DBC\CASCDBCProvider.cs" />
     <Compile Include="Loaders\ADTLoader.cs" />
-    <Compile Include="ModelControl.xaml.cs">
+    <Compile Include="ControlWindows\ModelControl.xaml.cs">
       <DependentUpon>ModelControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Exporters\OBJ\ADTExporter.cs" />
@@ -149,6 +150,9 @@
     <Compile Include="VersionWindow.xaml.cs">
       <DependentUpon>VersionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ControlWindows\WMOControl.xaml.cs">
+      <DependentUpon>WMOControl.xaml</DependentUpon>
+    </Compile>
     <Page Include="ConfigurationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -168,7 +172,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="ModelControl.xaml">
+    <Page Include="ControlWindows\ModelControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -177,6 +181,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="VersionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ControlWindows\WMOControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -202,31 +210,37 @@
     <Content Include="geosets.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.7\io_scene_adt\import_adtobj.py">
+    <Content Include="Utils\Blender plugins\2.79\io_scene_adt\import_adtobj.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.7\io_scene_adt\__init__.py">
+    <Content Include="Utils\Blender plugins\2.79\io_scene_adt\__init__.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.7\io_scene_wmo\import_wmoobj.py">
+    <Content Include="Utils\Blender plugins\2.79\io_scene_wmo\import_wmoobj.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.7\io_scene_wmo\__init__.py">
+    <Content Include="Utils\Blender plugins\2.79\io_scene_wmo\__init__.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.8\io_scene_adt\import_adtobj.py">
+    <Content Include="Utils\Blender plugins\2.80\io_scene_adt\import_adtobj.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.8\io_scene_adt\__init__.py">
+    <Content Include="Utils\Blender plugins\2.80\io_scene_adt\__init__.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.8\io_scene_wmo\import_wmoobj.py">
+    <Content Include="Utils\Blender plugins\2.80\io_scene_wmo\import_wmoobj.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Utils\Blender plugins\2.8\io_scene_wmo\__init__.py">
+    <Content Include="Utils\Blender plugins\2.80\io_scene_wmo\__init__.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Resource Include="Resources\wow8.png" />
+    <Content Include="Utils\Blender plugins\2.80\io_scene_wowobj\import_wowobj.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Utils\Blender plugins\2.80\io_scene_wowobj\__init__.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Utils\Blender plugins\readme.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

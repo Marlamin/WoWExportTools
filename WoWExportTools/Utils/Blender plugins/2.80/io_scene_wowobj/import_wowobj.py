@@ -290,6 +290,6 @@ def importWoWOBJ(objectFile, givenParent = None):
 
 
 #objectFile = "D:\\models\\world\\maps\\azeroth\\azeroth_32_32.obj"
-#objectFile = "D:\\models\\world\\maps\\kultiras\\kultiras_33_29.obj"
+#objectFile = "D:\\models\\world\\maps\\kultiras\\kultiras_32_29.obj"
 #objectFile = "D:\\models\\world\\wmo\\kultiras\\human\\8hu_kultiras_seabattlement01.obj"
 #importWoWOBJ(objectFile)

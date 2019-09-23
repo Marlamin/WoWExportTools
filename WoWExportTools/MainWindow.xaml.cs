@@ -57,6 +57,7 @@ namespace WoWExportTools
         public static bool shuttingDown = false;
 
         private ModelControl modelControlWindow;
+        private WMOControl wmoControlWindow;
 
         private SoundPlayer soundPlayer;
 
@@ -91,6 +92,7 @@ namespace WoWExportTools
             previewControl = new PreviewControl(renderCanvas);
             previewControl.IsPreviewEnabled = (bool)previewCheckbox.IsChecked;
             modelControlWindow = new ModelControl(previewControl);
+            wmoControlWindow = new WMOControl(previewControl);
 
             CompositionTarget.Rendering += previewControl.CompositionTarget_Rendering;
             wfHost.Initialized += previewControl.WindowsFormsHost_Initialized;
@@ -121,6 +123,7 @@ namespace WoWExportTools
             exportM2.IsChecked = ConfigurationManager.AppSettings["exportM2"] == "True";
             exportFoliage.IsChecked = ConfigurationManager.AppSettings["exportFoliage"] == "True";
             exportCollision.IsChecked = ConfigurationManager.AppSettings["exportCollision"] == "True";
+            exportWMODoodads.IsChecked = ConfigurationManager.AppSettings["exportWMODoodads"] == "True";
 
             // Set-up conversion dialogs.
             dialogM2Open = new System.Windows.Forms.OpenFileDialog()
@@ -260,6 +263,7 @@ namespace WoWExportTools
                 exportButton.IsEnabled = false;
                 modelListBox.IsEnabled = false;
                 exportCollision.IsEnabled = false;
+                exportWMODoodads.IsEnabled = false;
 
                 exportworker.RunWorkerAsync(modelListBox.SelectedItems);
             }
@@ -381,6 +385,7 @@ namespace WoWExportTools
             wmoCheckBox.Visibility = Visibility.Visible;
             m2CheckBox.Visibility = Visibility.Visible;
             exportCollision.Visibility = Visibility.Visible;
+            exportWMODoodads.Visibility = Visibility.Visible;
 
             splash.Visibility = Visibility.Hidden;
             Visibility = Visibility.Collapsed;
@@ -495,17 +500,20 @@ namespace WoWExportTools
                 var dbcd = new DBCD.DBCD(new DBC.CASCDBCProvider(), new DBCD.Providers.GithubDBDProvider());
 
                 // M2s
-                var storage = dbcd.Load("ModelFileData");
-
-                if (!storage.AvailableColumns.Contains("FileDataID"))
-                    throw new Exception("Unable to find FileDataID column in ModelFileData! Likely using a version without up to date definition.");
-
-                foreach (dynamic entry in storage.Values)
+                if (showM2)
                 {
-                    uint fileDataID = (uint)entry.FileDataID;
-                    if (!Listfile.FDIDToFilename.ContainsKey(fileDataID))
+                    var storage = dbcd.Load("ModelFileData");
+
+                    if (!storage.AvailableColumns.Contains("FileDataID"))
+                        throw new Exception("Unable to find FileDataID column in ModelFileData! Likely using a version without up to date definition.");
+
+                    foreach (dynamic entry in storage.Values)
                     {
-                        models.Add("unknown_" + fileDataID + ".m2");
+                        uint fileDataID = (uint)entry.FileDataID;
+                        if (!Listfile.FDIDToFilename.ContainsKey(fileDataID))
+                        {
+                            models.Add("unknown_" + fileDataID + ".m2");
+                        }
                     }
                 }
 
@@ -548,6 +556,7 @@ namespace WoWExportTools
             modelListBox.IsEnabled = true;
             exportCollision.IsEnabled = true;
             exportSoundButton.IsEnabled = true;
+            exportWMODoodads.IsEnabled = true;
 
             /* ADT specific UI */
             exportTileButton.IsEnabled = true;
@@ -592,14 +601,31 @@ namespace WoWExportTools
                     ConfigurationManager.RefreshSection("appSettings");
                     var outdir = ConfigurationManager.AppSettings["outdir"];
 
+                    Container3D activeObject = previewControl.activeObject;
+
                     if (selectedFile.EndsWith(".wmo"))
                     {
-                        Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker);
+                        short doodadGroups = -1;
+                        if (ConfigurationManager.AppSettings["exportWMODoodads"] == "True")
+                            doodadGroups = short.MaxValue;
+
+                        bool[] enabledSets = null;
+                        bool[] enabledGroups = null;
+
+                        if (activeObject is WMOContainer wmoObject)
+                        {
+                            if (wmoObject.FileName == selectedFile)
+                            {
+                                enabledSets = wmoObject.EnabledDoodadSets;
+                                enabledGroups = wmoObject.EnabledGroups;
+                            }
+                        }
+
+                        Exporters.OBJ.WMOExporter.ExportWMO(selectedFile, exportworker, null, doodadGroups, enabledGroups, enabledSets);
                     }
                     else if (selectedFile.EndsWith(".m2"))
                     {
                         bool[] enabledGeosets = null;
-                        Container3D activeObject = previewControl.activeObject;
                         
                         if (activeObject is M2Container m2Object)
                             if (m2Object.FileName == selectedFile)
@@ -623,9 +649,7 @@ namespace WoWExportTools
 
                             if (!fdidExport)
                             {
-                                if (!Directory.Exists(Path.Combine(outdir, Path.GetDirectoryName(selectedFile))))
-                                    Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
-
+                                Directory.CreateDirectory(Path.Combine(outdir, Path.GetDirectoryName(selectedFile)));
                                 bmp.Save(Path.Combine(outdir, Path.GetDirectoryName(selectedFile), Path.GetFileNameWithoutExtension(selectedFile)) + ".png");
                             }
                             else
@@ -681,7 +705,35 @@ namespace WoWExportTools
                 // we have geoset data and the likes available.
                 previewControl.LoadModel(selectedFile);
 
-                modelControlWindow.UpdateModelControl();
+                // Update the relative control depending on what model we're showing.
+                // If we have a different type of control window open, swap to a relevant one.
+                bool controlActive = modelControlWindow.IsVisible || wmoControlWindow.IsVisible;
+                if (previewControl.activeObject is M2Container)
+                {
+                    modelControlWindow.UpdateModelControl();
+                    
+                    if (controlActive)
+                    {
+                        modelControlWindow.Show();
+                        modelControlWindow.Focus();
+                        wmoControlWindow.Hide();
+                    }
+                }
+                else if (previewControl.activeObject is WMOContainer)
+                {
+                    wmoControlWindow.UpdateWMOControl();
+
+                    if (controlActive)
+                    {
+                        wmoControlWindow.Show();
+                        wmoControlWindow.Focus();
+                        modelControlWindow.Hide();
+                    }
+                }
+            }
+            else
+            {
+                modelControlButton.IsEnabled = false;
             }
 
             e.Handled = true;
@@ -703,6 +755,7 @@ namespace WoWExportTools
             wmoCheckBox.Visibility = Visibility.Hidden;
             m2CheckBox.Visibility = Visibility.Hidden;
             exportCollision.Visibility = Visibility.Hidden;
+            exportWMODoodads.Visibility = Visibility.Hidden;
 
             models = new List<string>();
             textures = new List<string>();
@@ -1301,6 +1354,11 @@ namespace WoWExportTools
             SetConfigValue("exportCollision", exportCollision.IsChecked.ToString());
         }
 
+        private void ExportWMODoodadsCheckbox_Checked(object sender, RoutedEventArgs e)
+        {
+            SetConfigValue("exportWMODoodads", exportWMODoodads.IsChecked.ToString());
+        }
+
         private void ExportWMO_Click(object sender, RoutedEventArgs e)
         {
             SetConfigValue("exportWMO", exportWMO.IsChecked.ToString());
@@ -1395,8 +1453,17 @@ namespace WoWExportTools
 
         private void ShowModelControlButton_Click(object sender, RoutedEventArgs e)
         {
-            modelControlWindow.Show();
-            modelControlWindow.Focus();
+            Container3D activeObject = previewControl.activeObject;
+            if (activeObject is M2Container)
+            {
+                modelControlWindow.Show();
+                modelControlWindow.Focus();
+            }
+            else if (activeObject is WMOContainer)
+            {
+                wmoControlWindow.Show();
+                wmoControlWindow.Focus();
+            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
@@ -1405,6 +1472,9 @@ namespace WoWExportTools
 
             if (modelControlWindow != null)
                 modelControlWindow.Close();
+
+            if (wmoControlWindow != null)
+                wmoControlWindow.Close();
         }
 
         private void PlaySelectedSound(object sender, EventArgs e)

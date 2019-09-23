@@ -1,0 +1,32 @@
+﻿<Window x:Class="WoWExportTools.WMOControl"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WoWExportTools"
+        mc:Ignorable="d"
+        Title="WMO" Height="362.828" Width="238.603"
+        Closing="Window_Closing">
+    <Grid>
+        <Label x:Name="wmoGroupsLabel" Content="Mesh Groups" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="wmoGroupList" ItemsSource="{Binding}" HorizontalAlignment="Stretch" Margin="10,36,10,0" VerticalAlignment="Top" Height="120">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsEnabled}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Label x:Name="wmoSetsLabel" Content="Doodad Sets" HorizontalAlignment="Left" Margin="10,161,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="wmoSetsList" ItemsSource="{Binding}" HorizontalAlignment="Stretch" Margin="10,187,10,10" VerticalAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsEnabled}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Window>

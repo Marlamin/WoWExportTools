@@ -175,6 +175,9 @@ namespace WoWExportTools
 
                 for (var j = 0; j < wmo.wmoRenderBatch.Length; j++)
                 {
+                    if (!activeWMO.EnabledGroups[wmo.wmoRenderBatch[j].groupID])
+                        continue;
+
                     GL.BindVertexArray(wmo.groupBatches[wmo.wmoRenderBatch[j].groupID].vao);
 
                     switch (wmo.wmoRenderBatch[j].blendType)

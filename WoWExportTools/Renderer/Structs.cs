@@ -109,6 +109,7 @@ namespace WoWExportTools.Renderer
             public Quaternion rotation;
             public float scale;
             public Vector4 color;
+            public uint doodadSet;
         }
 
         public struct BoundingBox
@@ -132,6 +133,7 @@ namespace WoWExportTools.Renderer
             public Material[] mats;
             public RenderBatch[] wmoRenderBatch;
             public WMODoodad[] doodads;
+            public string[] doodadSets;
         }
 
         public struct WorldModelGroupBatches
@@ -140,6 +142,7 @@ namespace WoWExportTools.Renderer
             public int vertexBuffer;
             public int indiceBuffer;
             public uint[] indices;
+            public string groupName;
         }
     }
 }
