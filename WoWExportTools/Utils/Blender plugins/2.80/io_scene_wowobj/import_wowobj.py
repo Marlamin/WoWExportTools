@@ -286,7 +286,7 @@ def importWoWOBJ(objectFile, givenParent = None):
                     rotEul.x += radians(90);
                     rotEul.z += radians(180);
                     importedFile.rotation_euler = rotEul
-                    importedFile.parent = givenParent
+                    importedFile.parent = givenParent or obj
                     if row['ScaleFactor']:
                         importedFile.scale = (float(row['ScaleFactor']), float(row['ScaleFactor']), float(row['ScaleFactor']))
             bpy.context.scene['importedModelIDs'] = tempModelIDList
