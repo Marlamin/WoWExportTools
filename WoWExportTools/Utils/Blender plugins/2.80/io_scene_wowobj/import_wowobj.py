@@ -202,6 +202,13 @@ def importWoWOBJ(objectFile, givenParent = None):
                 bpy.context.scene.collection.objects.link(doodadparent)
             else:
                 importType = 'WMO'
+                if not givenParent:
+                    print('WMO import without given parent, creating..')
+                    givenParent = bpy.data.objects.new("WMO parent", None)
+                    givenParent.parent = obj
+                    givenParent.name = "WMOs"
+                    givenParent.rotation_euler = [0, 0, 0]
+                    givenParent.rotation_euler.x = radians(-90)
 
             if 'importedModelIDs' in bpy.context.scene:
                 tempModelIDList = bpy.context.scene['importedModelIDs']
@@ -212,9 +219,9 @@ def importWoWOBJ(objectFile, givenParent = None):
                     if row['ModelId'] in tempModelIDList:
                         print('Skipping already imported model ' + row['ModelId'])
                         continue;
-                    else:    
+                    else:
                         tempModelIDList.append(row['ModelId'])
-                    
+
                     # ADT CSV
                     if row['Type'] == 'wmo':
                         print('ADT WMO import: ' + row['ModelFile'])
@@ -230,7 +237,7 @@ def importWoWOBJ(objectFile, givenParent = None):
                         if row['ScaleFactor']:
                             parent.scale = (float(row['ScaleFactor']), float(row['ScaleFactor']), float(row['ScaleFactor']))
                         bpy.context.scene.collection.objects.link(parent)
-                        
+
                         ## Only import OBJ if model is not yet in scene, otherwise copy existing
                         if row['ModelFile'] not in bpy.data.objects:
                             importedFile = importWoWOBJ(os.path.join(baseDir, row['ModelFile']), parent)
