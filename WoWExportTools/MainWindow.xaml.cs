@@ -544,6 +544,43 @@ namespace WoWExportTools
             models.Sort();
             textures.Sort();
             sounds.Sort();
+
+            worker.ReportProgress(90, "Checking for updates..");
+
+            try
+            {
+                using (var client = new WebClient())
+                using (var stream = new MemoryStream())
+                {
+                    var currentVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                    client.Headers["User-Agent"] = "WoW Export Tools " + currentVersion;
+
+                    var responseStream = client.OpenRead("https://marlam.in/obj/version.txt");
+                    responseStream.CopyTo(stream);
+                    var remoteVersion = System.Text.Encoding.ASCII.GetString(stream.ToArray()).Trim();
+                    if(remoteVersion != currentVersion)
+                    {
+                        Application.Current.Dispatcher.Invoke(delegate {
+                            MenuItem updateItem = new MenuItem();
+                            updateItem.Header = "Update available";
+                            updateItem.Click += UpdateItem_Click;
+                            this.MainMenu.Items.Add(updateItem);
+                        });
+                    }
+                    responseStream.Close();
+                    responseStream.Dispose();
+                }
+                
+            }
+            catch(Exception updateExc)
+            {
+                Logger.WriteLine("Updatecheck failed: " + updateExc.Message);
+            }
+        }
+
+        private void UpdateItem_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://marlam.in/obj/#download");
         }
 
         private void Exportworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
