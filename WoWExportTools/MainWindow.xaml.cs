@@ -938,27 +938,27 @@ namespace WoWExportTools
             loadingLabel.Content = "Baking map textures, this will take a while.";
 
             Dispatcher.Invoke(new Action(() => { }), System.Windows.Threading.DispatcherPriority.ContextIdle, null);
+            ConfigurationManager.RefreshSection("appSettings");
+            var outdir = ConfigurationManager.AppSettings["outdir"];
 
+            var mapName = selectedMap.Internal.ToLower();
+            var wdtFileName = "world/maps/" + mapName + "/" + mapName + ".wdt";
+            if (!Listfile.TryGetFileDataID(wdtFileName, out uint wdtFileDataID))
+            {
+                Logger.WriteLine("Unable to find WDT fileDataID for map " + selectedMap.Internal.ToLower());
+            }
+
+            var bakeRes = ((ComboBoxItem)bakeSize.SelectedItem).Name;
             foreach (string item in tileListBox.SelectedItems)
             {
-                var mapName = selectedMap.Internal.ToLower();
                 var mapTile = new Structs.MapTile();
                 var coord = item.Split('_');
                 mapTile.tileX = byte.Parse(coord[0]);
                 mapTile.tileY = byte.Parse(coord[1]);
-
-                var wdtFileName = "world/maps/" + mapName + "/" + mapName + ".wdt";
-                if (!Listfile.TryGetFileDataID(wdtFileName, out mapTile.wdtFileDataID))
-                {
-                    Logger.WriteLine("Unable to find WDT fileDataID for map " + selectedMap.Internal.ToLower());
-                }
-
+                mapTile.wdtFileDataID = wdtFileDataID;
                 tileList.Add(mapTile);
 
-                ConfigurationManager.RefreshSection("appSettings");
-                var outdir = ConfigurationManager.AppSettings["outdir"];
-
-                if (((ComboBoxItem)bakeSize.SelectedItem).Name != "none")
+                if (bakeRes != "none")
                 {
                     previewControl.BakeTexture(mapTile, Path.Combine(outdir, Path.GetDirectoryName(wdtFileName), mapName.Replace(" ", "") + "_" + mapTile.tileX + "_" + mapTile.tileY + ".png"));
                 }
