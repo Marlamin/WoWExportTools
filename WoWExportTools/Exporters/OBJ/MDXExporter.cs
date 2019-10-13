@@ -61,7 +61,7 @@ namespace WoWExportTools.Exporters.OBJ
             for (int geosetIndex = 0; geosetIndex < model.geosets.Length; geosetIndex++)
             {
                 Geoset geoset = model.geosets[geosetIndex];
-                writer.WriteLine("\ng geoset{0}", geosetIndex);
+                writer.WriteLine("\ng {0}", geoset.name);
 
                 // +1 to each face to account for OBJ not liking zero-indexed lists.
                 for (int i = 0; i < geoset.primitives.Length; i++)
