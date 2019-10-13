@@ -1,4 +1,5 @@
 ﻿using CASCLib;
+using DBCD.Providers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,7 +7,6 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using WoWFormatLib.FileReaders;
-using DBCD.Providers;
 
 namespace WoWExportTools.Exporters.OBJ
 {
@@ -44,7 +44,9 @@ namespace WoWExportTools.Exporters.OBJ
             var reader = new ADTReader();
             reader.LoadADT(wdtFileDataID, tileX, tileY, true, wdtFilename);
 
-            if (reader.adtfile.chunks == null)
+            var adt = reader.adtfile;
+
+            if (adt.chunks == null)
             {
                 Logger.WriteLine("ADT OBJ Exporter: File {0} has no chunks, skipping export!", file);
                 return;
@@ -65,12 +67,12 @@ namespace WoWExportTools.Exporters.OBJ
             var bakeQuality = ConfigurationManager.AppSettings["bakeQuality"];
 
             // Calculate ADT offset in world coordinates
-            var adtStartX = ((reader.adtfile.x - 32) * TileSize) * -1;
-            var adtStartY = ((reader.adtfile.y - 32) * TileSize) * -1;
+            var adtStartX = ((adt.x - 32) * TileSize) * -1;
+            var adtStartY = ((adt.y - 32) * TileSize) * -1;
 
             // Calculate first chunk offset in world coordinates
-            var initialChunkX = adtStartY + (reader.adtfile.chunks[0].header.indexX * ChunkSize) * -1;
-            var initialChunkY = adtStartX + (reader.adtfile.chunks[0].header.indexY * ChunkSize) * -1;
+            var initialChunkX = adtStartY + (adt.chunks[0].header.indexX * ChunkSize) * -1;
+            var initialChunkY = adtStartX + (adt.chunks[0].header.indexY * ChunkSize) * -1;
 
             uint ci = 0;
             for (var x = 0; x < 16; x++)
@@ -83,7 +85,7 @@ namespace WoWExportTools.Exporters.OBJ
                     var genx = (initialChunkX + (ChunkSize * x) * -1);
                     var geny = (initialChunkY + (ChunkSize * y) * -1);
 
-                    var chunk = reader.adtfile.chunks[ci];
+                    var chunk = adt.chunks[ci];
 
                     var off = verticelist.Count();
 
@@ -122,7 +124,11 @@ namespace WoWExportTools.Exporters.OBJ
                             if (isSmallRow)
                                 ofs += 0.5;
 
-                            if (bakeQuality == "high")
+                            if (bakeQuality == "none")
+                            {
+                                v.TexCoord = new Structs.Vector2D { X = (j + (((i % 2) != 0) ? 0.5f : 0f)) / 8f, Y = (i * 0.5f) / 8f };
+                            }
+                            else if (bakeQuality == "high")
                             {
                                 double tx = ofs / 8d;
                                 double ty = 1 - (i / 16d);
@@ -213,8 +219,171 @@ namespace WoWExportTools.Exporters.OBJ
 
                     batch.numFaces = (uint)(indicelist.Count()) - batch.firstFace;
 
-                    var layermats = new List<uint>();
+                    if (bakeQuality == "none")
+                    {
+                        // Build alpha textures, export raw and height textures
+                        var rawMaterials = new List<Renderer.Structs.Material>();
 
+                        if (adt.textures.filenames == null)
+                        {
+                            for (var ti = 0; ti < adt.diffuseTextureFileDataIDs.Count(); ti++)
+                            {
+                                var material = new Renderer.Structs.Material();
+                                material.filename = adt.diffuseTextureFileDataIDs[ti].ToString();
+                                material.textureID = (int)adt.diffuseTextureFileDataIDs[ti];
+
+                                if (adt.texParams != null && adt.texParams.Count() >= ti)
+                                {
+                                    material.scale = (float)Math.Pow(2, (adt.texParams[ti].flags & 0xF0) >> 4);
+                                    if (adt.texParams[ti].height != 0.0 || adt.texParams[ti].offset != 1.0)
+                                    {
+                                        material.heightScale = adt.texParams[ti].height;
+                                        material.heightOffset = adt.texParams[ti].offset;
+
+                                        if (!WoWFormatLib.Utils.CASC.FileExists(adt.heightTextureFileDataIDs[ti]))
+                                        {
+                                            Console.WriteLine("Height texture: " + adt.heightTextureFileDataIDs[ti] + " does not exist! Falling back to original texture (hack)..");
+                                            material.heightTexture = (int)adt.diffuseTextureFileDataIDs[ti];
+                                        }
+                                        else
+                                        {
+                                            material.heightTexture = (int)adt.heightTextureFileDataIDs[ti];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        material.heightScale = 0.0f;
+                                        material.heightOffset = 1.0f;
+                                    }
+                                }
+                                else
+                                {
+                                    material.heightScale = 0.0f;
+                                    material.heightOffset = 1.0f;
+                                    material.scale = 1.0f;
+                                }
+                                rawMaterials.Add(material);
+                            }
+                        }
+                        else
+                        {
+                            for (var ti = 0; ti < adt.textures.filenames.Count(); ti++)
+                            {
+                                var material = new Renderer.Structs.Material();
+                                material.filename = adt.textures.filenames[ti];
+                                material.textureID = (int)WoWFormatLib.Utils.CASC.getFileDataIdByName(adt.textures.filenames[ti]);
+
+                                if (adt.texParams != null && adt.texParams.Count() >= ti)
+                                {
+                                    material.scale = (float)Math.Pow(2, (adt.texParams[ti].flags & 0xF0) >> 4);
+                                    if (adt.texParams[ti].height != 0.0 || adt.texParams[ti].offset != 1.0)
+                                    {
+                                        material.heightScale = adt.texParams[ti].height;
+                                        material.heightOffset = adt.texParams[ti].offset;
+
+                                        var heightName = adt.textures.filenames[ti].Replace(".blp", "_h.blp");
+                                        if (!WoWFormatLib.Utils.CASC.FileExists(heightName))
+                                        {
+                                            Console.WriteLine("Height texture: " + heightName + " does not exist! Falling back to original texture (hack)..");
+                                            material.heightTexture = (int)WoWFormatLib.Utils.CASC.getFileDataIdByName(adt.textures.filenames[ti]);
+                                        }
+                                        else
+                                        {
+                                            material.heightTexture = (int)WoWFormatLib.Utils.CASC.getFileDataIdByName(heightName);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        material.heightScale = 0.0f;
+                                        material.heightOffset = 1.0f;
+                                    }
+                                }
+                                else
+                                {
+                                    material.heightScale = 0.0f;
+                                    material.heightOffset = 1.0f;
+                                    material.scale = 1.0f;
+                                }
+                                rawMaterials.Add(material);
+                            }
+                        }
+
+                        var layerMaterials = new List<uint>();
+                        var alphalayermats = new List<int>();
+                        var layerscales = new List<float>();
+                        var layerheights = new List<int>();
+
+                        //batch.heightScales = new Vector4();
+                        //batch.heightOffsets = new Vector4();
+                        exportworker.ReportProgress(10, "Exporting alpha layers " + file);
+
+                        var baseTextureName = Path.Combine(outdir, Path.GetDirectoryName(file), "terraindiffuse", Path.GetFileNameWithoutExtension(file).Replace(" ", ""));
+                        var baseAlphaTextureName = Path.Combine(outdir, Path.GetDirectoryName(file), "terrainalpha", Path.GetFileNameWithoutExtension(file).Replace(" ", ""));
+                        Directory.CreateDirectory(Path.GetDirectoryName(baseAlphaTextureName));
+
+                        var pixels = new byte[4, 4096];
+
+                        for (var li = 0; li < adt.texChunks[ci].layers.Count(); li++)
+                        {
+                            if (adt.texChunks[ci].alphaLayer != null)
+                            {
+                                var values = adt.texChunks[ci].alphaLayer[li].layer;
+                                for (var tx = 0; tx < 64; tx++)
+                                {
+                                    for (var ty = 0; ty < 64; ty++)
+                                    {
+                                        pixels[li, tx * 64 + ty] = values[tx * 64 + ty];
+
+                                    }
+                                }
+                            }
+
+                            Renderer.Structs.Material curMat;
+
+                            if (adt.diffuseTextureFileDataIDs == null)
+                            {
+                                if (adt.textures.filenames == null)
+                                    throw new Exception("ADT has no textures?");
+
+                                var texFileDataID = WoWFormatLib.Utils.CASC.getFileDataIdByName(adt.textures.filenames[adt.texChunks[ci].layers[li].textureId]);
+
+                                //layerMaterials.Add((uint)BLPLoader.LoadTexture(texFileDataID));
+                                curMat = rawMaterials.Where(material => material.filename == adt.textures.filenames[adt.texChunks[ci].layers[li].textureId]).Single();
+
+                            }
+                            else
+                            {
+                                //layerMaterials.Add((uint)BLPLoader.LoadTexture(adt.diffuseTextureFileDataIDs[adt.texChunks[ci].layers[li].textureId]));
+                                curMat = rawMaterials.Where(material => material.filename == adt.diffuseTextureFileDataIDs[adt.texChunks[ci].layers[li].textureId].ToString()).Single();
+                                //Console.WriteLine(ci + " " + li + " " + curMat.filename);
+                            }
+
+                            //layerscales.Add(curMat.scale);
+                            //layerheights.Add(curMat.heightTexture);
+
+                            //batch.heightScales[li] = curMat.heightScale;
+                            //batch.heightOffsets[li] = curMat.heightOffset;
+                        }
+
+                        //batch.materialID = layerMaterials.ToArray();
+                        //batch.alphaMaterialID = alphalayermats.ToArray();
+                        //batch.scales = layerscales.ToArray();
+                        //batch.heightMaterialIDs = layerheights.ToArray();
+
+                        using (var bmp = new System.Drawing.Bitmap(64, 64))
+                        {
+                            for (var tx = 0; tx < 64; tx++)
+                            {
+                                for (var ty = 0; ty < 64; ty++)
+                                {
+                                    var color = System.Drawing.Color.FromArgb(pixels[0, tx * 64 + ty], pixels[1, tx * 64 + ty], pixels[2, tx * 64 + ty], pixels[3, tx * 64 + ty]);
+                                    bmp.SetPixel(ty, tx, color);
+                                }
+                            }
+
+                            bmp.Save(baseAlphaTextureName + "_" + ci + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                        }
+                    }
 
                     renderBatches.Add(batch);
                     ci++;
@@ -442,7 +611,7 @@ namespace WoWExportTools.Exporters.OBJ
                 }
             }
 
-            if (bakeQuality != "high")
+            if (bakeQuality == "minimap" || bakeQuality == "low" || bakeQuality == "medium")
             {
                 objsw.WriteLine("g " + adtname.Replace(" ", ""));
                 objsw.WriteLine("usemtl " + materials[1]);
@@ -453,10 +622,16 @@ namespace WoWExportTools.Exporters.OBJ
             {
                 var renderBatch = renderBatches[rbi];
                 var i = renderBatch.firstFace;
-                if (bakeQuality == "high" && materials.ContainsKey((int)renderBatch.materialID)) {
+                if (bakeQuality == "high" || bakeQuality == "none")
+                {
                     objsw.WriteLine("g " + adtname.Replace(" ", "") + "_" + rbi);
+                }
+
+                if (bakeQuality == "high" && materials.ContainsKey((int)renderBatch.materialID))
+                {
                     objsw.WriteLine("usemtl " + materials[(int)renderBatch.materialID]);
                 }
+
                 while (i < (renderBatch.firstFace + renderBatch.numFaces))
                 {
                     objsw.WriteLine("f " +
