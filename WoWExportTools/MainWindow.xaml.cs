@@ -16,6 +16,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Input;
 using WoWFormatLib.FileReaders;
 using WoWFormatLib.Utils;
+using WoWFormatLib.Structs.M2;
+using WoWFormatLib.Structs.MDX;
 using WoWExportTools.Objects;
 using WoWExportTools.Sound;
 
@@ -128,9 +130,9 @@ namespace WoWExportTools
             // Set-up conversion dialogs.
             dialogM2Open = new System.Windows.Forms.OpenFileDialog()
             {
-                FileName = "Select an M2 file",
-                Filter = "M2 Files (*.m2)|*.m2",
-                Title = "Open M2 File"
+                FileName = "Select an M2/MDX file",
+                Filter = "Warcraft Model File (*.m2, *.mdx)|*.m2;*.mdx",
+                Title = "Open M2/MDX File"
             };
 
             dialogBLPOpen = new System.Windows.Forms.OpenFileDialog()
@@ -1432,10 +1434,33 @@ namespace WoWExportTools
                     var filePath = dialogM2Open.FileName;
                     using (Stream dataStream = dialogM2Open.OpenFile())
                     {
-                        var reader = new M2Reader();
-                        reader.LoadM2(dataStream);
+                        BinaryReader data = new BinaryReader(dataStream);
+                        uint magic = data.ReadUInt32();
 
-                        Exporters.OBJ.M2Exporter.ExportM2(reader, filePath, null, Path.GetDirectoryName(filePath), true);
+                        // Rewind the data source before we pass it to any readers.
+                        dataStream.Seek(0, SeekOrigin.Begin);
+
+                        switch (magic)
+                        {
+                            case (uint)M2Chunks.MD20:
+                            case (uint)M2Chunks.MD21:
+                                M2Reader readerM2 = new M2Reader();
+                                readerM2.LoadM2(dataStream);
+
+                                Exporters.OBJ.M2Exporter.ExportM2(readerM2, filePath, null, Path.GetDirectoryName(filePath), true);
+                                break;
+
+                            case (uint)MDXChunks.MDLX:
+                                MDXReader readerMDX = new MDXReader();
+                                readerMDX.LoadModel(dataStream);
+
+                                string outFile = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".obj");
+                                Exporters.OBJ.MDXExporter.ExportMDX(readerMDX, outFile, null);
+                                break;
+
+                            default:
+                                throw new Exception("Unknown file format!");
+                        }
                     }
                 }
                 catch (Exception ex)
