@@ -37,7 +37,7 @@ namespace WoWExportTools.Exporters.OBJ
             {
                 Geoset geoset = model.geosets[geosetIndex];
                 for (int i = 0; i < geoset.verts.Length; i++)
-                    writer.WriteLine("v {0} {1} {2}", geoset.verts[i].x, geoset.verts[i].z, geoset.verts[i].y);
+                    writer.WriteLine("v {0} {1} {2}", geoset.verts[i].x, geoset.verts[i].z, -geoset.verts[i].y);
             }
 
             writer.WriteLine("\n# Normals");
