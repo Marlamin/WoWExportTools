@@ -123,6 +123,7 @@
     </ApplicationDefinition>
     <Compile Include="ControlWindows\ControlOption.cs" />
     <Compile Include="DBC\CASCDBCProvider.cs" />
+    <Compile Include="Exporters\OBJ\MDXExporter.cs" />
     <Compile Include="Loaders\ADTLoader.cs" />
     <Compile Include="ControlWindows\ModelControl.xaml.cs">
       <DependentUpon>ModelControl.xaml</DependentUpon>
