@@ -37,7 +37,7 @@ namespace WoWExportTools.Exporters.OBJ
             {
                 Geoset geoset = model.geosets[geosetIndex];
                 for (int i = 0; i < geoset.verts.Length; i++)
-                    writer.WriteLine("v {0} {1} {2}", geoset.verts[i].x, geoset.verts[i].y, geoset.verts[i].z);
+                    writer.WriteLine("v {0} {1} {2}", geoset.verts[i].x, geoset.verts[i].z, geoset.verts[i].y);
             }
 
             writer.WriteLine("\n# Normals");
@@ -61,7 +61,7 @@ namespace WoWExportTools.Exporters.OBJ
             for (int geosetIndex = 0; geosetIndex < model.geosets.Length; geosetIndex++)
             {
                 Geoset geoset = model.geosets[geosetIndex];
-                writer.WriteLine("\ng geoset{0}", geosetIndex);
+                writer.WriteLine("\ng {0}", geoset.name);
 
                 // +1 to each face to account for OBJ not liking zero-indexed lists.
                 for (int i = 0; i < geoset.primitives.Length; i++)
