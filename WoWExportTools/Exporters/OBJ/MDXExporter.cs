@@ -26,17 +26,20 @@ namespace WoWExportTools.Exporters.OBJ
 
             worker.ReportProgress(60, "Writing material library...");
             // Write the material library.
-            StreamWriter writerMTL = new StreamWriter(mtlPath);
-            for (int i = 0; i < model.textures.Length; i++)
+
+            if (model.textures != null)
             {
-                string rawFile = Path.GetFileNameWithoutExtension(model.textures[i]);
-                writerMTL.WriteLine("newmtl {0}", rawFile);
-                writerMTL.WriteLine("illum 1");
-                writerMTL.WriteLine("map_Kd {0}.dds\n", rawFile);
+                StreamWriter writerMTL = new StreamWriter(mtlPath);
+                for (int i = 0; i < model.textures.Length; i++)
+                {
+                    string rawFile = Path.GetFileNameWithoutExtension(model.textures[i]);
+                    writerMTL.WriteLine("newmtl {0}", rawFile);
+                    writerMTL.WriteLine("illum 1");
+                    writerMTL.WriteLine("map_Kd {0}.dds\n", rawFile);
+                }
+
+                writerMTL.Close();
             }
-
-            writerMTL.Close();
-
 
             worker.ReportProgress(90, "Writing OBJ...");
             StreamWriter writerOBJ = new StreamWriter(outFile);
@@ -83,9 +86,12 @@ namespace WoWExportTools.Exporters.OBJ
                 Geoset geoset = model.geosets[geosetIndex];
                 writerOBJ.WriteLine("\ng {0}", geoset.name);
 
-                string textureFile = model.textures[model.materials[geoset.materialIndex].textureID];
-                writerOBJ.WriteLine("usemtl {0}", Path.GetFileNameWithoutExtension(textureFile));
-                writerOBJ.WriteLine("s 1");
+                if (model.textures != null)
+                {
+                    string textureFile = model.textures[model.materials[geoset.materialIndex].textureID];
+                    writerOBJ.WriteLine("usemtl {0}", Path.GetFileNameWithoutExtension(textureFile));
+                    writerOBJ.WriteLine("s 1");
+                }
 
                 // +1 to each face to account for OBJ not liking zero-indexed lists.
                 for (int i = 0; i < geoset.primitives.Length; i++)
