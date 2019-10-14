@@ -25,7 +25,7 @@ namespace WoWExportTools.Exporters.OBJ
             MDXModel model = reader.model;
 
             // Empty model.
-            if (model.geosets != null)
+            if (model.geosets == null)
                 return;
 
             worker.ReportProgress(60, "Writing material library...");
