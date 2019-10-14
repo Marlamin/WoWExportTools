@@ -1435,7 +1435,7 @@ namespace WoWExportTools
                 {
                     foreach (string filePath in dialogM2Open.FileNames)
                     {
-                        using (Stream dataStream = dialogM2Open.OpenFile())
+                        using (Stream dataStream = File.OpenRead(filePath))
                         {
                             BinaryReader data = new BinaryReader(dataStream);
                             uint magic = data.ReadUInt32();
@@ -1482,7 +1482,7 @@ namespace WoWExportTools
                 {
                     foreach (string filePath in dialogBLPOpen.FileNames)
                     {
-                        using (Stream dataStream = dialogBLPOpen.OpenFile())
+                        using (Stream dataStream = File.OpenRead(filePath))
                         {
                             BLPReader reader = new BLPReader();
                             reader.LoadBLP(dataStream);
