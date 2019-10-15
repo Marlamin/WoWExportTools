@@ -132,14 +132,16 @@ namespace WoWExportTools
             {
                 FileName = "Select an M2/MDX file",
                 Filter = "Warcraft Model File (*.m2, *.mdx)|*.m2;*.mdx",
-                Title = "Open M2/MDX File"
+                Title = "Open M2/MDX File",
+                Multiselect = true
             };
 
             dialogBLPOpen = new System.Windows.Forms.OpenFileDialog()
             {
                 FileName = "Select a BLP file",
                 Filter = "BLP Files (*.blp)|*.blp",
-                Title = "Open BLP File"
+                Title = "Open BLP File",
+                Multiselect = true
             };
         }
 
@@ -1431,35 +1433,37 @@ namespace WoWExportTools
             {
                 try
                 {
-                    var filePath = dialogM2Open.FileName;
-                    using (Stream dataStream = dialogM2Open.OpenFile())
+                    foreach (string filePath in dialogM2Open.FileNames)
                     {
-                        BinaryReader data = new BinaryReader(dataStream);
-                        uint magic = data.ReadUInt32();
-
-                        // Rewind the data source before we pass it to any readers.
-                        dataStream.Seek(0, SeekOrigin.Begin);
-
-                        switch (magic)
+                        using (Stream dataStream = File.OpenRead(filePath))
                         {
-                            case (uint)M2Chunks.MD20:
-                            case (uint)M2Chunks.MD21:
-                                M2Reader readerM2 = new M2Reader();
-                                readerM2.LoadM2(dataStream);
+                            BinaryReader data = new BinaryReader(dataStream);
+                            uint magic = data.ReadUInt32();
 
-                                Exporters.OBJ.M2Exporter.ExportM2(readerM2, filePath, null, Path.GetDirectoryName(filePath), true);
-                                break;
+                            // Rewind the data source before we pass it to any readers.
+                            dataStream.Seek(0, SeekOrigin.Begin);
 
-                            case (uint)MDXChunks.MDLX:
-                                MDXReader readerMDX = new MDXReader();
-                                readerMDX.LoadModel(dataStream);
+                            switch (magic)
+                            {
+                                case (uint)M2Chunks.MD20:
+                                case (uint)M2Chunks.MD21:
+                                    M2Reader readerM2 = new M2Reader();
+                                    readerM2.LoadM2(dataStream);
 
-                                string outFile = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".obj");
-                                Exporters.OBJ.MDXExporter.ExportMDX(readerMDX, outFile, null);
-                                break;
+                                    Exporters.OBJ.M2Exporter.ExportM2(readerM2, filePath, null, Path.GetDirectoryName(filePath), true);
+                                    break;
 
-                            default:
-                                throw new Exception("Unknown file format!");
+                                case (uint)MDXChunks.MDLX:
+                                    MDXReader readerMDX = new MDXReader();
+                                    readerMDX.LoadModel(dataStream);
+
+                                    string outFile = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".obj");
+                                    Exporters.OBJ.MDXExporter.ExportMDX(readerMDX, outFile, null);
+                                    break;
+
+                                default:
+                                    throw new Exception("Unknown file format!");
+                            }
                         }
                     }
                 }
@@ -1476,17 +1480,19 @@ namespace WoWExportTools
             {
                 try
                 {
-                    var filePath = dialogBLPOpen.FileName;
-                    using (Stream dataStream = dialogBLPOpen.OpenFile())
+                    foreach (string filePath in dialogBLPOpen.FileNames)
                     {
-                        BLPReader reader = new BLPReader();
-                        reader.LoadBLP(dataStream);
+                        using (Stream dataStream = File.OpenRead(filePath))
+                        {
+                            BLPReader reader = new BLPReader();
+                            reader.LoadBLP(dataStream);
 
-                        Bitmap bmp = reader.bmp;
-                        if (ignoreTextureAlpha)
-                            bmp = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                            Bitmap bmp = reader.bmp;
+                            if (ignoreTextureAlpha)
+                                bmp = bmp.Clone(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.PixelFormat.Format32bppRgb);
 
-                        bmp.Save(Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".png"));
+                            bmp.Save(Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".png"));
+                        }
                     }
                 }
                 catch (Exception ex)
