@@ -287,6 +287,7 @@ namespace WoWExportTools
 
             progressBar.Visibility = Visibility.Visible;
 
+            Logger.WriteLine("Done with CASC worker!");
             worker.RunWorkerAsync();
 
             MainMenu.IsEnabled = true;
@@ -448,6 +449,7 @@ namespace WoWExportTools
 
         private void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
+            Logger.WriteLine("Starting listfile worker!");
             worker.ReportProgress(0, "Loading listfile..");
 
             if (!File.Exists("listfile.csv"))
@@ -460,6 +462,7 @@ namespace WoWExportTools
                 worker.ReportProgress(20, "Updating listfile..");
                 Listfile.Update();
             }
+            Logger.WriteLine("Loading geoset mapping..");
 
             worker.ReportProgress(50, "Loading geoset mapping from disk..");
             Application.Current.Dispatcher.Invoke(delegate {
@@ -470,7 +473,7 @@ namespace WoWExportTools
 
             if (Listfile.FDIDToFilename.Count == 0)
                 Listfile.Load();
-
+            Logger.WriteLine("Filtering listfile..");
             worker.ReportProgress(60, "Filtering listfile..");
 
             var linelist = new List<string>();
