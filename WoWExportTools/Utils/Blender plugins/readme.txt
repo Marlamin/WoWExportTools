@@ -1,2 +1,1 @@
-Drop these in your Blender addon directory to add ADT/WMO OBJ import to the import menu. These plugins are very experimental and not as supported as the application itself. 
-If you're feeling super experimental, use the Import WoWOBJ plugin instead of the ADT/WMO specific one.
+Drop the io_scene_wowobj folder in your Blender addon directory to add WoW OBJ import to the import menu. This plugin is experimental and not as supported as the application itself, but do let me know if there's any issues.
