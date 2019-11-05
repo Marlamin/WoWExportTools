@@ -1,8 +1,10 @@
 ﻿using CASCLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Windows;
 
 namespace WoWExportTools
 {
@@ -13,15 +15,23 @@ namespace WoWExportTools
 
         public static void Update()
         {
-            using (var client = new WebClient())
-            using (var stream = new MemoryStream())
+            try
             {
-                client.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
-                var responseStream = new GZipStream(client.OpenRead("https://wow.tools/casc/listfile/download/csv/unverified"), CompressionMode.Decompress);
-                responseStream.CopyTo(stream);
-                File.WriteAllBytes("listfile.csv", stream.ToArray());
-                responseStream.Close();
-                responseStream.Dispose();
+                using (var client = new WebClient())
+                using (var stream = new MemoryStream())
+                {
+                    client.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
+                    var responseStream = new GZipStream(client.OpenRead("https://wow.tools/casc/listfile/download/csv/unverified"), CompressionMode.Decompress);
+                    responseStream.CopyTo(stream);
+                    File.WriteAllBytes("listfile.csv", stream.ToArray());
+                    responseStream.Close();
+                    responseStream.Dispose();
+                }
+            }
+            catch(Exception e)
+            {
+                Logger.WriteLine("Listfile download failed:" + e.Message);
+                MessageBox.Show("A fatal error occured during downloading the listfile.\n\n" + e.Message + "\n\nNo listfile means files might not appear in the exporter.", "Fatal error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -471,8 +471,18 @@ namespace WoWExportTools
 
             worker.ReportProgress(55, "Loading listfile from disk..");
 
-            if (Listfile.FDIDToFilename.Count == 0)
-                Listfile.Load();
+            try
+            {
+                if (Listfile.FDIDToFilename.Count == 0)
+                {
+                    Listfile.Load();
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.WriteLine("Error loading listfile: " + ex.Message);
+            }
+
             Logger.WriteLine("Filtering listfile..");
             worker.ReportProgress(60, "Filtering listfile..");
 
