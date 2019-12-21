@@ -389,22 +389,31 @@ namespace WoWExportTools.Exporters.OBJ
 
                 Console.WriteLine("Writing " + group.name);
 
+                //Adjusted according to the WaveFront Object (.obj) File Format spec
+                //https://people.cs.clemson.edu/~dhouse/courses/405/docs/brief-obj-file-format.html
                 foreach (var vertex in group.vertices)
                 {
                     objWriter.WriteLine("v " + vertex.Position.X + " " + vertex.Position.Y + " " + vertex.Position.Z);
-                    objWriter.WriteLine("vt " + vertex.TexCoord.X + " " + (vertex.TexCoord.Y - 1) * -1);
+                }
+                foreach (var vertex in group.vertices)
+                {
+                    objWriter.WriteLine("vt " + vertex.TexCoord.X + " " + (vertex.TexCoord.Y - 1) * -1 + " 0.0000");
+                }
+                foreach (var vertex in group.vertices)
+                {
                     objWriter.WriteLine("vn " + (-vertex.Normal.X).ToString("F12") + " " + vertex.Normal.Y.ToString("F12") + " " + vertex.Normal.Z.ToString("F12"));
                 }
 
-                var indices = group.indices;
 
+                var indices = group.indices;
                 for (int rbi = 0; rbi < group.renderBatches.Count(); rbi++)
                 {
                     var renderbatch = group.renderBatches[rbi];
                     var i = renderbatch.firstFace;
                     if (renderbatch.numFaces > 0)
                     {
-                        objWriter.WriteLine("g " + group.name + rbi);
+                        objWriter.WriteLine("o " + group.name + rbi);
+                        objWriter.WriteLine("g " + group.name + rbi); //3DS Max's OBJ importer fails with invalid normal index without groups being defined
                         objWriter.WriteLine("usemtl " + materials[renderbatch.materialID].filename);
                         objWriter.WriteLine("s 1");
                         while (i < (renderbatch.firstFace + renderbatch.numFaces))

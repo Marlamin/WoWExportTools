@@ -113,10 +113,18 @@ namespace WoWExportTools.Exporters.OBJ
             objWriter.WriteLine("# Written by Marlamin's WoW Export Tools. Source file: " + fileName);
             objWriter.WriteLine("mtllib " + Path.GetFileName(mtlFilePath));
 
+            //Adjusted according to the WaveFront Object (.obj) File Format spec
+            //https://people.cs.clemson.edu/~dhouse/courses/405/docs/brief-obj-file-format.html
             foreach (var vertex in vertices)
             {
                 objWriter.WriteLine("v " + vertex.Position.X + " " + vertex.Position.Y + " " + vertex.Position.Z);
+            }
+            foreach (var vertex in vertices)
+            {
                 objWriter.WriteLine("vt " + vertex.TexCoord.X + " " + (vertex.TexCoord.Y - 1) * -1);
+            }
+            foreach (var vertex in vertices)
+            {
                 objWriter.WriteLine("vn " + (-vertex.Normal.X).ToString("F12") + " " + vertex.Normal.Y.ToString("F12") + " " + vertex.Normal.Z.ToString("F12"));
             }
 
